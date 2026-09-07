@@ -13,3 +13,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Ieșiri teste (pot conține text generat)
+tests/last-run.json
+tests/run*.log
