@@ -1,0 +1,15 @@
+# Dependințe
+node_modules/
+
+# Variabile de mediu (NU urca cheile în git!)
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Sistem / editor
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0284c7">
+    <title>PflegeDoc AI - Asistent Documentație Medicală</title>
+    <style>
+        /* ============================================================
+           DESIGN TOKENS
+           Contrast verificat AA pentru text pe fundal deschis.
+           ============================================================ */
+        :root {
+            --primary: #0369a1;          /* buton principal (contrast AA pe alb) */
+            --primary-hover: #075985;
+            --danger: #dc2626;           /* buton microfon */
+            --danger-hover: #b91c1c;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #475569;
+            --border: #94a3b8;
+            --focus: #f59e0b;            /* inel de focus vizibil */
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            max-width: 560px;
+            width: 100%;
+            background: var(--card);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            color: var(--primary);
+            margin: 0 0 4px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0 0 16px;
+        }
+
+        label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;           /* >=16px: previne zoom automat pe iOS */
+            font-family: inherit;
+            color: var(--text);
+            background: #fff;
+        }
+
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        /* Focus vizibil pentru navigare cu tastatura / accesibilitate */
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        button:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .mic-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        /* Butoane mari, ușor de atins pe mobil (min 48px înălțime) */
+        button {
+            min-height: 52px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color .15s ease, transform .05s ease;
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-mic {
+            background-color: var(--danger);
+            color: #fff;
+            padding: 0 20px;
+            flex: 0 0 auto;
+        }
+        .btn-mic:hover:not(:disabled) { background-color: var(--danger-hover); }
+        .btn-mic.recording { animation: pulse 1.4s infinite; }
+
+        .btn-generate {
+            width: 100%;
+            background-color: var(--primary);
+            color: #fff;
+            padding: 14px;
+            font-size: 1.05rem;
+            margin-top: 18px;
+        }
+        .btn-generate:hover:not(:disabled) { background-color: var(--primary-hover); }
+
+        .btn-copy {
+            width: 100%;
+            background: #e2e8f0;
+            color: var(--text);
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .btn-copy:hover { background: #cbd5e1; }
+
+        .mic-status {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .output-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+            min-height: 60px;
+        }
+
+        /* Mesaje de eroare clare în UI */
+        .msg {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .msg.error {
+            display: block;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        .msg.info {
+            display: block;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.55; }
+        }
+
+        /* Respectă preferința de reducere a mișcării */
+        @media (prefers-reduced-motion: reduce) {
+            .btn-mic.recording { animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PflegeDoc AI 🏥</h1>
+    <p class="subtitle">Note vocale sau scrise → Pflegedokumentation în germană oficială</p>
+
+    <!-- ============================================================
+         CHEIE API (opțional)
+         În producție generarea trece prin /api/generate (Vercel),
+         unde cheia stă în GEMINI_API_KEY și NU ajunge în browser.
+         Câmpul de mai jos e doar pentru fallback / dezvoltare locală
+         fără backend: dacă îl completezi, se apelează Gemini direct.
+         ============================================================ -->
+    <details id="apiKeyBox">
+        <summary style="cursor:pointer; font-weight:700; font-size:0.9rem; margin-top:8px;">
+            ⚙️ Cheie API proprie (opțional)
+        </summary>
+        <label for="apiKey">Cheie API Google Gemini:</label>
+        <input type="password" id="apiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
+        <p class="hint">
+            Lasă gol pentru a folosi serverul aplicației. Dacă o completezi, cheia
+            rămâne local în browser și se apelează Gemini direct de pe acest dispozitiv.
+        </p>
+        <label style="font-weight:400; font-size:0.85rem; margin-top:8px;">
+            <input type="checkbox" id="rememberKey" style="width:auto; margin-right:6px;">
+            Ține minte cheia pe acest dispozitiv
+        </label>
+    </details>
+
+    <label for="inputLanguage">Limba în care vorbești/scrii:</label>
+    <select id="inputLanguage">
+        <option value="ro-RO">Română</option>
+        <option value="de-DE">Germană (vorbită / simplă)</option>
+        <option value="en-US">Engleză</option>
+        <option value="es-ES">Spaniolă</option>
+    </select>
+
+    <label for="userInput">Note / Înregistrare Vocală:</label>
+    <textarea id="userInput" placeholder="Apasă pe butonul roșu și vorbește, sau scrie aici. Fiecare înregistrare nouă se adaugă la text, nu îl șterge."></textarea>
+
+    <div class="mic-section">
+        <button id="micBtn" type="button" class="btn-mic" onclick="toggleRecording()">🎤 Vorbește</button>
+        <span id="micStatus" class="mic-status" aria-live="polite">Apasă pentru a înregistra</span>
+        <button id="clearBtn" type="button" class="btn-copy" style="margin-top:0; flex:1 1 100px;" onclick="clearInput()">🗑️ Șterge tot</button>
+    </div>
+
+    <label style="font-weight:400; font-size:0.85rem; margin-top:10px;">
+        <input type="checkbox" id="voiceCommands" checked style="width:auto; margin-right:6px;">
+        Punctuație prin comenzi vocale
+    </label>
+    <p class="hint">
+        Când e activ, motorul NU mai pune punct/virgulă automat la pauze. Tu dictezi semnele:
+        „virgulă", „punct", „două puncte", „punct și virgulă", „semnul întrebării",
+        „semnul exclamării", „rând nou", „deschide/închide paranteza", „ghilimele", „linie de dialog".
+    </p>
+
+    <button class="btn-generate" type="button" id="generateBtn" onclick="generateDoc()">Generează Pflegedokumentation</button>
+
+    <!-- Zonă de mesaje (erori de rețea / API, info) -->
+    <div id="message" class="msg" role="alert" aria-live="assertive"></div>
+
+    <div id="resultSection" style="display:none;">
+        <label>Formulare Oficială Germană (Pflegefachsprache):</label>
+        <div id="output" class="output-box"></div>
+        <button class="btn-copy" type="button" onclick="copyOutput()">📋 Copiază Textul</button>
+    </div>
+</div>
+
+<script>
+/* ================================================================
+   PflegeDoc AI — logică front-end (MVP)
+   Secțiuni:
+     1. Config
+     2. Persistență cheie API (localStorage opțional)
+     3. Web Speech API (transcriere cu APPEND, nu overwrite)
+     4. Apel Gemini (endpoint stabil + gestiune erori)
+     5. Utilitare UI
+   ================================================================ */
+
+/* ---------- 1. CONFIG ---------- */
+const CONFIG = {
+    // Model activ în Gemini API v1beta.
+    // gemini-1.5-flash și gemini-2.x-flash au fost retrase.
+    // gemini-3.6-flash este recomandat pentru conturi noi / free tier.
+    // Alternative mai noi (dacă sunt disponibile pe contul tău):
+    //   "gemini-3.7-flash", "gemini-3.8-flash"
+    // Dacă apare eroare 404, mesajul API îți spune exact ce model să pui aici.
+    GEMINI_MODEL: "gemini-3.6-flash",
+    // Ruta backend care ține cheia în siguranță (Vercel Serverless).
+    // Dacă e setată ȘI utilizatorul NU a introdus o cheie proprie,
+    // generarea trece prin server (recomandat pentru producție).
+    // Pune null ca să forțezi doar modul cu cheie în browser.
+    BACKEND_ENDPOINT: "/api/generate",
+    // După atâtea milisecunde fără răspuns, cererea e anulată (nu mai
+    // rămâne blocat pe "Se generează...").
+    TIMEOUT_MS: 60000
+};
+
+/* ---------- 2. PERSISTENȚĂ CHEIE API ---------- */
+const apiKeyInput = document.getElementById('apiKey');
+const rememberKeyCheckbox = document.getElementById('rememberKey');
+
+(function restoreApiKey() {
+    try {
+        const saved = localStorage.getItem('pflegedoc_api_key');
+        if (saved) {
+            apiKeyInput.value = saved;
+            rememberKeyCheckbox.checked = true;
+            // Deschidem secțiunea ca utilizatorul să vadă că e activă cheia proprie.
+            const box = document.getElementById('apiKeyBox');
+            if (box) box.open = true;
+        }
+    } catch (e) { /* localStorage indisponibil (mod privat) — ignorăm */ }
+})();
+
+rememberKeyCheckbox.addEventListener('change', persistApiKey);
+apiKeyInput.addEventListener('blur', persistApiKey);
+
+function persistApiKey() {
+    try {
+        if (rememberKeyCheckbox.checked && apiKeyInput.value.trim()) {
+            localStorage.setItem('pflegedoc_api_key', apiKeyInput.value.trim());
+        } else {
+            localStorage.removeItem('pflegedoc_api_key');
+        }
+    } catch (e) { /* ignorăm */ }
+}
+
+/* ---------- 3. WEB SPEECH API ---------- */
+let recognition = null;
+let isRecording = false;
+// Textul existent în <textarea> în momentul pornirii înregistrării.
+// Noile fraze se adaugă DUPĂ acest text, ca să nu se piardă nimic.
+let baseText = '';
+// Acumulatorul frazelor deja finalizate în sesiunea curentă de dictare.
+let finalizedInSession = '';
+
+const micBtn = document.getElementById('micBtn');
+const micStatus = document.getElementById('micStatus');
+const userInputEl = document.getElementById('userInput');
+
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+        let interim = '';
+        // Parcurgem doar rezultatele noi din acest eveniment.
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const chunk = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                // Frază finalizată -> o procesăm (comenzi de punctuație) și o
+                // adăugăm permanent la acumulatorul sesiunii curente.
+                finalizedInSession = joinSmart(finalizedInSession, processChunk(chunk));
+            } else {
+                // Text provizoriu (încă se vorbește) -> doar previzualizare.
+                interim += chunk;
+            }
+        }
+        // În modul "comenzi vocale" curățăm și previzualizarea, ca punctele
+        // adăugate automat de motor să nu apară nici măcar temporar.
+        const interimShown = voiceCommandsEnabled()
+            ? interim.replace(/[.,;:!?]+/g, '')
+            : interim;
+        // APPEND: base + ce s-a dictat până acum + previzualizarea curentă.
+        userInputEl.value = joinSmart(baseText, joinSmart(finalizedInSession, interimShown.trim()));
+    };
+
+    recognition.onerror = (event) => {
+        if (event.error === 'no-speech') {
+            micStatus.textContent = 'Nu s-a detectat voce. Mai încearcă.';
+            return;
+        }
+        if (event.error === 'aborted') return; // oprire normală
+        showMessage('error', 'Eroare microfon: ' + event.error +
+            (event.error === 'not-allowed' ? ' (permite accesul la microfon în browser).' : ''));
+        stopRecording();
+    };
+
+    recognition.onend = () => {
+        // Dacă utilizatorul nu a apăsat Stop, dar API-ul s-a oprit singur
+        // (pauză lungă), repornim ca dictarea să fie continuă.
+        if (isRecording) {
+            try { recognition.start(); } catch (e) { /* deja pornit */ }
+        }
+    };
+} else {
+    micBtn.disabled = true;
+    micStatus.textContent = 'Microfonul nu este suportat (folosește Chrome sau Edge).';
+}
+
+function toggleRecording() {
+    if (!recognition) return;
+    if (!isRecording) {
+        // Fixăm textul curent ca bază și pornim o sesiune nouă de dictare.
+        baseText = userInputEl.value.trim();
+        finalizedInSession = '';
+        recognition.lang = document.getElementById('inputLanguage').value;
+        try {
+            recognition.start();
+        } catch (e) {
+            showMessage('error', 'Nu s-a putut porni microfonul: ' + e.message);
+            return;
+        }
+        isRecording = true;
+        micBtn.classList.add('recording');
+        micBtn.textContent = '⏹️ Oprește';
+        micStatus.textContent = 'Ascult... vorbește acum.';
+        clearMessage();
+    } else {
+        stopRecording();
+    }
+}
+
+function stopRecording() {
+    isRecording = false;
+    if (recognition) {
+        try { recognition.stop(); } catch (e) { /* ignorăm */ }
+    }
+    micBtn.classList.remove('recording');
+    micBtn.textContent = '🎤 Vorbește';
+    micStatus.textContent = 'Înregistrare oprită. Poți dicta din nou sau edita textul.';
+    // Consolidăm textul final (fără previzualizări provizorii).
+    let consolidated = joinSmart(baseText, finalizedInSession.trim());
+    if (voiceCommandsEnabled()) consolidated = capitalizeSentences(consolidated);
+    userInputEl.value = consolidated;
+}
+
+function clearInput() {
+    if (isRecording) stopRecording();
+    userInputEl.value = '';
+    baseText = '';
+    finalizedInSession = '';
+    clearMessage();
+    document.getElementById('resultSection').style.display = 'none';
+}
+
+/* ---------- 4. APEL GEMINI ---------- */
+
+/*
+  SYSTEM PROMPT (Pflegefachsprache / SIS)
+  Structură profesională impusă în output:
+    - Situation / Beobachtung
+    - Vitalwerte (RR, Puls, SpO2, BZ, Temp — doar dacă sunt menționate)
+    - Durchgeführte Maßnahmen
+*/
+const SYSTEM_PROMPT = `Du bist eine erfahrene deutsche Pflegefachkraft und Experte für Pflegedokumentation nach dem Strukturmodell (SIS) und Pflegefachsprache.
+
+AUFGABE:
+Nimm die rohen Notizen des Nutzers entgegen (gesprochen oder geschrieben, auf Rumänisch, einfachem Deutsch, Spanisch oder Englisch) und wandle sie in eine fachlich einwandfreie, sachliche deutsche Pflegedokumentation um.
+
+REGELN:
+1. Schreibe ausschließlich auf Deutsch, in professioneller Pflegefachsprache.
+2. Korrigiere automatisch Rechtschreib- und Grammatikfehler aus dem Eingabetext.
+3. Bleibe streng sachlich und wertfrei. Erfinde KEINE Informationen. Was nicht genannt wurde, wird weggelassen.
+4. Verwende Fachbegriffe (z. B. "Mobilisation", "Dekubitusprophylaxe", "Vitalzeichenkontrolle", "Kontinenzversorgung").
+5. Strukturiere die Ausgabe exakt in diese Abschnitte (Überschriften genau so schreiben):
+
+Situation / Beobachtung:
+<Beschreibung des Zustands, Verhaltens und der Beobachtungen>
+
+Vitalwerte:
+<Nur wenn genannt. Format: RR: <Wert> mmHg | Puls: <Wert>/min | SpO2: <Wert> % | BZ: <Wert> mg/dl | Temp: <Wert> °C. Nicht genannte Werte weglassen. Wenn gar keine Vitalwerte genannt wurden, schreibe: "Keine Vitalwerte dokumentiert.">
+
+Durchgeführte Maßnahmen:
+<Aufzählung der durchgeführten pflegerischen Maßnahmen, jeweils mit "- " am Zeilenanfang>
+
+6. Gib NUR diesen strukturierten Text zurück, ohne Einleitung, ohne Kommentar, bereit zum Kopieren in die Pflegesoftware.`;
+
+const generateBtn = document.getElementById('generateBtn');
+
+async function generateDoc() {
+    const apiKey = apiKeyInput.value.trim();
+    const userInput = userInputEl.value.trim();
+    const outputDiv = document.getElementById('output');
+    const resultSection = document.getElementById('resultSection');
+
+    clearMessage();
+
+    if (!CONFIG.BACKEND_ENDPOINT && !apiKey) {
+        return showMessage('error', 'Introdu cheia API Google Gemini.');
+    }
+    if (!userInput) {
+        return showMessage('error', 'Introdu un text sau folosește microfonul.');
+    }
+    if (isRecording) stopRecording();
+
+    setLoading(true);
+    resultSection.style.display = 'block';
+    outputDiv.textContent = 'Se procesează în germană medicală... (poate dura 10–40 secunde)';
+
+    try {
+        const text = await callGemini(apiKey, userInput);
+        outputDiv.textContent = text;
+    } catch (err) {
+        resultSection.style.display = 'none';
+        showMessage('error', err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+/*
+  callGemini — izolează apelul de rețea.
+  Două moduri:
+    A) BACKEND  (implicit): POST { input } -> /api/generate. Cheia stă pe
+       server. Răspuns: { text } sau { error }.
+    B) DIRECT   (fallback): dacă utilizatorul a introdus o cheie proprie,
+       apelăm Gemini direct din browser (util pentru dezvoltare fără backend).
+*/
+async function callGemini(apiKey, userInput) {
+    const useBackend = CONFIG.BACKEND_ENDPOINT && !apiKey;
+    let url, payload;
+
+    if (useBackend) {
+        url = CONFIG.BACKEND_ENDPOINT;
+        payload = { input: userInput };
+    } else {
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        payload = {
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: [{ role: "user", parts: [{ text: userInput }] }],
+            generationConfig: {
+                temperature: 0.2,
+                topP: 0.9,
+                // Loc suficient: modelele Flash 3.x consumă token-uri și pe
+                // raționament intern înainte de răspunsul vizibil.
+                maxOutputTokens: 8192
+            }
+        };
+    }
+
+    // Timeout dur: dacă răspunsul nu vine în CONFIG.TIMEOUT_MS, anulăm
+    // cererea ca aplicația să NU rămână blocată pe "Se generează...".
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
+
+    let response;
+    try {
+        response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+    } catch (netErr) {
+        if (netErr.name === 'AbortError') {
+            throw new Error('Timp expirat (' + Math.round(CONFIG.TIMEOUT_MS / 1000) +
+                's). Serverul nu a răspuns. Încearcă din nou sau verifică rețeaua.');
+        }
+        throw new Error('Eroare de rețea: verifică conexiunea la internet.');
+    } finally {
+        clearTimeout(timer);
+    }
+
+    let data;
+    try {
+        data = await response.json();
+    } catch (parseErr) {
+        throw new Error('Răspuns invalid de la server (HTTP ' + response.status + ').');
+    }
+
+    // --- Mod BACKEND: răspunsul e deja normalizat { text } / { error } ---
+    if (useBackend) {
+        if (!response.ok) {
+            throw new Error((data && data.error) || ('Eroare server (HTTP ' + response.status + ').'));
+        }
+        const text = data && typeof data.text === 'string' ? data.text.trim() : '';
+        if (!text) throw new Error('Răspuns gol de la server. Reîncearcă.');
+        return text;
+    }
+
+    // --- Mod DIRECT: procesăm răspunsul brut de la Gemini ---
+    if (!response.ok) {
+        // Gemini întoarce { error: { code, message, status } }
+        const apiMsg = data && data.error && data.error.message ? data.error.message : ('HTTP ' + response.status);
+        if (response.status === 400 && /API key not valid/i.test(apiMsg)) {
+            throw new Error('Cheia API nu este validă. Verifică cheia Google Gemini.');
+        }
+        if (response.status === 403) {
+            throw new Error('Acces refuzat (403). Activează "Generative Language API" pentru această cheie.');
+        }
+        if (response.status === 429) {
+            throw new Error('Prea multe cereri (429). Așteaptă un minut și reîncearcă.');
+        }
+        if (response.status === 404) {
+            throw new Error('Model indisponibil (404): ' + apiMsg + '. Actualizează CONFIG.GEMINI_MODEL.');
+        }
+        throw new Error('Eroare API: ' + apiMsg);
+    }
+
+    // Pentru depanare: răspunsul brut e mereu în consolă (F12).
+    console.debug('Gemini raw response:', data);
+
+    // Verificăm blocaje de siguranță pe prompt.
+    if (data.promptFeedback && data.promptFeedback.blockReason) {
+        throw new Error('Cerere blocată de filtrul de siguranță: ' + data.promptFeedback.blockReason);
+    }
+
+    const candidate = data.candidates && data.candidates[0];
+    if (!candidate) {
+        throw new Error('Model fără răspuns (candidates gol). Reîncearcă.');
+    }
+
+    // Concatenăm textul din TOATE părțile; la modelele 3.x pot exista
+    // și părți de "raționament" (thought) care se ignoră.
+    let text = '';
+    const parts = (candidate.content && candidate.content.parts) || [];
+    for (const p of parts) {
+        if (p && typeof p.text === 'string' && !p.thought) text += p.text;
+    }
+    text = text.trim();
+
+    if (!text) {
+        const reason = candidate.finishReason || 'necunoscut';
+        if (reason === 'MAX_TOKENS') {
+            throw new Error('Răspunsul a fost tăiat (MAX_TOKENS) înainte de text. ' +
+                'Mărește maxOutputTokens sau scurtează notele.');
+        }
+        if (reason === 'SAFETY' || reason === 'RECITATION') {
+            throw new Error('Răspuns blocat de model (' + reason + '). Reformulează notele.');
+        }
+        throw new Error('Răspuns gol de la model (finishReason: ' + reason + '). Vezi consola (F12).');
+    }
+
+    return text;
+}
+
+/* ---------- 5. UTILITARE ---------- */
+
+// True dacă utilizatorul vrea punctuație doar prin comenzi vocale.
+function voiceCommandsEnabled() {
+    const el = document.getElementById('voiceCommands');
+    return !!(el && el.checked);
+}
+
+// Lipește două bucăți de text. Dacă a doua începe cu semn de punctuație
+// sau linie nouă, nu punem spațiu înainte.
+function joinSmart(a, b) {
+    if (!a) return b;
+    if (!b) return a;
+    if (/^[\s]*[\n,.;:!?)]/.test(b)) {
+        return a.replace(/\s+$/, '') + b.replace(/^[ \t]+/, '');
+    }
+    return a.replace(/\s+$/, '') + ' ' + b.replace(/^\s+/, '');
+}
+
+// Procesează o frază finalizată de la motorul vocal.
+function processChunk(chunk) {
+    let t = chunk.trim();
+    if (voiceCommandsEnabled()) {
+        // 1. Scoatem punctuația pe care motorul o adaugă singur la pauze.
+        t = t.replace(/[.,;:!?]+/g, '');
+        // 2. Transformăm cuvintele-comandă în semne reale.
+        t = applyVoiceCommands(t);
+    }
+    return t;
+}
+
+// Înlocuiește cuvinte rostite ("virgulă", "punct"...) cu semnele lor.
+// Regulile cu mai multe cuvinte trebuie să fie ÎNAINTEA celor scurte.
+function applyVoiceCommands(text) {
+    let t = ' ' + text + ' ';
+    const rules = [
+        [/\s+(punct(?:ul)?\s+(?:și|si)\s+virgul[ăa])\s+/gi, '; '],
+        [/\s+(dou[ăa]\s+puncte)\s+/gi, ': '],
+        [/\s+(semnul\s+(?:întreb[ăa]rii|intrebarii)|semn\s+de\s+(?:întrebare|intrebare))\s+/gi, '? '],
+        [/\s+(semnul\s+(?:exclam[ăa]rii|exclamarii)|semn\s+de\s+exclamare)\s+/gi, '! '],
+        [/\s+(r[âa]nd\s+nou|linie\s+nou[ăa]|paragraf\s+nou|newline)\s+/gi, '\n'],
+        [/\s+(deschide\s+paranteza|paranteza\s+deschis[ăa])\s+/gi, ' ('],
+        [/\s+(închide\s+paranteza|inchide\s+paranteza|paranteza\s+(?:închis[ăa]|inchisa))\s+/gi, ') '],
+        [/\s+(ghilimele|semnul\s+cit[ăa]rii)\s+/gi, ' "'],
+        [/\s+(linie\s+de\s+dialog|cratim[ăa]|linioar[ăa])\s+/gi, ' - '],
+        [/\s+(virgul[ăa])\s+/gi, ', '],
+        [/\s+(punct(?:ul)?)\s+/gi, '. ']
+    ];
+    for (const [re, rep] of rules) t = t.replace(re, rep);
+    // Curățăm spațiile în plus în jurul semnelor.
+    t = t.replace(/\s+([,.;:!?])/g, '$1');
+    t = t.replace(/([,.;:!?])(?=[^\s)\n])/g, '$1 ');
+    t = t.replace(/[ \t]*\n[ \t]*/g, '\n');
+    t = t.replace(/[ \t]{2,}/g, ' ');
+    return t.trim();
+}
+
+// Scrie cu majusculă începutul textului și după . ! ? sau linie nouă.
+function capitalizeSentences(text) {
+    return text.replace(
+        /(^\s*|[.!?]\s+|\n\s*)([a-zăâîșț])/g,
+        (m, prefix, ch) => prefix + ch.toUpperCase()
+    );
+}
+
+function setLoading(loading) {
+    generateBtn.disabled = loading;
+    generateBtn.textContent = loading ? 'Se generează...' : 'Generează Pflegedokumentation';
+}
+
+function showMessage(type, text) {
+    const box = document.getElementById('message');
+    box.className = 'msg ' + type;
+    box.textContent = text;
+}
+
+function clearMessage() {
+    const box = document.getElementById('message');
+    box.className = 'msg';
+    box.textContent = '';
+}
+
+async function copyOutput() {
+    const text = document.getElementById('output').textContent;
+    try {
+        await navigator.clipboard.writeText(text);
+        showMessage('info', 'Text copiat în clipboard.');
+    } catch (e) {
+        // Fallback pentru browsere fără Clipboard API / context non-HTTPS
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showMessage('info', 'Text copiat.'); }
+        catch (e2) { showMessage('error', 'Nu s-a putut copia automat. Selectează manual textul.'); }
+        document.body.removeChild(ta);
+    }
+}
+</script>
+
+</body>
+</html>
