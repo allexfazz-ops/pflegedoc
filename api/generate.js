@@ -61,14 +61,14 @@ export default async function handler(req, res) {
         return res.status(204).end();
     }
     if (req.method !== "POST") {
-        return res.status(405).json({ error: "Metodă neacceptată. Folosește POST." });
+        return res.status(405).json({ error: "Methode nicht erlaubt. Bitte POST verwenden." });
     }
 
     // --- Cheia API din mediu ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         return res.status(500).json({
-            error: "Serverul nu are cheia configurată (GEMINI_API_KEY). Setează-o în Vercel."
+            error: "Auf dem Server ist kein Schlüssel hinterlegt (GEMINI_API_KEY). Bitte in Vercel setzen."
         });
     }
 
@@ -80,11 +80,11 @@ export default async function handler(req, res) {
     const input = body && typeof body.input === "string" ? body.input.trim() : "";
 
     if (!input) {
-        return res.status(400).json({ error: "Lipsește textul (câmpul 'input')." });
+        return res.status(400).json({ error: "Es fehlt der Text (Feld 'input')." });
     }
     if (input.length > MAX_INPUT_CHARS) {
         return res.status(413).json({
-            error: `Text prea lung (${input.length} caractere). Maxim ${MAX_INPUT_CHARS}.`
+            error: `Text zu lang (${input.length} Zeichen). Maximal ${MAX_INPUT_CHARS}.`
         });
     }
 
@@ -116,9 +116,9 @@ export default async function handler(req, res) {
     } catch (err) {
         clearTimeout(timer);
         if (err.name === "AbortError") {
-            return res.status(504).json({ error: "Gemini nu a răspuns la timp. Reîncearcă." });
+            return res.status(504).json({ error: "Gemini hat nicht rechtzeitig geantwortet. Bitte erneut versuchen." });
         }
-        return res.status(502).json({ error: "Nu s-a putut contacta serverul Gemini." });
+        return res.status(502).json({ error: "Der Gemini-Server konnte nicht erreicht werden." });
     }
     clearTimeout(timer);
 
@@ -126,7 +126,7 @@ export default async function handler(req, res) {
     try {
         data = await upstream.json();
     } catch (e) {
-        return res.status(502).json({ error: `Răspuns invalid de la Gemini (HTTP ${upstream.status}).` });
+        return res.status(502).json({ error: `Ungültige Antwort von Gemini (HTTP ${upstream.status}).` });
     }
 
     // --- Erori de la Gemini ---
@@ -136,24 +136,24 @@ export default async function handler(req, res) {
             : `HTTP ${upstream.status}`;
 
         if (upstream.status === 400 && /API key not valid/i.test(apiMsg)) {
-            return res.status(500).json({ error: "Cheia GEMINI_API_KEY de pe server nu este validă." });
+            return res.status(500).json({ error: "Der GEMINI_API_KEY auf dem Server ist ungültig." });
         }
         if (upstream.status === 403) {
-            return res.status(500).json({ error: "Acces refuzat de Gemini (403). Verifică activarea API-ului." });
+            return res.status(500).json({ error: "Zugriff von Gemini verweigert (403). Bitte API-Aktivierung prüfen." });
         }
         if (upstream.status === 404) {
-            return res.status(500).json({ error: `Model indisponibil (404): ${apiMsg}. Schimbă GEMINI_MODEL.` });
+            return res.status(500).json({ error: `Modell nicht verfügbar (404): ${apiMsg}. Bitte GEMINI_MODEL ändern.` });
         }
         if (upstream.status === 429) {
-            return res.status(429).json({ error: "Prea multe cereri (429). Așteaptă puțin și reîncearcă." });
+            return res.status(429).json({ error: "Zu viele Anfragen (429). Bitte kurz warten und erneut versuchen." });
         }
-        return res.status(502).json({ error: `Eroare Gemini: ${apiMsg}` });
+        return res.status(502).json({ error: `Gemini-Fehler: ${apiMsg}` });
     }
 
     // --- Blocaje de siguranță pe prompt ---
     if (data.promptFeedback && data.promptFeedback.blockReason) {
         return res.status(422).json({
-            error: `Cerere blocată de filtrul de siguranță: ${data.promptFeedback.blockReason}`
+            error: `Anfrage vom Sicherheitsfilter blockiert: ${data.promptFeedback.blockReason}`
         });
     }
 
@@ -170,12 +170,12 @@ export default async function handler(req, res) {
     if (!text) {
         const reason = (candidate && candidate.finishReason) || "necunoscut";
         if (reason === "MAX_TOKENS") {
-            return res.status(502).json({ error: "Răspuns tăiat (MAX_TOKENS). Scurtează notele." });
+            return res.status(502).json({ error: "Antwort abgeschnitten (MAX_TOKENS). Bitte die Notiz kürzen." });
         }
         if (reason === "SAFETY" || reason === "RECITATION") {
-            return res.status(422).json({ error: `Răspuns blocat de model (${reason}).` });
+            return res.status(422).json({ error: `Antwort vom Modell blockiert (${reason}).` });
         }
-        return res.status(502).json({ error: `Răspuns gol de la model (finishReason: ${reason}).` });
+        return res.status(502).json({ error: `Leere Antwort vom Modell (finishReason: ${reason}).` });
     }
 
     // Fără cache — fiecare cerere e nouă.

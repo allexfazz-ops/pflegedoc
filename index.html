@@ -2,300 +2,908 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0284c7">
-    <title>PflegeDoc AI - Asistent Documentație Medicală</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#f4f7f8">
+    <title>PflegeDoc – Pflegedokumentation</title>
     <style>
-        /* ============================================================
-           DESIGN TOKENS
-           Contrast verificat AA pentru text pe fundal deschis.
-           ============================================================ */
-        :root {
-            --primary: #0369a1;          /* buton principal (contrast AA pe alb) */
-            --primary-hover: #075985;
-            --danger: #dc2626;           /* buton microfon */
-            --danger-hover: #b91c1c;
-            --bg: #f1f5f9;
-            --card: #ffffff;
-            --text: #0f172a;
-            --text-muted: #475569;
-            --border: #94a3b8;
-            --focus: #f59e0b;            /* inel de focus vizibil */
-            --radius: 12px;
-        }
+    /* ================================================================
+       PflegeDoc — Design System
+       Konzept: Modern Healthcare × Human-centered AI × Clinical Simplicity
+       - Eine ruhige, klinische Identität (Signal-/Pulslinie als Marke)
+       - Kontrast AA in Hell- UND Dunkelmodus
+       - Mobile-first, großzügiges Spacing, große Tap-Ziele
+       ================================================================ */
 
-        * { box-sizing: border-box; }
+    /* ---- Tokens: HELL (Standard) ---- */
+    :root {
+        --bg:            #f4f7f8;
+        --surface:       #ffffff;
+        --surface-2:     #eef3f4;
+        --surface-3:     #e3ecee;
+        --border:        #d4dfe2;
+        --border-strong: #b7c7cb;
 
-        html, body { margin: 0; padding: 0; }
+        --text:          #10242b;
+        --text-muted:    #55686f;
+        --text-faint:    #7c8b91;
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            padding: 16px;
-            display: flex;
-            justify-content: center;
-            line-height: 1.5;
-            -webkit-text-size-adjust: 100%;
-        }
+        --accent:        #0e7490;   /* Cyan-700 — Vertrauen, Technik, Reinheit */
+        --accent-strong: #155e75;
+        --accent-ink:    #ffffff;   /* Text auf Akzentflächen */
+        --accent-weak:   #e0f5f9;
+        --accent-weak-bd:#b6e4ec;
 
-        .container {
-            max-width: 560px;
-            width: 100%;
-            background: var(--card);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
-        }
+        --success:       #15803d;
+        --success-weak:  #e7f6ec;
+        --warning:       #a4610a;
+        --warning-weak:  #fbeedb;
+        --danger:        #b91c1c;
+        --danger-weak:   #fdeaea;
 
-        h1 {
-            font-size: 1.35rem;
-            color: var(--primary);
-            margin: 0 0 4px;
-            text-align: center;
-        }
+        --focus:         #f59e0b;
 
-        .subtitle {
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin: 0 0 16px;
-        }
+        --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-pill: 999px;
+        --shadow-sm: 0 1px 2px rgba(16,36,43,.05);
+        --shadow-md: 0 1px 2px rgba(16,36,43,.04), 0 10px 26px rgba(16,36,43,.07);
+        --shadow-lg: 0 8px 40px rgba(16,36,43,.16);
+        --ring: 0 0 0 3px var(--focus);
 
-        label {
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: block;
-            margin-top: 16px;
-            margin-bottom: 6px;
-        }
+        --step: .16s ease;
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
 
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 1rem;           /* >=16px: previne zoom automat pe iOS */
-            font-family: inherit;
-            color: var(--text);
-            background: #fff;
-        }
+    /* ---- Tokens: DUNKEL (System, sofern nicht ausdrücklich "hell") ---- */
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --bg:            #0a1417;
+            --surface:       #0f1f23;
+            --surface-2:     #16292e;
+            --surface-3:     #1e363c;
+            --border:        #294249;
+            --border-strong: #3a545c;
 
-        textarea {
-            min-height: 130px;
-            resize: vertical;
-        }
+            --text:          #e7eff1;
+            --text-muted:    #a0b3b9;
+            --text-faint:    #7d9299;
 
-        /* Focus vizibil pentru navigare cu tastatura / accesibilitate */
-        input:focus-visible,
-        select:focus-visible,
-        textarea:focus-visible,
-        button:focus-visible {
-            outline: 3px solid var(--focus);
-            outline-offset: 2px;
-        }
+            --accent:        #34c3d6;
+            --accent-strong: #5fd3e2;
+            --accent-ink:    #04222a;
+            --accent-weak:   #123037;
+            --accent-weak-bd:#1e4a54;
 
-        .mic-section {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
+            --success:       #4ade80;
+            --success-weak:  #12301f;
+            --warning:       #fbbf24;
+            --warning-weak:  #33260a;
+            --danger:        #f87171;
+            --danger-weak:   #3a1616;
 
-        /* Butoane mari, ușor de atins pe mobil (min 48px înălțime) */
-        button {
-            min-height: 52px;
-            font-size: 1rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color .15s ease, transform .05s ease;
+            --focus:         #fbbf24;
+            --shadow-md: 0 1px 2px rgba(0,0,0,.3), 0 10px 26px rgba(0,0,0,.35);
+            --shadow-lg: 0 10px 44px rgba(0,0,0,.5);
         }
-        button:active { transform: scale(0.98); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+    /* ---- Tokens: DUNKEL (ausdrücklich gewählt) ---- */
+    :root[data-theme="dark"] {
+        --bg:            #0a1417;
+        --surface:       #0f1f23;
+        --surface-2:     #16292e;
+        --surface-3:     #1e363c;
+        --border:        #294249;
+        --border-strong: #3a545c;
+        --text:          #e7eff1;
+        --text-muted:    #a0b3b9;
+        --text-faint:    #7d9299;
+        --accent:        #34c3d6;
+        --accent-strong: #5fd3e2;
+        --accent-ink:    #04222a;
+        --accent-weak:   #123037;
+        --accent-weak-bd:#1e4a54;
+        --success:       #4ade80;
+        --success-weak:  #12301f;
+        --warning:       #fbbf24;
+        --warning-weak:  #33260a;
+        --danger:        #f87171;
+        --danger-weak:   #3a1616;
+        --focus:         #fbbf24;
+        --shadow-md: 0 1px 2px rgba(0,0,0,.3), 0 10px 26px rgba(0,0,0,.35);
+        --shadow-lg: 0 10px 44px rgba(0,0,0,.5);
+    }
 
-        .btn-mic {
-            background-color: var(--danger);
-            color: #fff;
-            padding: 0 20px;
-            flex: 0 0 auto;
-        }
-        .btn-mic:hover:not(:disabled) { background-color: var(--danger-hover); }
-        .btn-mic.recording { animation: pulse 1.4s infinite; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
-        .btn-generate {
-            width: 100%;
-            background-color: var(--primary);
-            color: #fff;
-            padding: 14px;
-            font-size: 1.05rem;
-            margin-top: 18px;
-        }
-        .btn-generate:hover:not(:disabled) { background-color: var(--primary-hover); }
+    html, body { margin: 0; padding: 0; }
+    body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+        font-size: 16px;
+        -webkit-text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+    }
+    img { max-width: 100%; }
 
-        .btn-copy {
-            width: 100%;
-            background: #e2e8f0;
-            color: var(--text);
-            padding: 12px;
-            margin-top: 10px;
-        }
-        .btn-copy:hover { background: #cbd5e1; }
+    a { color: inherit; text-decoration: none; }
 
-        .mic-status {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
+    :focus-visible {
+        outline: none;
+        box-shadow: var(--ring);
+        border-radius: var(--r-sm);
+    }
 
-        .output-box {
-            background: #f8fafc;
-            border-left: 4px solid var(--primary);
-            padding: 14px;
-            border-radius: 8px;
-            margin-top: 14px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-size: 0.95rem;
-            min-height: 60px;
-        }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    }
 
-        /* Mesaje de eroare clare în UI */
-        .msg {
-            margin-top: 14px;
-            padding: 12px 14px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .msg.error {
-            display: block;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-        }
-        .msg.info {
-            display: block;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e3a8a;
-        }
+    /* ---------- Icons (SVG-Sprite via <use>) ---------- */
+    .ic {
+        width: 1.35em; height: 1.35em; flex: none;
+        fill: none; stroke: currentColor; stroke-width: 1.75;
+        stroke-linecap: round; stroke-linejoin: round;
+        vertical-align: -0.28em;
+    }
+    .ic--xl { width: 2.4em; height: 2.4em; stroke-width: 1.4; }
 
-        .hint {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
+    /* ---------- Layout ---------- */
+    .topbar {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top));
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        backdrop-filter: saturate(1.4) blur(8px);
+        border-bottom: 1px solid var(--border);
+    }
+    .rail { display: none; }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.55; }
-        }
+    .content {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 20px 16px calc(96px + env(safe-area-inset-bottom));
+    }
 
-        /* Respectă preferința de reducere a mișcării */
-        @media (prefers-reduced-motion: reduce) {
-            .btn-mic.recording { animation: none; }
+    .tabbar {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+        display: flex;
+        background: color-mix(in srgb, var(--surface) 92%, transparent);
+        backdrop-filter: saturate(1.4) blur(10px);
+        border-top: 1px solid var(--border);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tabbar a {
+        flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+        padding: 9px 4px 7px; min-height: 58px;
+        font-size: .68rem; font-weight: 600; color: var(--text-muted);
+        transition: color var(--step);
+    }
+    .tabbar a .ic { width: 1.45em; height: 1.45em; }
+    .tabbar a.is-active { color: var(--accent); }
+
+    @media (min-width: 900px) {
+        .topbar, .tabbar { display: none; }
+        .rail {
+            display: flex; flex-direction: column; gap: 6px;
+            position: fixed; top: 0; bottom: 0; left: 0; width: 250px;
+            padding: 22px 16px; background: var(--surface);
+            border-right: 1px solid var(--border);
         }
+        .content { margin-left: 250px; margin-right: auto; max-width: 760px; padding: 34px 44px 60px; }
+        .rail__nav { display: flex; flex-direction: column; gap: 4px; margin-top: 22px; }
+        .rail__nav a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 12px; border-radius: var(--r-md);
+            font-size: .95rem; font-weight: 550; color: var(--text-muted);
+            transition: background var(--step), color var(--step);
+        }
+        .rail__nav a:hover { background: var(--surface-2); color: var(--text); }
+        .rail__nav a.is-active { background: var(--accent-weak); color: var(--accent-strong); font-weight: 700; }
+        .rail__foot {
+            margin-top: auto; font-size: .74rem; color: var(--text-faint);
+            padding: 0 12px; line-height: 1.4;
+        }
+    }
+
+    /* ---------- Marke ---------- */
+    .brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; letter-spacing: -.01em; }
+    .brand__mark {
+        width: 34px; height: 22px; flex: none;
+        stroke: var(--accent); stroke-width: 2.1; fill: none;
+        stroke-linecap: round; stroke-linejoin: round;
+    }
+    .brand__name { font-size: 1.06rem; }
+    .brand__name b { color: var(--accent-strong); font-weight: 800; }
+
+    /* ---------- Typografie / Kopf ---------- */
+    .screen { animation: fade .18s ease both; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .screen__head { margin-bottom: 20px; }
+    .screen__head h1 {
+        font-size: 1.5rem; font-weight: 750; margin: 0; letter-spacing: -.02em;
+        outline: none;
+    }
+    /* Titlul primește focus programatic pentru cititoare de ecran — fără inel vizual. */
+    .screen__head h1[tabindex="-1"]:focus,
+    .screen__head h1[tabindex="-1"]:focus-visible { outline: none; box-shadow: none; }
+    .screen__sub { margin: 6px 0 0; color: var(--text-muted); font-size: .98rem; }
+
+    .section-label {
+        font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+        color: var(--text-faint); margin: 26px 0 12px;
+    }
+
+    /* ---------- Karten ---------- */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 20px;
+    }
+    .card--primary {
+        background:
+          radial-gradient(120% 140% at 100% 0%, var(--accent-weak) 0%, transparent 55%),
+          var(--surface);
+        border-color: var(--accent-weak-bd);
+        box-shadow: var(--shadow-md);
+        padding: 22px;
+    }
+    .card--primary h2 { margin: 0 0 6px; font-size: 1.2rem; font-weight: 750; letter-spacing: -.01em; }
+    .card--primary p { margin: 0 0 18px; color: var(--text-muted); font-size: .95rem; }
+    .card--primary__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .card--primary__actions .btn { flex: 1 1 160px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 380px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .tile {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+        text-align: left; width: 100%;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--r-md); padding: 16px; min-height: 96px;
+        font: inherit; color: var(--text); cursor: pointer;
+        transition: border-color var(--step), transform var(--step), background var(--step);
+    }
+    .tile:hover { border-color: var(--border-strong); background: var(--surface-2); }
+    .tile:active { transform: scale(.985); }
+    .tile .ic { color: var(--accent); }
+    .tile__name { font-weight: 650; font-size: .98rem; }
+    .tile__tag {
+        margin-top: auto; font-size: .7rem; font-weight: 700; letter-spacing: .03em;
+        color: var(--warning); background: var(--warning-weak);
+        padding: 2px 7px; border-radius: var(--r-pill);
+    }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+        font: inherit; font-weight: 650; line-height: 1;
+        min-height: 48px; padding: 0 18px;
+        border: 1px solid transparent; border-radius: var(--r-md);
+        cursor: pointer; white-space: nowrap;
+        transition: background var(--step), border-color var(--step), transform .05s ease, color var(--step);
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn--lg { min-height: 54px; font-size: 1.02rem; padding: 0 22px; }
+    .btn--sm { min-height: 38px; font-size: .86rem; padding: 0 12px; gap: 6px; }
+    .btn--block { width: 100%; }
+
+    .btn--primary { background: var(--accent); color: var(--accent-ink); }
+    .btn--primary:hover:not(:disabled) { background: var(--accent-strong); }
+    .btn--ghost { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+    .btn--ghost:hover:not(:disabled) { background: var(--surface-2); }
+    .btn--subtle { background: var(--surface-2); color: var(--text); }
+    .btn--subtle:hover:not(:disabled) { background: var(--surface-3); }
+    .btn--danger { background: var(--danger); color: #fff; }
+    :root[data-theme="dark"] .btn--danger,
+    :root:not([data-theme="light"]) .btn--danger { color: #2a0d0d; }
+    .btn--link {
+        min-height: auto; padding: 4px 2px; background: none; color: var(--accent-strong);
+        font-weight: 650; font-size: .88rem; border-radius: var(--r-sm);
+    }
+    .btn--link:hover { text-decoration: underline; }
+    .btn.is-recording { border-color: var(--danger); color: var(--danger); }
+
+    /* ---------- Felder ---------- */
+    .field { margin-bottom: 16px; }
+    .field__label {
+        display: block; font-weight: 650; font-size: .9rem;
+        margin-bottom: 7px; color: var(--text);
+    }
+    .input, .select, .textarea {
+        width: 100%; font: inherit; font-size: 1rem; color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border-strong); border-radius: var(--r-md);
+        padding: 13px 14px;
+        transition: border-color var(--step), box-shadow var(--step);
+    }
+    .input:focus, .select:focus, .textarea:focus {
+        outline: none; border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-weak);
+    }
+    .textarea {
+        min-height: 168px; resize: vertical; line-height: 1.6;
+        white-space: pre-wrap;
+    }
+    .select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2355686f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 12px center;
+        padding-right: 38px;
+    }
+
+    .doc__row {
+        display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .doc__row .field { flex: 1 1 200px; margin: 0; }
+    .doc__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .doc__actions .btn { flex: 1 1 180px; }
+    .doc__michint { margin: 10px 0 0; font-size: .86rem; color: var(--text-muted); min-height: 1.2em; }
+
+    .disclaimer {
+        display: flex; gap: 9px; align-items: flex-start;
+        margin: 18px 0 0; padding: 11px 13px;
+        background: var(--surface-2); border-radius: var(--r-md);
+        font-size: .82rem; color: var(--text-muted); line-height: 1.45;
+    }
+    .disclaimer .ic { color: var(--accent); width: 1.15em; height: 1.15em; margin-top: 1px; }
+
+    /* ---------- Verarbeitung ---------- */
+    .processing {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--r-lg); padding: 26px 22px; text-align: center;
+        box-shadow: var(--shadow-sm);
+    }
+    .processing__title { margin: 14px 0 18px; font-weight: 650; }
+    .spinner {
+        width: 34px; height: 34px; margin: 0 auto; border-radius: 50%;
+        border: 3px solid var(--surface-3); border-top-color: var(--accent);
+        animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .steps { list-style: none; margin: 0; padding: 0; display: inline-flex; flex-direction: column; gap: 12px; text-align: left; }
+    .step { display: flex; align-items: center; gap: 11px; font-size: .92rem; color: var(--text-faint); }
+    .step__icon {
+        width: 20px; height: 20px; flex: none; border-radius: 50%;
+        border: 2px solid var(--border-strong); display: grid; place-items: center;
+        font-size: .7rem; font-weight: 900;
+    }
+    .step[data-state="active"] { color: var(--text); }
+    .step[data-state="active"] .step__icon { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-weak); }
+    .step[data-state="done"] { color: var(--text); }
+    .step[data-state="done"] .step__icon { background: var(--success); border-color: var(--success); color: #fff; }
+    .step[data-state="done"] .step__icon::after { content: "✓"; }
+    :root[data-theme="dark"] .step[data-state="done"] .step__icon,
+    :root:not([data-theme="light"]) .step[data-state="done"] .step__icon { color: #08240f; }
+
+    /* ---------- Ergebnis ---------- */
+    .result { margin-top: 20px; animation: fade .2s ease both; }
+    .notice {
+        display: flex; gap: 10px; align-items: flex-start;
+        padding: 12px 14px; border-radius: var(--r-md); font-size: .88rem;
+        margin-bottom: 16px;
+    }
+    .notice .ic { flex: none; width: 1.2em; height: 1.2em; margin-top: 1px; }
+    .notice--warning { background: var(--warning-weak); color: var(--warning); }
+
+    .result__original { margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+    .result__original summary {
+        cursor: pointer; padding: 12px 14px; font-size: .88rem; font-weight: 650;
+        color: var(--text-muted); background: var(--surface-2); list-style: none;
+    }
+    .result__original summary::-webkit-details-marker { display: none; }
+    .result__originaltext {
+        padding: 14px; font-size: .92rem; color: var(--text-muted);
+        white-space: pre-wrap; word-wrap: break-word;
+    }
+
+    .result__block {
+        background: var(--surface); border: 1px solid var(--accent-weak-bd);
+        border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+        padding: 18px; margin-bottom: 16px;
+    }
+    .result__blockhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 12px; }
+    .result__blockhead h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.02rem; font-weight: 700; }
+    .result__blockhead h2 .ic { color: var(--accent); }
+    .result__text {
+        white-space: pre-wrap; word-wrap: break-word;
+        font-size: 1rem; line-height: 1.65;
+        overflow-x: auto;
+    }
+    .result__diff {
+        margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong);
+        white-space: pre-wrap; word-wrap: break-word; font-size: .95rem; line-height: 1.6;
+    }
+    .result__diff ins { background: var(--success-weak); color: var(--success); text-decoration: none; border-radius: 3px; padding: 0 2px; }
+    .result__diff del { background: var(--danger-weak); color: var(--danger); border-radius: 3px; padding: 0 2px; }
+    .result__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .result__actions .btn { flex: 1 1 150px; }
+
+    /* ---------- Aufnahme-Overlay ---------- */
+    .recorder {
+        position: fixed; inset: 0; z-index: 60;
+        display: flex; align-items: flex-end; justify-content: center;
+        background: rgba(6, 14, 16, .55);
+        backdrop-filter: blur(3px);
+        animation: fade .15s ease both;
+    }
+    .recorder__card {
+        width: 100%; max-width: 520px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
+        box-shadow: var(--shadow-lg);
+        padding: 24px 22px calc(24px + env(safe-area-inset-bottom));
+        animation: sheet .22s cubic-bezier(.2,.7,.3,1) both;
+    }
+    @keyframes sheet { from { transform: translateY(18px); opacity: .6; } to { transform: none; opacity: 1; } }
+    @media (min-width: 640px) {
+        .recorder { align-items: center; }
+        .recorder__card { border-radius: var(--r-lg); }
+    }
+    .recorder__status {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 700; font-size: 1.02rem;
+    }
+    .recorder__status .dot {
+        width: 11px; height: 11px; border-radius: 50%; background: var(--danger);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 60%, transparent);
+        animation: ping 1.5s ease-out infinite;
+    }
+    @keyframes ping {
+        0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 55%, transparent); }
+        70%,100% { box-shadow: 0 0 0 12px transparent; }
+    }
+    .wave {
+        display: flex; align-items: center; justify-content: center; gap: 3px;
+        height: 46px; margin: 18px 0 6px;
+    }
+    .wave span {
+        width: 3px; height: 16%; border-radius: 2px;
+        background: var(--accent);
+        animation: wave 1.1s ease-in-out infinite;
+    }
+    @keyframes wave { 0%, 100% { height: 14%; opacity: .55; } 50% { height: 92%; opacity: 1; } }
+    .recorder__hint { margin: 4px 0 14px; font-size: .85rem; color: var(--text-muted); text-align: center; }
+    .recorder__preview {
+        min-height: 64px; max-height: 34vh; overflow-y: auto;
+        background: var(--surface-2); border-radius: var(--r-md);
+        padding: 12px 14px; margin-bottom: 16px;
+        font-size: .95rem; color: var(--text); white-space: pre-wrap; word-wrap: break-word;
+    }
+    .recorder__preview:empty::before { content: "Warte auf Spracheingabe …"; color: var(--text-faint); }
+
+    /* ---------- Toasts ---------- */
+    .toast-region {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        padding: 0 12px calc(78px + env(safe-area-inset-bottom));
+        pointer-events: none;
+    }
+    @media (min-width: 900px) { .toast-region { padding-bottom: 24px; } }
+    .toast {
+        max-width: 460px; width: 100%;
+        background: var(--surface); color: var(--text);
+        border: 1px solid var(--border); border-left: 4px solid var(--accent);
+        border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+        padding: 12px 15px; font-size: .9rem;
+        transform: translateY(12px); opacity: 0;
+        transition: transform .2s ease, opacity .2s ease;
+    }
+    .toast.is-in { transform: none; opacity: 1; }
+    .toast--success { border-left-color: var(--success); }
+    .toast--warning { border-left-color: var(--warning); }
+    .toast--error   { border-left-color: var(--danger); }
+
+    /* ---------- Empty State ---------- */
+    .empty {
+        text-align: center; padding: 44px 20px;
+        border: 1px dashed var(--border-strong); border-radius: var(--r-lg);
+        color: var(--text-muted);
+    }
+    .empty .ic { color: var(--accent); margin-bottom: 10px; }
+    .empty__title { font-weight: 700; color: var(--text); margin: 4px 0 6px; font-size: 1.05rem; }
+    .empty__text { margin: 0 auto 18px; max-width: 360px; font-size: .92rem; }
+
+    /* ---------- Einstellungen ---------- */
+    .setting {
+        padding: 16px 0; border-bottom: 1px solid var(--border);
+    }
+    .setting:last-of-type { border-bottom: none; }
+    .setting__label { font-weight: 650; font-size: .95rem; display: block; }
+    .setting__hint { display: block; margin-top: 4px; font-size: .84rem; color: var(--text-muted); line-height: 1.45; }
+    .setting--switch { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .setting--switch .setting__label { flex: 1; }
+    .setting--details > summary {
+        cursor: pointer; font-weight: 650; font-size: .95rem; list-style: none;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .setting--details > summary::-webkit-details-marker { display: none; }
+    .setting--details > summary::before { content: "＋"; color: var(--accent); font-weight: 800; }
+    .setting--details[open] > summary::before { content: "－"; }
+    .setting--details .field__label { margin-top: 12px; }
+    .setting__inline { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: .9rem; }
+    .setting code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: var(--surface-2); padding: 1px 6px; border-radius: 5px; font-size: .85em;
+    }
+
+    .segmented {
+        display: inline-flex; margin-top: 10px;
+        background: var(--surface-2); border-radius: var(--r-pill); padding: 3px;
+    }
+    .segmented button {
+        font: inherit; font-weight: 600; font-size: .88rem;
+        border: none; background: none; color: var(--text-muted);
+        padding: 8px 16px; border-radius: var(--r-pill); cursor: pointer; min-height: 40px;
+        transition: background var(--step), color var(--step);
+    }
+    .segmented button.is-active { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow-sm); }
+
+    .switch { appearance: none; flex: none; cursor: pointer; margin-top: 2px; }
+    .switch { width: 46px; height: 27px; border-radius: var(--r-pill); background: var(--border-strong); position: relative; transition: background var(--step); }
+    .switch::after {
+        content: ""; position: absolute; top: 3px; left: 3px;
+        width: 21px; height: 21px; border-radius: 50%; background: #fff;
+        transition: transform var(--step); box-shadow: var(--shadow-sm);
+    }
+    .switch:checked { background: var(--accent); }
+    .switch:checked::after { transform: translateX(19px); }
+
+    /* ---------- Verlauf ---------- */
+    .verlauf__toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+    .histitem {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--r-md); margin-bottom: 10px; overflow: hidden;
+    }
+    .histitem > summary {
+        cursor: pointer; list-style: none; padding: 14px;
+        display: flex; flex-direction: column; gap: 3px;
+    }
+    .histitem > summary::-webkit-details-marker { display: none; }
+    .histitem__when { font-size: .78rem; color: var(--text-faint); font-weight: 600; }
+    .histitem__snip { font-size: .93rem; color: var(--text); }
+    .histitem__body { padding: 0 14px 14px; }
+    .histitem__text {
+        white-space: pre-wrap; word-wrap: break-word; font-family: var(--font);
+        font-size: .92rem; line-height: 1.6; margin: 0 0 12px;
+        background: var(--surface-2); padding: 12px; border-radius: var(--r-sm);
+    }
+    .histitem__actions { display: flex; gap: 8px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>PflegeDoc AI 🏥</h1>
-    <p class="subtitle">Note vocale sau scrise → Pflegedokumentation în germană oficială</p>
+<!-- ===================== SVG-Sprite (Icons) ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></symbol>
+    <symbol id="ic-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="ic-plan" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M3.5 6l1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></symbol>
+    <symbol id="ic-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></symbol>
+    <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2.2" fill="var(--surface)"/><circle cx="15" cy="12" r="2.2" fill="var(--surface)"/><circle cx="8" cy="18" r="2.2" fill="var(--surface)"/></symbol>
+    <symbol id="ic-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4M9 21h6"/></symbol>
+    <symbol id="ic-keyboard" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M7 14h10"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></symbol>
+    <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 5l4 4"/></symbol>
+    <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="ic-arrow-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="ic-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 4.9L19 9.7l-4.2 2.9L16 18l-4-3-4 3 1.2-5.4L5 9.7l5.2-1.8z"/></symbol>
+    <symbol id="ic-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.4 8-7 9-3.6-1-7-4-7-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="ic-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></symbol>
+</svg>
 
-    <!-- ============================================================
-         CHEIE API (opțional)
-         În producție generarea trece prin /api/generate (Vercel),
-         unde cheia stă în GEMINI_API_KEY și NU ajunge în browser.
-         Câmpul de mai jos e doar pentru fallback / dezvoltare locală
-         fără backend: dacă îl completezi, se apelează Gemini direct.
-         ============================================================ -->
-    <details id="apiKeyBox">
-        <summary style="cursor:pointer; font-weight:700; font-size:0.9rem; margin-top:8px;">
-            ⚙️ Cheie API proprie (opțional)
-        </summary>
-        <label for="apiKey">Cheie API Google Gemini:</label>
-        <input type="password" id="apiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
-        <p class="hint">
-            Lasă gol pentru a folosi serverul aplicației. Dacă o completezi, cheia
-            rămâne local în browser și se apelează Gemini direct de pe acest dispozitiv.
-        </p>
-        <label style="font-weight:400; font-size:0.85rem; margin-top:8px;">
-            <input type="checkbox" id="rememberKey" style="width:auto; margin-right:6px;">
-            Ține minte cheia pe acest dispozitiv
-        </label>
-    </details>
+<!-- ===================== Mobile-Kopf ===================== -->
+<header class="topbar">
+    <a class="brand" href="#/home" aria-label="PflegeDoc – Startseite">
+        <svg class="brand__mark" viewBox="0 0 40 24" aria-hidden="true"><path d="M2 12h6l3-8 5 16 3.5-8H26l2 4h10"/></svg>
+        <span class="brand__name">Pflege<b>Doc</b></span>
+    </a>
+</header>
 
-    <label for="inputLanguage">Limba în care vorbești/scrii:</label>
-    <select id="inputLanguage">
-        <option value="ro-RO">Română</option>
-        <option value="de-DE">Germană (vorbită / simplă)</option>
-        <option value="en-US">Engleză</option>
-        <option value="es-ES">Spaniolă</option>
-        <option value="ru-RU">Rusă</option>
-        <option value="tr-TR">Turcă</option>
-    </select>
-
-    <label for="userInput">Note / Înregistrare Vocală:</label>
-    <textarea id="userInput" placeholder="Apasă pe butonul roșu și vorbește, sau scrie aici. Fiecare înregistrare nouă se adaugă la text, nu îl șterge."></textarea>
-
-    <div class="mic-section">
-        <button id="micBtn" type="button" class="btn-mic" onclick="toggleRecording()">🎤 Vorbește</button>
-        <span id="micStatus" class="mic-status" aria-live="polite">Apasă pentru a înregistra</span>
-        <button id="clearBtn" type="button" class="btn-copy" style="margin-top:0; flex:1 1 100px;" onclick="clearInput()">🗑️ Șterge tot</button>
+<!-- ===================== Seitenleiste (Desktop) ===================== -->
+<nav class="rail" aria-label="Hauptnavigation">
+    <a class="brand" href="#/home" aria-label="PflegeDoc – Startseite">
+        <svg class="brand__mark" viewBox="0 0 40 24" aria-hidden="true"><path d="M2 12h6l3-8 5 16 3.5-8H26l2 4h10"/></svg>
+        <span class="brand__name">Pflege<b>Doc</b></span>
+    </a>
+    <div class="rail__nav">
+        <a data-nav="home" href="#/home"><svg class="ic"><use href="#ic-home"/></svg> Start</a>
+        <a data-nav="doc" href="#/doc"><svg class="ic"><use href="#ic-doc"/></svg> Dokumentation</a>
+        <a data-nav="plan" href="#/plan"><svg class="ic"><use href="#ic-plan"/></svg> Pflegeplanung</a>
+        <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> Verlauf</a>
+        <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> Einstellungen</a>
     </div>
+    <p class="rail__foot">Dokumentationshilfe – keine medizinische Entscheidung.</p>
+</nav>
 
-    <label style="font-weight:400; font-size:0.85rem; margin-top:10px;">
-        <input type="checkbox" id="voiceCommands" checked style="width:auto; margin-right:6px;">
-        Punctuație prin comenzi vocale
-    </label>
-    <p class="hint">
-        Când e activ, motorul NU mai pune punct/virgulă automat la pauze. Tu dictezi semnele:
-        „virgulă", „punct", „două puncte", „punct și virgulă", „semnul întrebării",
-        „semnul exclamării", „rând nou", „deschide/închide paranteza", „ghilimele", „linie de dialog".
-    </p>
+<main class="content">
 
-    <button class="btn-generate" type="button" id="generateBtn" onclick="generateDoc()">Generează Pflegedokumentation</button>
+    <!-- ===================== START ===================== -->
+    <section id="screen-home" class="screen" aria-labelledby="home-h">
+        <div class="screen__head">
+            <h1 id="home-h" tabindex="-1"><span id="greeting">Willkommen</span></h1>
+            <p class="screen__sub">Wobei möchtest du heute Hilfe?</p>
+        </div>
 
-    <!-- Zonă de mesaje (erori de rețea / API, info) -->
-    <div id="message" class="msg" role="alert" aria-live="assertive"></div>
+        <article class="card card--primary">
+            <h2>Neue Dokumentation</h2>
+            <p>Schreib oder sprich, was passiert ist – die professionelle Formulierung übernimmt PflegeDoc.</p>
+            <div class="card--primary__actions">
+                <button class="btn btn--primary btn--lg" type="button" data-go="doc-voice">
+                    <svg class="ic"><use href="#ic-mic"/></svg> Spracheingabe
+                </button>
+                <button class="btn btn--ghost btn--lg" type="button" data-go="doc-text">
+                    <svg class="ic"><use href="#ic-keyboard"/></svg> Text eingeben
+                </button>
+            </div>
+        </article>
 
-    <div id="resultSection" style="display:none;">
-        <label>Formulare Oficială Germană (Pflegefachsprache):</label>
-        <div id="output" class="output-box"></div>
-        <button class="btn-copy" type="button" onclick="copyOutput()">📋 Copiază Textul</button>
+        <h2 class="section-label">Weitere Hilfen</h2>
+        <div class="grid-2">
+            <button class="tile" type="button" data-nav-go="plan">
+                <svg class="ic"><use href="#ic-plan"/></svg>
+                <span class="tile__name">Pflegeplanung</span>
+                <span class="tile__tag">In Vorbereitung</span>
+            </button>
+            <button class="tile" type="button" data-nav-go="korrigieren">
+                <svg class="ic"><use href="#ic-edit"/></svg>
+                <span class="tile__name">Korrigieren</span>
+                <span class="tile__tag">In Vorbereitung</span>
+            </button>
+            <button class="tile" type="button" data-nav-go="uebersetzen">
+                <svg class="ic"><use href="#ic-globe"/></svg>
+                <span class="tile__name">Übersetzen</span>
+                <span class="tile__tag">In Vorbereitung</span>
+            </button>
+            <button class="tile" type="button" data-nav-go="verlauf">
+                <svg class="ic"><use href="#ic-history"/></svg>
+                <span class="tile__name">Verlauf</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- ===================== DOKUMENTATION ===================== -->
+    <section id="screen-doc" class="screen" aria-labelledby="doc-h" hidden>
+        <div class="screen__head">
+            <h1 id="doc-h" tabindex="-1">Neue Dokumentation</h1>
+            <p class="screen__sub">Beschreibe kurz, was passiert ist.</p>
+        </div>
+
+        <div id="docForm">
+            <div class="field">
+                <label class="field__label" for="userInput">Deine Notiz</label>
+                <textarea id="userInput" class="textarea"
+                    placeholder="Zum Beispiel:&#10;Herr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen."></textarea>
+            </div>
+
+            <div class="doc__row">
+                <div class="field">
+                    <label class="field__label" for="inputLanguage">Eingabesprache</label>
+                    <select id="inputLanguage" class="select">
+                        <option value="ro-RO">Rumänisch</option>
+                        <option value="de-DE" selected>Deutsch</option>
+                        <option value="en-US">Englisch</option>
+                        <option value="es-ES">Spanisch</option>
+                        <option value="ru-RU">Russisch</option>
+                        <option value="tr-TR">Türkisch</option>
+                    </select>
+                </div>
+                <button id="clearBtn" class="btn btn--subtle" type="button" onclick="clearInput()">
+                    <svg class="ic"><use href="#ic-trash"/></svg> Leeren
+                </button>
+            </div>
+
+            <div class="doc__actions">
+                <button id="micBtn" class="btn btn--ghost btn--lg" type="button" onclick="toggleRecording()" aria-pressed="false">
+                    <svg class="ic"><use href="#ic-mic"/></svg> Spracheingabe
+                </button>
+                <button id="generateBtn" class="btn btn--primary btn--lg" type="button" onclick="generateDoc()">
+                    Dokumentation erstellen
+                </button>
+            </div>
+            <p id="micStatus" class="doc__michint" aria-live="polite">Tippe auf „Spracheingabe“, um zu diktieren.</p>
+
+            <p class="disclaimer">
+                <svg class="ic"><use href="#ic-shield"/></svg>
+                PflegeDoc ist eine Dokumentationshilfe: Sie formuliert deine Angaben, stellt aber keine Diagnosen und trifft keine medizinischen Entscheidungen.
+            </p>
+        </div>
+
+        <div id="processing" class="processing" hidden aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p class="processing__title">Dokumentation wird vorbereitet …</p>
+            <ol class="steps">
+                <li class="step" data-state="pending"><span class="step__icon"></span> Inhalt erkannt</li>
+                <li class="step" data-state="pending"><span class="step__icon"></span> Sprache korrigiert</li>
+                <li class="step" data-state="pending"><span class="step__icon"></span> Dokumentation wird formuliert</li>
+            </ol>
+        </div>
+
+        <section id="resultSection" class="result" hidden aria-live="polite">
+            <div class="notice notice--warning">
+                <svg class="ic"><use href="#ic-info"/></svg>
+                Bitte überprüfe die Dokumentation vor der Übernahme.
+            </div>
+
+            <details class="result__original">
+                <summary>Deine ursprüngliche Notiz anzeigen</summary>
+                <div id="originalText" class="result__originaltext"></div>
+            </details>
+
+            <div class="result__block">
+                <div class="result__blockhead">
+                    <h2><svg class="ic"><use href="#ic-sparkle"/></svg> Verbesserte Dokumentation</h2>
+                    <button class="btn btn--link" type="button" id="diffBtn" onclick="toggleDiff()" hidden>Unterschiede zur Notiz</button>
+                </div>
+                <div id="output" class="result__text"></div>
+                <textarea id="outputEdit" class="textarea" hidden></textarea>
+                <div id="diffView" class="result__diff" hidden></div>
+            </div>
+
+            <div class="result__actions">
+                <button class="btn btn--primary" type="button" onclick="acceptDoc()">
+                    <svg class="ic"><use href="#ic-check"/></svg> Übernehmen
+                </button>
+                <button class="btn btn--ghost" type="button" id="editBtn" onclick="toggleEditResult()">
+                    <svg class="ic"><use href="#ic-edit"/></svg> Bearbeiten
+                </button>
+                <button class="btn btn--subtle" type="button" onclick="copyOutput()">
+                    <svg class="ic"><use href="#ic-copy"/></svg> Kopieren
+                </button>
+            </div>
+        </section>
+    </section>
+
+    <!-- ===================== PFLEGEPLANUNG (Platzhalter) ===================== -->
+    <section id="screen-plan" class="screen" aria-labelledby="plan-h" hidden>
+        <div class="screen__head"><h1 id="plan-h" tabindex="-1">Pflegeplanung</h1></div>
+        <div class="empty">
+            <svg class="ic ic--xl"><use href="#ic-plan"/></svg>
+            <p class="empty__title">In Vorbereitung</p>
+            <p class="empty__text">Die Pflegeplanung wird an dieselbe Dokumentations­engine angebunden. Die Oberfläche ist hier bereits vorgesehen.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+        </div>
+    </section>
+
+    <!-- ===================== KORRIGIEREN (Platzhalter) ===================== -->
+    <section id="screen-korrigieren" class="screen" aria-labelledby="korr-h" hidden>
+        <div class="screen__head"><h1 id="korr-h" tabindex="-1">Korrigieren</h1></div>
+        <div class="empty">
+            <svg class="ic ic--xl"><use href="#ic-edit"/></svg>
+            <p class="empty__title">In Vorbereitung</p>
+            <p class="empty__text">Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+        </div>
+    </section>
+
+    <!-- ===================== ÜBERSETZEN (Platzhalter) ===================== -->
+    <section id="screen-uebersetzen" class="screen" aria-labelledby="ueb-h" hidden>
+        <div class="screen__head"><h1 id="ueb-h" tabindex="-1">Übersetzen</h1></div>
+        <div class="empty">
+            <svg class="ic ic--xl"><use href="#ic-globe"/></svg>
+            <p class="empty__title">In Vorbereitung</p>
+            <p class="empty__text">Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+        </div>
+    </section>
+
+    <!-- ===================== VERLAUF ===================== -->
+    <section id="screen-verlauf" class="screen" aria-labelledby="verlauf-h" hidden>
+        <div class="screen__head">
+            <h1 id="verlauf-h" tabindex="-1">Verlauf</h1>
+            <p class="screen__sub">Übernommene Dokumentationen – nur auf diesem Gerät gespeichert.</p>
+        </div>
+        <div class="verlauf__toolbar" id="verlaufToolbar" hidden>
+            <button class="btn btn--subtle btn--sm" type="button" onclick="clearHistory()">
+                <svg class="ic"><use href="#ic-trash"/></svg> Alles löschen
+            </button>
+        </div>
+        <div id="historyList"></div>
+        <div id="historyEmpty" class="empty" hidden>
+            <svg class="ic ic--xl"><use href="#ic-history"/></svg>
+            <p class="empty__title">Noch kein Verlauf</p>
+            <p class="empty__text">Erstellte Dokumentationen erscheinen hier, sobald du sie mit „Übernehmen“ speicherst.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+        </div>
+    </section>
+
+    <!-- ===================== EINSTELLUNGEN ===================== -->
+    <section id="screen-einstellungen" class="screen" aria-labelledby="settings-h" hidden>
+        <div class="screen__head"><h1 id="settings-h" tabindex="-1">Einstellungen</h1></div>
+
+        <div class="field">
+            <label class="field__label" for="userName">Dein Name (für die Begrüßung)</label>
+            <input id="userName" class="input" type="text" autocomplete="name" placeholder="z. B. Alexandru">
+        </div>
+
+        <div class="setting">
+            <span class="setting__label">Darstellung</span>
+            <div class="segmented" role="group" aria-label="Darstellung wählen">
+                <button type="button" data-theme-choice="system">System</button>
+                <button type="button" data-theme-choice="light">Hell</button>
+                <button type="button" data-theme-choice="dark">Dunkel</button>
+            </div>
+        </div>
+
+        <div class="setting setting--switch">
+            <label class="setting__label" for="voiceCommands">
+                Satzzeichen per Sprachbefehl
+                <span class="setting__hint">Der Spracherkenner setzt keine Satzzeichen automatisch. Du diktierst sie: „Komma“, „Punkt“, „Doppelpunkt“, „Fragezeichen“, „neue Zeile“, „Klammer auf/zu“. (Auch auf Rumänisch/Englisch.)</span>
+            </label>
+            <input type="checkbox" id="voiceCommands" class="switch" checked>
+        </div>
+
+        <details id="apiKeyBox" class="setting setting--details">
+            <summary>Erweitert: eigener API-Schlüssel</summary>
+            <p class="setting__hint">Leer lassen, um den gesicherten Server der App zu nutzen (empfohlen). Mit eigenem Schlüssel wird Gemini direkt von diesem Gerät aufgerufen – der Schlüssel bleibt lokal im Browser.</p>
+            <label class="field__label" for="apiKey">Google-Gemini-API-Schlüssel</label>
+            <input type="password" id="apiKey" class="input" placeholder="AIzaSy…" autocomplete="off" spellcheck="false">
+            <label class="setting__inline"><input type="checkbox" id="rememberKey"> Schlüssel auf diesem Gerät merken</label>
+        </details>
+
+        <div class="setting">
+            <span class="setting__label">Verarbeitung</span>
+            <span class="setting__hint">Modell <code>gemini-3.6-flash</code> über gesicherten Server. Der API-Schlüssel verlässt den Browser nicht. Ausgabe stets in professioneller deutscher Pflegefachsprache (SIS).</span>
+        </div>
+
+        <p class="disclaimer">
+            <svg class="ic"><use href="#ic-shield"/></svg>
+            PflegeDoc unterstützt bei der Formulierung der Pflegedokumentation. Fachliche Prüfung und Verantwortung bleiben bei der Pflegekraft.
+        </p>
+    </section>
+
+</main>
+
+<!-- ===================== Untere Navigation (Mobile) ===================== -->
+<nav class="tabbar" aria-label="Hauptnavigation">
+    <a data-nav="home" href="#/home"><svg class="ic"><use href="#ic-home"/></svg> Start</a>
+    <a data-nav="doc" href="#/doc"><svg class="ic"><use href="#ic-doc"/></svg> Doku</a>
+    <a data-nav="plan" href="#/plan"><svg class="ic"><use href="#ic-plan"/></svg> Plan</a>
+    <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> Verlauf</a>
+    <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> Mehr</a>
+</nav>
+
+<!-- ===================== Aufnahme-Overlay ===================== -->
+<div class="recorder" id="recorder" hidden role="dialog" aria-modal="true" aria-label="Spracheingabe läuft">
+    <div class="recorder__card">
+        <div class="recorder__status"><span class="dot" aria-hidden="true"></span> Aufnahme läuft</div>
+        <div class="wave" id="wave" aria-hidden="true"></div>
+        <p class="recorder__hint">Sprich ruhig und deutlich. Der Text wird laufend ergänzt.</p>
+        <div class="recorder__preview" id="recorderPreview" aria-live="polite"></div>
+        <button class="btn btn--danger btn--block btn--lg" type="button" onclick="stopRecording()">
+            <svg class="ic"><use href="#ic-stop"/></svg> Aufnahme beenden
+        </button>
     </div>
 </div>
 
+<div class="toast-region" id="toasts"></div>
+
 <script>
 /* ================================================================
-   PflegeDoc AI — logică front-end (MVP)
+   PflegeDoc — Front-end
    Secțiuni:
      1. Config
-     2. Persistență cheie API (localStorage opțional)
-     3. Web Speech API (transcriere cu APPEND, nu overwrite)
-     4. Apel Gemini (endpoint stabil + gestiune erori)
-     5. Utilitare UI
+     2. Persistență cheie API
+     3. Web Speech API (transcriere cu APPEND + comenzi de punctuație)
+     4. Apel Gemini (backend proxy / cheie directă + gestiune erori)
+     5. Utilitare text
+     6. UI: rutare, temă, toasts, rezultat, istoric, setări
+   Notă: logica de generare NU s-a schimbat față de versiunea anterioară;
+   s-a schimbat doar cablarea în noul UI + textele către utilizator (germană).
    ================================================================ */
 
 /* ---------- 1. CONFIG ---------- */
 const CONFIG = {
-    // Model activ în Gemini API v1beta.
-    // gemini-1.5-flash și gemini-2.x-flash au fost retrase.
-    // gemini-3.6-flash este recomandat pentru conturi noi / free tier.
-    // Alternative mai noi (dacă sunt disponibile pe contul tău):
-    //   "gemini-3.7-flash", "gemini-3.8-flash"
-    // Dacă apare eroare 404, mesajul API îți spune exact ce model să pui aici.
     GEMINI_MODEL: "gemini-3.6-flash",
-    // Ruta backend care ține cheia în siguranță (Vercel Serverless).
-    // Dacă e setată ȘI utilizatorul NU a introdus o cheie proprie,
-    // generarea trece prin server (recomandat pentru producție).
-    // Pune null ca să forțezi doar modul cu cheie în browser.
     BACKEND_ENDPOINT: "/api/generate",
-    // După atâtea milisecunde fără răspuns, cererea e anulată (nu mai
-    // rămâne blocat pe "Se generează...").
     TIMEOUT_MS: 60000
 };
 
@@ -309,11 +917,10 @@ const rememberKeyCheckbox = document.getElementById('rememberKey');
         if (saved) {
             apiKeyInput.value = saved;
             rememberKeyCheckbox.checked = true;
-            // Deschidem secțiunea ca utilizatorul să vadă că e activă cheia proprie.
             const box = document.getElementById('apiKeyBox');
             if (box) box.open = true;
         }
-    } catch (e) { /* localStorage indisponibil (mod privat) — ignorăm */ }
+    } catch (e) { /* localStorage indisponibil — ignorăm */ }
 })();
 
 rememberKeyCheckbox.addEventListener('change', persistApiKey);
@@ -332,15 +939,13 @@ function persistApiKey() {
 /* ---------- 3. WEB SPEECH API ---------- */
 let recognition = null;
 let isRecording = false;
-// Textul existent în <textarea> în momentul pornirii înregistrării.
-// Noile fraze se adaugă DUPĂ acest text, ca să nu se piardă nimic.
-let baseText = '';
-// Acumulatorul frazelor deja finalizate în sesiunea curentă de dictare.
-let finalizedInSession = '';
+let baseText = '';            // textul din <textarea> la pornirea dictării
+let finalizedInSession = '';  // frazele finalizate în sesiunea curentă
 
 const micBtn = document.getElementById('micBtn');
 const micStatus = document.getElementById('micStatus');
 const userInputEl = document.getElementById('userInput');
+const recorderEl = document.getElementById('recorder');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -350,68 +955,63 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     recognition.onresult = (event) => {
         let interim = '';
-        // Parcurgem doar rezultatele noi din acest eveniment.
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const chunk = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                // Frază finalizată -> o procesăm (comenzi de punctuație) și o
-                // adăugăm permanent la acumulatorul sesiunii curente.
                 finalizedInSession = joinSmart(finalizedInSession, processChunk(chunk));
             } else {
-                // Text provizoriu (încă se vorbește) -> doar previzualizare.
                 interim += chunk;
             }
         }
-        // În modul "comenzi vocale" curățăm și previzualizarea, ca punctele
-        // adăugate automat de motor să nu apară nici măcar temporar.
         const interimShown = voiceCommandsEnabled()
             ? interim.replace(/[.,;:!?]+/g, '')
             : interim;
-        // APPEND: base + ce s-a dictat până acum + previzualizarea curentă.
         userInputEl.value = joinSmart(baseText, joinSmart(finalizedInSession, interimShown.trim()));
+        const rp = document.getElementById('recorderPreview');
+        if (rp) rp.textContent = userInputEl.value;
     };
 
     recognition.onerror = (event) => {
         if (event.error === 'no-speech') {
-            micStatus.textContent = 'Nu s-a detectat voce. Mai încearcă.';
+            micStatus.textContent = 'Keine Sprache erkannt. Bitte erneut versuchen.';
             return;
         }
-        if (event.error === 'aborted') return; // oprire normală
-        showMessage('error', 'Eroare microfon: ' + event.error +
-            (event.error === 'not-allowed' ? ' (permite accesul la microfon în browser).' : ''));
+        if (event.error === 'aborted') return;
+        toast('error', 'Mikrofonfehler: ' + event.error +
+            (event.error === 'not-allowed' ? ' – bitte Mikrofonzugriff im Browser erlauben.' : ''));
         stopRecording();
     };
 
     recognition.onend = () => {
-        // Dacă utilizatorul nu a apăsat Stop, dar API-ul s-a oprit singur
-        // (pauză lungă), repornim ca dictarea să fie continuă.
+        // Repornim dacă utilizatorul nu a apăsat Stop (pauză lungă).
         if (isRecording) {
             try { recognition.start(); } catch (e) { /* deja pornit */ }
         }
     };
 } else {
     micBtn.disabled = true;
-    micStatus.textContent = 'Microfonul nu este suportat (folosește Chrome sau Edge).';
+    micStatus.textContent = 'Spracheingabe wird von diesem Browser nicht unterstützt (Chrome oder Edge verwenden).';
 }
 
 function toggleRecording() {
     if (!recognition) return;
     if (!isRecording) {
-        // Fixăm textul curent ca bază și pornim o sesiune nouă de dictare.
         baseText = userInputEl.value.trim();
         finalizedInSession = '';
         recognition.lang = document.getElementById('inputLanguage').value;
         try {
             recognition.start();
         } catch (e) {
-            showMessage('error', 'Nu s-a putut porni microfonul: ' + e.message);
+            toast('error', 'Spracheingabe konnte nicht gestartet werden: ' + e.message);
             return;
         }
         isRecording = true;
-        micBtn.classList.add('recording');
-        micBtn.textContent = '⏹️ Oprește';
-        micStatus.textContent = 'Ascult... vorbește acum.';
-        clearMessage();
+        micBtn.classList.add('is-recording');
+        micBtn.setAttribute('aria-pressed', 'true');
+        micStatus.textContent = 'Aufnahme läuft …';
+        const rp = document.getElementById('recorderPreview');
+        if (rp) rp.textContent = baseText;
+        if (recorderEl) recorderEl.hidden = false;
     } else {
         stopRecording();
     }
@@ -422,10 +1022,11 @@ function stopRecording() {
     if (recognition) {
         try { recognition.stop(); } catch (e) { /* ignorăm */ }
     }
-    micBtn.classList.remove('recording');
-    micBtn.textContent = '🎤 Vorbește';
-    micStatus.textContent = 'Înregistrare oprită. Poți dicta din nou sau edita textul.';
-    // Consolidăm textul final (fără previzualizări provizorii).
+    micBtn.classList.remove('is-recording');
+    micBtn.setAttribute('aria-pressed', 'false');
+    micStatus.textContent = 'Aufnahme beendet. Du kannst den Text bearbeiten.';
+    if (recorderEl) recorderEl.hidden = true;
+
     let consolidated = joinSmart(baseText, finalizedInSession.trim());
     if (voiceCommandsEnabled()) consolidated = capitalizeSentences(consolidated);
     userInputEl.value = consolidated;
@@ -436,18 +1037,18 @@ function clearInput() {
     userInputEl.value = '';
     baseText = '';
     finalizedInSession = '';
-    clearMessage();
-    document.getElementById('resultSection').style.display = 'none';
+    document.getElementById('resultSection').hidden = true;
+    const rp = document.getElementById('recorderPreview');
+    if (rp) rp.textContent = '';
+    userInputEl.focus();
 }
 
 /* ---------- 4. APEL GEMINI ---------- */
 
 /*
-  SYSTEM PROMPT (Pflegefachsprache / SIS)
-  Structură profesională impusă în output:
-    - Situation / Beobachtung
-    - Vitalwerte (RR, Puls, SpO2, BZ, Temp — doar dacă sunt menționate)
-    - Durchgeführte Maßnahmen
+  SYSTEM PROMPT identic cu backend-ul (api/generate.js). Folosit DOAR în
+  modul fallback cu cheie proprie în browser; în producție promptul de pe
+  server este cel activ.
 */
 const SYSTEM_PROMPT = `Du bist eine erfahrene deutsche Pflegefachkraft und Experte für Pflegedokumentation nach dem Strukturmodell (SIS) und Pflegefachsprache.
 
@@ -481,26 +1082,36 @@ async function generateDoc() {
     const outputDiv = document.getElementById('output');
     const resultSection = document.getElementById('resultSection');
 
-    clearMessage();
-
     if (!CONFIG.BACKEND_ENDPOINT && !apiKey) {
-        return showMessage('error', 'Introdu cheia API Google Gemini.');
+        return toast('error', 'Bitte in den Einstellungen einen API-Schlüssel hinterlegen.');
     }
     if (!userInput) {
-        return showMessage('error', 'Introdu un text sau folosește microfonul.');
+        return toast('warning', 'Bitte zuerst etwas eingeben oder diktieren.');
     }
     if (isRecording) stopRecording();
 
     setLoading(true);
-    resultSection.style.display = 'block';
-    outputDiv.textContent = 'Se procesează în germană medicală... (poate dura 10–40 secunde)';
 
     try {
         const text = await callGemini(apiKey, userInput);
+        finishProcessingSteps();
+
+        document.getElementById('originalText').textContent = userInput;
         outputDiv.textContent = text;
+        outputDiv.hidden = false;
+
+        const oe = document.getElementById('outputEdit');
+        oe.hidden = true; oe.value = '';
+        document.getElementById('diffView').hidden = true;
+        document.getElementById('editBtn').innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> Bearbeiten';
+        document.getElementById('diffBtn').hidden = false;
+
+        resultSection.hidden = false;
+        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        toast('success', 'Dokumentation erstellt. Bitte prüfen.');
     } catch (err) {
-        resultSection.style.display = 'none';
-        showMessage('error', err.message);
+        resultSection.hidden = true;
+        toast('error', err.message);
     } finally {
         setLoading(false);
     }
@@ -508,11 +1119,8 @@ async function generateDoc() {
 
 /*
   callGemini — izolează apelul de rețea.
-  Două moduri:
-    A) BACKEND  (implicit): POST { input } -> /api/generate. Cheia stă pe
-       server. Răspuns: { text } sau { error }.
-    B) DIRECT   (fallback): dacă utilizatorul a introdus o cheie proprie,
-       apelăm Gemini direct din browser (util pentru dezvoltare fără backend).
+    A) BACKEND  (implicit): POST { input } -> /api/generate  => { text } / { error }
+    B) DIRECT   (fallback): cheie proprie -> Gemini direct din browser
 */
 async function callGemini(apiKey, userInput) {
     const useBackend = CONFIG.BACKEND_ENDPOINT && !apiKey;
@@ -526,18 +1134,10 @@ async function callGemini(apiKey, userInput) {
         payload = {
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             contents: [{ role: "user", parts: [{ text: userInput }] }],
-            generationConfig: {
-                temperature: 0.2,
-                topP: 0.9,
-                // Loc suficient: modelele Flash 3.x consumă token-uri și pe
-                // raționament intern înainte de răspunsul vizibil.
-                maxOutputTokens: 8192
-            }
+            generationConfig: { temperature: 0.2, topP: 0.9, maxOutputTokens: 8192 }
         };
     }
 
-    // Timeout dur: dacă răspunsul nu vine în CONFIG.TIMEOUT_MS, anulăm
-    // cererea ca aplicația să NU rămână blocată pe "Se generează...".
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
 
@@ -551,10 +1151,10 @@ async function callGemini(apiKey, userInput) {
         });
     } catch (netErr) {
         if (netErr.name === 'AbortError') {
-            throw new Error('Timp expirat (' + Math.round(CONFIG.TIMEOUT_MS / 1000) +
-                's). Serverul nu a răspuns. Încearcă din nou sau verifică rețeaua.');
+            throw new Error('Zeitüberschreitung (' + Math.round(CONFIG.TIMEOUT_MS / 1000) +
+                ' s). Der Server hat nicht geantwortet. Bitte erneut versuchen.');
         }
-        throw new Error('Eroare de rețea: verifică conexiunea la internet.');
+        throw new Error('Netzwerkfehler. Bitte Internetverbindung prüfen.');
     } finally {
         clearTimeout(timer);
     }
@@ -563,53 +1163,48 @@ async function callGemini(apiKey, userInput) {
     try {
         data = await response.json();
     } catch (parseErr) {
-        throw new Error('Răspuns invalid de la server (HTTP ' + response.status + ').');
+        throw new Error('Ungültige Antwort vom Server (HTTP ' + response.status + ').');
     }
 
-    // --- Mod BACKEND: răspunsul e deja normalizat { text } / { error } ---
+    // --- Mod BACKEND: răspuns normalizat { text } / { error } ---
     if (useBackend) {
         if (!response.ok) {
-            throw new Error((data && data.error) || ('Eroare server (HTTP ' + response.status + ').'));
+            throw new Error((data && data.error) || ('Serverfehler (HTTP ' + response.status + ').'));
         }
         const text = data && typeof data.text === 'string' ? data.text.trim() : '';
-        if (!text) throw new Error('Răspuns gol de la server. Reîncearcă.');
+        if (!text) throw new Error('Leere Antwort vom Server. Bitte erneut versuchen.');
         return text;
     }
 
-    // --- Mod DIRECT: procesăm răspunsul brut de la Gemini ---
+    // --- Mod DIRECT: răspuns brut Gemini ---
     if (!response.ok) {
-        // Gemini întoarce { error: { code, message, status } }
         const apiMsg = data && data.error && data.error.message ? data.error.message : ('HTTP ' + response.status);
         if (response.status === 400 && /API key not valid/i.test(apiMsg)) {
-            throw new Error('Cheia API nu este validă. Verifică cheia Google Gemini.');
+            throw new Error('Der API-Schlüssel ist ungültig. Bitte in den Einstellungen prüfen.');
         }
         if (response.status === 403) {
-            throw new Error('Acces refuzat (403). Activează "Generative Language API" pentru această cheie.');
+            throw new Error('Zugriff verweigert (403). „Generative Language API“ für diesen Schlüssel aktivieren.');
         }
         if (response.status === 429) {
-            throw new Error('Prea multe cereri (429). Așteaptă un minut și reîncearcă.');
+            throw new Error('Zu viele Anfragen (429). Bitte kurz warten und erneut versuchen.');
         }
         if (response.status === 404) {
-            throw new Error('Model indisponibil (404): ' + apiMsg + '. Actualizează CONFIG.GEMINI_MODEL.');
+            throw new Error('Modell nicht verfügbar (404): ' + apiMsg);
         }
-        throw new Error('Eroare API: ' + apiMsg);
+        throw new Error('API-Fehler: ' + apiMsg);
     }
 
-    // Pentru depanare: răspunsul brut e mereu în consolă (F12).
     console.debug('Gemini raw response:', data);
 
-    // Verificăm blocaje de siguranță pe prompt.
     if (data.promptFeedback && data.promptFeedback.blockReason) {
-        throw new Error('Cerere blocată de filtrul de siguranță: ' + data.promptFeedback.blockReason);
+        throw new Error('Anfrage vom Sicherheitsfilter blockiert: ' + data.promptFeedback.blockReason);
     }
 
     const candidate = data.candidates && data.candidates[0];
     if (!candidate) {
-        throw new Error('Model fără răspuns (candidates gol). Reîncearcă.');
+        throw new Error('Keine Antwort vom Modell. Bitte erneut versuchen.');
     }
 
-    // Concatenăm textul din TOATE părțile; la modelele 3.x pot exista
-    // și părți de "raționament" (thought) care se ignoră.
     let text = '';
     const parts = (candidate.content && candidate.content.parts) || [];
     for (const p of parts) {
@@ -618,30 +1213,26 @@ async function callGemini(apiKey, userInput) {
     text = text.trim();
 
     if (!text) {
-        const reason = candidate.finishReason || 'necunoscut';
+        const reason = candidate.finishReason || 'unbekannt';
         if (reason === 'MAX_TOKENS') {
-            throw new Error('Răspunsul a fost tăiat (MAX_TOKENS) înainte de text. ' +
-                'Mărește maxOutputTokens sau scurtează notele.');
+            throw new Error('Antwort wurde abgeschnitten (MAX_TOKENS). Bitte die Notiz kürzen.');
         }
         if (reason === 'SAFETY' || reason === 'RECITATION') {
-            throw new Error('Răspuns blocat de model (' + reason + '). Reformulează notele.');
+            throw new Error('Antwort vom Modell blockiert (' + reason + '). Bitte umformulieren.');
         }
-        throw new Error('Răspuns gol de la model (finishReason: ' + reason + '). Vezi consola (F12).');
+        throw new Error('Leere Antwort vom Modell (finishReason: ' + reason + ').');
     }
 
     return text;
 }
 
-/* ---------- 5. UTILITARE ---------- */
+/* ---------- 5. UTILITARE TEXT ---------- */
 
-// True dacă utilizatorul vrea punctuație doar prin comenzi vocale.
 function voiceCommandsEnabled() {
     const el = document.getElementById('voiceCommands');
     return !!(el && el.checked);
 }
 
-// Lipește două bucăți de text. Dacă a doua începe cu semn de punctuație
-// sau linie nouă, nu punem spațiu înainte.
 function joinSmart(a, b) {
     if (!a) return b;
     if (!b) return a;
@@ -651,37 +1242,33 @@ function joinSmart(a, b) {
     return a.replace(/\s+$/, '') + ' ' + b.replace(/^\s+/, '');
 }
 
-// Procesează o frază finalizată de la motorul vocal.
 function processChunk(chunk) {
     let t = chunk.trim();
     if (voiceCommandsEnabled()) {
-        // 1. Scoatem punctuația pe care motorul o adaugă singur la pauze.
         t = t.replace(/[.,;:!?]+/g, '');
-        // 2. Transformăm cuvintele-comandă în semne reale.
         t = applyVoiceCommands(t);
     }
     return t;
 }
 
-// Înlocuiește cuvinte rostite ("virgulă", "punct"...) cu semnele lor.
-// Regulile cu mai multe cuvinte trebuie să fie ÎNAINTEA celor scurte.
+// Cuvinte rostite -> semne de punctuație. Suport RO + DE + EN.
+// Regulile cu mai multe cuvinte trebuie ÎNAINTEA celor scurte.
 function applyVoiceCommands(text) {
     let t = ' ' + text + ' ';
     const rules = [
-        [/\s+(punct(?:ul)?\s+(?:și|si)\s+virgul[ăa])\s+/gi, '; '],
-        [/\s+(dou[ăa]\s+puncte)\s+/gi, ': '],
-        [/\s+(semnul\s+(?:întreb[ăa]rii|intrebarii)|semn\s+de\s+(?:întrebare|intrebare))\s+/gi, '? '],
-        [/\s+(semnul\s+(?:exclam[ăa]rii|exclamarii)|semn\s+de\s+exclamare)\s+/gi, '! '],
-        [/\s+(r[âa]nd\s+nou|linie\s+nou[ăa]|paragraf\s+nou|newline)\s+/gi, '\n'],
-        [/\s+(deschide\s+paranteza|paranteza\s+deschis[ăa])\s+/gi, ' ('],
-        [/\s+(închide\s+paranteza|inchide\s+paranteza|paranteza\s+(?:închis[ăa]|inchisa))\s+/gi, ') '],
-        [/\s+(ghilimele|semnul\s+cit[ăa]rii)\s+/gi, ' "'],
-        [/\s+(linie\s+de\s+dialog|cratim[ăa]|linioar[ăa])\s+/gi, ' - '],
-        [/\s+(virgul[ăa])\s+/gi, ', '],
-        [/\s+(punct(?:ul)?)\s+/gi, '. ']
+        [/\s+(punct(?:ul)?\s+(?:și|si)\s+virgul[ăa]|semikolon|strichpunkt|semicolon)\s+/gi, '; '],
+        [/\s+(dou[ăa]\s+puncte|doppelpunkt|colon)\s+/gi, ': '],
+        [/\s+(semnul\s+(?:întreb[ăa]rii|intrebarii)|semn\s+de\s+(?:întrebare|intrebare)|fragezeichen|question\s+mark)\s+/gi, '? '],
+        [/\s+(semnul\s+(?:exclam[ăa]rii|exclamarii)|semn\s+de\s+exclamare|ausrufezeichen|exclamation\s+mark)\s+/gi, '! '],
+        [/\s+(r[âa]nd\s+nou|linie\s+nou[ăa]|paragraf\s+nou|neue\s+zeile|neuer\s+absatz|absatz|new\s+line|newline|new\s+paragraph)\s+/gi, '\n'],
+        [/\s+(deschide\s+paranteza|paranteza\s+deschis[ăa]|klammer\s+auf|open\s+paren(?:thesis)?)\s+/gi, ' ('],
+        [/\s+(închide\s+paranteza|inchide\s+paranteza|paranteza\s+(?:închis[ăa]|inchisa)|klammer\s+zu|close\s+paren(?:thesis)?)\s+/gi, ') '],
+        [/\s+(ghilimele|semnul\s+cit[ăa]rii|anführungszeichen|anfuehrungszeichen|quote)\s+/gi, ' "'],
+        [/\s+(linie\s+de\s+dialog|cratim[ăa]|linioar[ăa]|gedankenstrich|bindestrich|dash|hyphen)\s+/gi, ' - '],
+        [/\s+(virgul[ăa]|komma|comma)\s+/gi, ', '],
+        [/\s+(punct(?:ul)?|punkt|period|full\s+stop|dot)\s+/gi, '. ']
     ];
     for (const [re, rep] of rules) t = t.replace(re, rep);
-    // Curățăm spațiile în plus în jurul semnelor.
     t = t.replace(/\s+([,.;:!?])/g, '$1');
     t = t.replace(/([,.;:!?])(?=[^\s)\n])/g, '$1 ');
     t = t.replace(/[ \t]*\n[ \t]*/g, '\n');
@@ -689,47 +1276,340 @@ function applyVoiceCommands(text) {
     return t.trim();
 }
 
-// Scrie cu majusculă începutul textului și după . ! ? sau linie nouă.
+// Majusculă la început de propoziție (RO + DE + EN).
 function capitalizeSentences(text) {
     return text.replace(
-        /(^\s*|[.!?]\s+|\n\s*)([a-zăâîșț])/g,
+        /(^\s*|[.!?]\s+|\n\s*)([a-zäöüßăâîșțàâçéèêëïîôûù])/g,
         (m, prefix, ch) => prefix + ch.toUpperCase()
     );
 }
 
+/* ================================================================
+   6. UI — rutare, temă, toasts, rezultat, istoric, setări
+   ================================================================ */
+
+/* ---- Storage helpers (defensive) ---- */
+function getStore(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function setStore(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+/* ---- Toasts ---- */
+function toast(type, text) {
+    const region = document.getElementById('toasts');
+    if (!region) return;
+    const t = document.createElement('div');
+    t.className = 'toast toast--' + (type || 'info');
+    t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    t.textContent = text;
+    region.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('is-in'));
+    const life = type === 'error' ? 6500 : 3600;
+    setTimeout(() => {
+        t.classList.remove('is-in');
+        setTimeout(() => t.remove(), 220);
+    }, life);
+}
+// Compatibilitate cu apelurile vechi.
+function showMessage(type, text) { toast(type, text); }
+function clearMessage() { /* toasturile se sting singure */ }
+
+/* ---- Loading + pași de procesare ---- */
+let stepTimers = [];
+function runProcessingSteps() {
+    const steps = Array.from(document.querySelectorAll('#processing .step'));
+    stepTimers.forEach(clearTimeout);
+    stepTimers = [];
+    steps.forEach(s => s.dataset.state = 'pending');
+    if (steps[0]) steps[0].dataset.state = 'active';
+    // Feedback vizual în timp ce cererea reală rulează — fără întârzieri artificiale.
+    stepTimers.push(setTimeout(() => {
+        if (steps[0]) steps[0].dataset.state = 'done';
+        if (steps[1]) steps[1].dataset.state = 'active';
+    }, 550));
+    stepTimers.push(setTimeout(() => {
+        if (steps[1]) steps[1].dataset.state = 'done';
+        if (steps[2]) steps[2].dataset.state = 'active';
+    }, 1500));
+}
+function finishProcessingSteps() {
+    stepTimers.forEach(clearTimeout);
+    stepTimers = [];
+    document.querySelectorAll('#processing .step').forEach(s => s.dataset.state = 'done');
+}
+
 function setLoading(loading) {
     generateBtn.disabled = loading;
-    generateBtn.textContent = loading ? 'Se generează...' : 'Generează Pflegedokumentation';
+    generateBtn.textContent = loading ? 'Wird erstellt …' : 'Dokumentation erstellen';
+    const proc = document.getElementById('processing');
+    const form = document.getElementById('docForm');
+    if (loading) {
+        form.hidden = true;
+        proc.hidden = false;
+        runProcessingSteps();
+    } else {
+        proc.hidden = true;
+        form.hidden = false;
+    }
 }
 
-function showMessage(type, text) {
-    const box = document.getElementById('message');
-    box.className = 'msg ' + type;
-    box.textContent = text;
+/* ---- Rezultat: editare / diff / copiere / preluare ---- */
+function currentResultText() {
+    const ta = document.getElementById('outputEdit');
+    return (ta && !ta.hidden ? ta.value : document.getElementById('output').textContent);
 }
 
-function clearMessage() {
-    const box = document.getElementById('message');
-    box.className = 'msg';
-    box.textContent = '';
+function toggleEditResult() {
+    const box = document.getElementById('output');
+    const ta = document.getElementById('outputEdit');
+    const btn = document.getElementById('editBtn');
+    const diff = document.getElementById('diffView');
+    if (ta.hidden) {
+        ta.value = box.textContent;
+        ta.hidden = false; box.hidden = true; diff.hidden = true;
+        btn.innerHTML = '<svg class="ic"><use href="#ic-check"/></svg> Fertig';
+        ta.focus();
+    } else {
+        box.textContent = ta.value;
+        ta.hidden = true; box.hidden = false;
+        btn.innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> Bearbeiten';
+    }
 }
 
-async function copyOutput() {
-    const text = document.getElementById('output').textContent;
+function toggleDiff() {
+    const diff = document.getElementById('diffView');
+    if (!diff.hidden) { diff.hidden = true; return; }
+    const a = document.getElementById('originalText').textContent || '';
+    const b = currentResultText() || '';
+    try {
+        diff.innerHTML = wordDiff(a, b);
+    } catch (e) {
+        diff.textContent = 'Vergleich derzeit nicht verfügbar.';
+    }
+    diff.hidden = false;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+// Diff pe cuvinte (LCS). Intrări scurte -> cost neglijabil.
+function wordDiff(a, b) {
+    const A = a.split(/(\s+)/), B = b.split(/(\s+)/);
+    const n = A.length, m = B.length;
+    const dp = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+    for (let i = n - 1; i >= 0; i--) {
+        for (let j = m - 1; j >= 0; j--) {
+            dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+        }
+    }
+    let i = 0, j = 0, out = '';
+    while (i < n && j < m) {
+        if (A[i] === B[j]) { out += escapeHtml(A[i]); i++; j++; }
+        else if (dp[i + 1][j] >= dp[i][j + 1]) { out += '<del>' + escapeHtml(A[i]) + '</del>'; i++; }
+        else { out += '<ins>' + escapeHtml(B[j]) + '</ins>'; j++; }
+    }
+    while (i < n) { out += '<del>' + escapeHtml(A[i++]) + '</del>'; }
+    while (j < m) { out += '<ins>' + escapeHtml(B[j++]) + '</ins>'; }
+    return out;
+}
+
+async function copyText(text) {
+    text = (text || '').trim();
+    if (!text) { toast('warning', 'Kein Text zum Kopieren.'); return; }
     try {
         await navigator.clipboard.writeText(text);
-        showMessage('info', 'Text copiat în clipboard.');
+        toast('success', 'In die Zwischenablage kopiert.');
     } catch (e) {
-        // Fallback pentru browsere fără Clipboard API / context non-HTTPS
         const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); showMessage('info', 'Text copiat.'); }
-        catch (e2) { showMessage('error', 'Nu s-a putut copia automat. Selectează manual textul.'); }
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); toast('success', 'Kopiert.'); }
+        catch (e2) { toast('error', 'Automatisches Kopieren nicht möglich. Bitte Text manuell markieren.'); }
         document.body.removeChild(ta);
     }
 }
+function copyOutput() { copyText(currentResultText()); }
+
+/* ---- Verlauf (localStorage) ---- */
+const HKEY = 'pflegedoc_history';
+function readHistory() {
+    try { const v = JSON.parse(getStore(HKEY) || '[]'); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+}
+function writeHistory(list) { setStore(HKEY, JSON.stringify(list)); }
+
+function acceptDoc() {
+    const improved = (currentResultText() || '').trim();
+    if (!improved) { toast('warning', 'Es gibt noch keine Dokumentation zum Übernehmen.'); return; }
+    const list = readHistory();
+    list.unshift({
+        id: Date.now(),
+        date: new Date().toISOString(),
+        original: (document.getElementById('originalText').textContent || '').trim(),
+        improved
+    });
+    writeHistory(list.slice(0, 100));
+    toast('success', 'In den Verlauf übernommen.');
+}
+
+function renderHistory() {
+    const list = readHistory();
+    const wrap = document.getElementById('historyList');
+    const empty = document.getElementById('historyEmpty');
+    const toolbar = document.getElementById('verlaufToolbar');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    empty.hidden = list.length > 0;
+    toolbar.hidden = list.length === 0;
+
+    list.forEach(item => {
+        const d = new Date(item.date);
+        let when;
+        try {
+            when = d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) { when = d.toISOString().slice(0, 16).replace('T', ' '); }
+        const snippet = ((item.improved || '').split('\n').find(l => l.trim()) || item.improved || '').slice(0, 90);
+
+        const el = document.createElement('details');
+        el.className = 'histitem';
+        el.innerHTML =
+            '<summary><span class="histitem__when"></span><span class="histitem__snip"></span></summary>' +
+            '<div class="histitem__body"><pre class="histitem__text"></pre>' +
+            '<div class="histitem__actions">' +
+            '<button class="btn btn--subtle btn--sm" type="button" data-copy><svg class="ic"><use href="#ic-copy"/></svg> Kopieren</button>' +
+            '<button class="btn btn--subtle btn--sm" type="button" data-del><svg class="ic"><use href="#ic-trash"/></svg> Löschen</button>' +
+            '</div></div>';
+        el.querySelector('.histitem__when').textContent = when;
+        el.querySelector('.histitem__snip').textContent = snippet;
+        el.querySelector('.histitem__text').textContent = item.improved || '';
+        el.querySelector('[data-copy]').addEventListener('click', () => copyText(item.improved || ''));
+        el.querySelector('[data-del]').addEventListener('click', () => {
+            writeHistory(readHistory().filter(x => x.id !== item.id));
+            renderHistory();
+            toast('info', 'Eintrag gelöscht.');
+        });
+        wrap.appendChild(el);
+    });
+}
+
+function clearHistory() {
+    if (!readHistory().length) return;
+    if (!window.confirm('Gesamten Verlauf auf diesem Gerät löschen?')) return;
+    writeHistory([]);
+    renderHistory();
+    toast('info', 'Verlauf gelöscht.');
+}
+
+/* ---- Temă ---- */
+function applyTheme() {
+    const pref = getStore('pflegedoc_theme') || 'system';
+    if (pref === 'light' || pref === 'dark') {
+        document.documentElement.setAttribute('data-theme', pref);
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    document.querySelectorAll('[data-theme-choice]').forEach(b => {
+        const on = b.dataset.themeChoice === pref;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const dark = pref === 'dark' ||
+        (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#0a1417' : '#f4f7f8');
+}
+try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if ((getStore('pflegedoc_theme') || 'system') === 'system') applyTheme();
+    });
+} catch (e) { /* Safari vechi */ }
+
+document.querySelectorAll('[data-theme-choice]').forEach(b => {
+    b.addEventListener('click', () => {
+        setStore('pflegedoc_theme', b.dataset.themeChoice);
+        applyTheme();
+    });
+});
+
+/* ---- Nume + salut ---- */
+const userNameInput = document.getElementById('userName');
+userNameInput.value = getStore('pflegedoc_name') || '';
+userNameInput.addEventListener('input', () => {
+    setStore('pflegedoc_name', userNameInput.value.trim());
+    updateGreeting();
+});
+function updateGreeting() {
+    const h = new Date().getHours();
+    const g = h < 11 ? 'Guten Morgen' : (h < 18 ? 'Guten Tag' : 'Guten Abend');
+    const name = (getStore('pflegedoc_name') || '').trim();
+    const el = document.getElementById('greeting');
+    if (el) el.textContent = name ? (g + ', ' + name) : g;
+}
+
+/* ---- Rutare (hash) ---- */
+const ROUTES = {
+    home:          { screen: 'screen-home',          title: 'Start',             nav: 'home' },
+    doc:           { screen: 'screen-doc',           title: 'Neue Dokumentation', nav: 'doc' },
+    plan:          { screen: 'screen-plan',          title: 'Pflegeplanung',     nav: 'plan' },
+    korrigieren:   { screen: 'screen-korrigieren',   title: 'Korrigieren',       nav: null },
+    uebersetzen:   { screen: 'screen-uebersetzen',   title: 'Übersetzen',        nav: null },
+    verlauf:       { screen: 'screen-verlauf',       title: 'Verlauf',           nav: 'verlauf' },
+    einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' }
+};
+function currentRouteKey() {
+    const h = location.hash.replace(/^#\/?/, '').trim();
+    return ROUTES[h] ? h : 'home';
+}
+function route() {
+    const key = currentRouteKey();
+    const r = ROUTES[key];
+    document.querySelectorAll('.screen').forEach(s => { s.hidden = (s.id !== r.screen); });
+    document.querySelectorAll('[data-nav]').forEach(a => {
+        const on = a.dataset.nav === r.nav;
+        a.classList.toggle('is-active', on);
+        if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    document.title = 'PflegeDoc – ' + r.title;
+    if (key === 'home') updateGreeting();
+    if (key === 'verlauf') renderHistory();
+    const screen = document.getElementById(r.screen);
+    const head = screen && screen.querySelector('h1');
+    if (head) { try { head.focus({ preventScroll: true }); } catch (e) {} }
+    window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+
+/* ---- Acțiuni „data-*” din carduri / butoane ---- */
+document.addEventListener('click', (e) => {
+    const nav = e.target.closest('[data-nav-go]');
+    if (nav) { location.hash = '#/' + nav.dataset.navGo; return; }
+    const go = e.target.closest('[data-go]');
+    if (go) {
+        const v = go.dataset.go;
+        if (v === 'doc-text') {
+            location.hash = '#/doc';
+            setTimeout(() => { try { userInputEl.focus(); } catch (e) {} }, 70);
+        } else if (v === 'doc-voice') {
+            location.hash = '#/doc';
+            setTimeout(() => { if (!isRecording) toggleRecording(); }, 90);
+        }
+    }
+});
+
+/* ---- Waveform (bare animate) ---- */
+(function buildWave() {
+    const wave = document.getElementById('wave');
+    if (!wave) return;
+    for (let i = 0; i < 28; i++) {
+        const s = document.createElement('span');
+        s.style.animationDelay = (i * 0.055).toFixed(3) + 's';
+        wave.appendChild(s);
+    }
+})();
+
+/* ---- Init ---- */
+applyTheme();
+updateGreeting();
+route();
 </script>
 
 </body>
