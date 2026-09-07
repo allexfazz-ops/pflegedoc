@@ -575,6 +575,52 @@
         background: var(--surface-2); padding: 12px; border-radius: var(--r-sm);
     }
     .histitem__actions { display: flex; gap: 8px; }
+
+    /* ---------- Konto / i18n (Pasul 4) ---------- */
+    .topbar__spacer { flex: 1; }
+    .topbar__lang, .home__lang {
+        appearance: none; font: inherit; font-size: .82rem; font-weight: 600;
+        color: var(--text-muted); background: var(--surface-2);
+        border: 1px solid var(--border); border-radius: var(--r-pill);
+        padding: 6px 26px 6px 12px; cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2355686f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 9px center;
+    }
+    .topbar__acct {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: .84rem; font-weight: 650; color: var(--accent-strong);
+        padding: 7px 12px; border-radius: var(--r-pill);
+        border: 1px solid var(--accent-weak-bd); background: var(--accent-weak);
+    }
+    .topbar__acct .ic { width: 1.15em; height: 1.15em; }
+    .rail__acct {
+        display: flex; align-items: center; gap: 10px;
+        margin-top: 14px; padding: 10px 12px; border-radius: var(--r-md);
+        background: var(--surface-2); font-size: .88rem;
+    }
+    .rail__acct span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .home__bar {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+    .home__bar .btn { min-height: 40px; padding: 0 14px; font-size: .86rem; }
+
+    .authcard {
+        max-width: 420px; margin: 0 auto;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: 24px;
+    }
+    .authcard h1 { font-size: 1.35rem; margin: 0 0 4px; }
+    .authcard .screen__sub { margin: 0 0 20px; }
+    .auth__switch { margin-top: 16px; font-size: .9rem; color: var(--text-muted); text-align: center; }
+    .auth__switch a { color: var(--accent-strong); font-weight: 650; cursor: pointer; }
+    .konto__row {
+        display: flex; align-items: center; justify-content: space-between; gap: 14px;
+        padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .konto__row:last-of-type { border-bottom: none; }
+    .konto__val { color: var(--text-muted); font-size: .92rem; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -606,6 +652,11 @@
         <svg class="brand__mark" viewBox="0 0 40 24" aria-hidden="true"><path d="M2 12h6l3-8 5 16 3.5-8H26l2 4h10"/></svg>
         <span class="brand__name">Pflege<b>Doc</b></span>
     </a>
+    <span class="topbar__spacer"></span>
+    <select class="topbar__lang" data-lang-select aria-label="Sprache der Oberfläche"></select>
+    <a class="topbar__acct" data-acct-link href="#/login">
+        <svg class="ic"><use href="#ic-settings"/></svg><span data-acct-label>Anmelden</span>
+    </a>
 </header>
 
 <!-- ===================== Seitenleiste (Desktop) ===================== -->
@@ -621,6 +672,10 @@
         <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> Verlauf</a>
         <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> Einstellungen</a>
     </div>
+    <a class="rail__acct" data-acct-link href="#/login">
+        <svg class="ic"><use href="#ic-settings"/></svg>
+        <span data-acct-label>Anmelden</span>
+    </a>
     <p class="rail__foot">Dokumentationshilfe – keine medizinische Entscheidung.</p>
 </nav>
 
@@ -628,9 +683,18 @@
 
     <!-- ===================== START ===================== -->
     <section id="screen-home" class="screen" aria-labelledby="home-h">
+        <div class="home__bar">
+            <select class="home__lang" data-lang-select aria-label="Sprache der Oberfläche"></select>
+            <button class="btn btn--subtle" type="button" data-theme-cycle title="Darstellung wechseln">
+                <svg class="ic"><use href="#ic-settings"/></svg> <span data-theme-cycle-label>Design</span>
+            </button>
+            <span style="flex:1"></span>
+            <a class="btn btn--ghost" data-acct-link href="#/login"><span data-acct-label>Anmelden</span></a>
+        </div>
+
         <div class="screen__head">
             <h1 id="home-h" tabindex="-1"><span id="greeting">Willkommen</span></h1>
-            <p class="screen__sub">Wobei möchtest du heute Hilfe?</p>
+            <p class="screen__sub" data-i18n="home.sub">Wobei möchtest du heute Hilfe?</p>
         </div>
 
         <article class="card card--primary">
@@ -817,15 +881,30 @@
 
     <!-- ===================== EINSTELLUNGEN ===================== -->
     <section id="screen-einstellungen" class="screen" aria-labelledby="settings-h" hidden>
-        <div class="screen__head"><h1 id="settings-h" tabindex="-1">Einstellungen</h1></div>
+        <div class="screen__head"><h1 id="settings-h" tabindex="-1" data-i18n="settings.title">Einstellungen</h1></div>
+
+        <div class="setting" id="settingsKonto">
+            <span class="setting__label" data-i18n="konto.title">Konto</span>
+            <span class="setting__hint" id="settingsKontoHint" data-i18n="konto.loggedout.hint">Melde dich an, damit dein Verlauf und deine Einstellungen geräteübergreifend gespeichert werden.</span>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px">
+                <a class="btn btn--primary btn--sm" data-nav-go="login" id="settingsLoginBtn" data-i18n="auth.login.title">Anmelden</a>
+                <a class="btn btn--ghost btn--sm" data-nav-go="register" id="settingsRegisterBtn" data-i18n="auth.register.title">Registrieren</a>
+                <a class="btn btn--ghost btn--sm" data-nav-go="konto" id="settingsKontoBtn" hidden data-i18n="konto.manage">Konto verwalten</a>
+            </div>
+        </div>
+
+        <div class="setting">
+            <label class="setting__label" for="uiLangSelect" data-i18n="settings.uilang">Sprache der Oberfläche</label>
+            <select id="uiLangSelect" class="select" data-lang-select style="margin-top:8px; max-width:280px"></select>
+        </div>
 
         <div class="field">
-            <label class="field__label" for="userName">Dein Name (für die Begrüßung)</label>
+            <label class="field__label" for="userName" data-i18n="settings.name">Dein Name (für die Begrüßung)</label>
             <input id="userName" class="input" type="text" autocomplete="name" placeholder="z. B. Alexandru">
         </div>
 
         <div class="setting">
-            <span class="setting__label">Darstellung</span>
+            <span class="setting__label" data-i18n="settings.theme">Darstellung</span>
             <div class="segmented" role="group" aria-label="Darstellung wählen">
                 <button type="button" data-theme-choice="system">System</button>
                 <button type="button" data-theme-choice="light">Hell</button>
@@ -858,6 +937,73 @@
             <svg class="ic"><use href="#ic-shield"/></svg>
             PflegeDoc unterstützt bei der Formulierung der Pflegedokumentation. Fachliche Prüfung und Verantwortung bleiben bei der Pflegekraft.
         </p>
+    </section>
+
+    <!-- ===================== ANMELDEN ===================== -->
+    <section id="screen-login" class="screen" aria-labelledby="login-h" hidden>
+        <div class="authcard">
+            <h1 id="login-h" tabindex="-1" data-i18n="auth.login.title">Anmelden</h1>
+            <p class="screen__sub" data-i18n="auth.login.sub">Melde dich an, um deinen persönlichen Verlauf zu sehen.</p>
+            <form id="loginForm" novalidate>
+                <div class="field">
+                    <label class="field__label" for="loginEmail" data-i18n="auth.email">E-Mail</label>
+                    <input id="loginEmail" class="input" type="email" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="loginPassword" data-i18n="auth.password">Passwort</label>
+                    <input id="loginPassword" class="input" type="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn btn--primary btn--block btn--lg" type="submit" id="loginSubmit" data-i18n="auth.login.title">Anmelden</button>
+            </form>
+            <p class="auth__switch">
+                <span data-i18n="auth.login.switch">Noch kein Konto?</span>
+                <a data-nav-go="register" data-i18n="auth.register.title">Registrieren</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- ===================== REGISTRIEREN ===================== -->
+    <section id="screen-register" class="screen" aria-labelledby="register-h" hidden>
+        <div class="authcard">
+            <h1 id="register-h" tabindex="-1" data-i18n="auth.register.title">Registrieren</h1>
+            <p class="screen__sub" data-i18n="auth.register.sub">Kostenloses Konto für deinen persönlichen Verlauf.</p>
+            <form id="registerForm" novalidate>
+                <div class="field">
+                    <label class="field__label" for="regEmail" data-i18n="auth.email">E-Mail</label>
+                    <input id="regEmail" class="input" type="email" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="regPassword" data-i18n="auth.password">Passwort</label>
+                    <input id="regPassword" class="input" type="password" autocomplete="new-password" minlength="8" required>
+                    <p class="hint" data-i18n="auth.password.hint">Mindestens 8 Zeichen.</p>
+                </div>
+                <button class="btn btn--primary btn--block btn--lg" type="submit" id="registerSubmit" data-i18n="auth.register.title">Registrieren</button>
+            </form>
+            <p class="auth__switch">
+                <span data-i18n="auth.register.switch">Schon ein Konto?</span>
+                <a data-nav-go="login" data-i18n="auth.login.title">Anmelden</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- ===================== KONTO ===================== -->
+    <section id="screen-konto" class="screen" aria-labelledby="konto-h" hidden>
+        <div class="screen__head"><h1 id="konto-h" tabindex="-1" data-i18n="konto.title">Konto</h1></div>
+        <div class="card">
+            <div class="konto__row">
+                <span class="setting__label" data-i18n="auth.email">E-Mail</span>
+                <span class="konto__val" id="kontoEmail">–</span>
+            </div>
+            <div class="konto__row">
+                <span class="setting__label" data-i18n="konto.since">Mitglied seit</span>
+                <span class="konto__val" id="kontoSince">–</span>
+            </div>
+            <div class="konto__row">
+                <span class="setting__label" data-i18n="konto.sync">Einstellungen</span>
+                <span class="konto__val" data-i18n="konto.sync.note">Sprache und Design werden in deinem Konto gespeichert.</span>
+            </div>
+        </div>
+        <button class="btn btn--ghost btn--block" type="button" id="logoutBtn" style="margin-top:16px" data-i18n="konto.logout">Abmelden</button>
     </section>
 
 </main>
@@ -1484,21 +1630,39 @@ function readHistory() {
 }
 function writeHistory(list) { setStore(HKEY, JSON.stringify(list)); }
 
-function acceptDoc() {
+async function acceptDoc() {
     const improved = (currentResultText() || '').trim();
     if (!improved) { toast('warning', 'Es gibt noch keine Dokumentation zum Übernehmen.'); return; }
+    const original = (document.getElementById('originalText').textContent || '').trim();
+
+    if (typeof authState !== 'undefined' && authState.authenticated) {
+        try {
+            const langEl = document.getElementById('inputLanguage');
+            await apiFetch('/api/history', {
+                method: 'POST',
+                body: {
+                    type: 'dokumentation',
+                    input_text: original || '(kein Text)',
+                    result_text: improved,
+                    input_language: langEl ? langEl.value : null,
+                    mode: 'formulieren'
+                }
+            });
+            toast('success', 'In den Verlauf übernommen.');
+        } catch (e) {
+            toast('error', e.message);
+        }
+        return;
+    }
+
     const list = readHistory();
-    list.unshift({
-        id: Date.now(),
-        date: new Date().toISOString(),
-        original: (document.getElementById('originalText').textContent || '').trim(),
-        improved
-    });
+    list.unshift({ id: Date.now(), date: new Date().toISOString(), original, improved });
     writeHistory(list.slice(0, 100));
     toast('success', 'In den Verlauf übernommen.');
 }
 
 function renderHistory() {
+    if (typeof authState !== 'undefined' && authState.authenticated) { renderHistoryRemote(); return; }
     const list = readHistory();
     const wrap = document.getElementById('historyList');
     const empty = document.getElementById('historyEmpty');
@@ -1574,7 +1738,24 @@ document.querySelectorAll('[data-theme-choice]').forEach(b => {
     b.addEventListener('click', () => {
         setStore('pflegedoc_theme', b.dataset.themeChoice);
         applyTheme();
+        if (typeof authState !== 'undefined' && authState.authenticated) {
+            apiFetch('/api/settings', { method: 'PATCH', body: { theme: b.dataset.themeChoice } }).catch(() => {});
+        }
     });
+});
+
+// Buton „ciclează tema" din bara de pe Home.
+document.addEventListener('click', (e) => {
+    const cyc = e.target.closest('[data-theme-cycle]');
+    if (!cyc) return;
+    const order = ['system', 'light', 'dark'];
+    const cur = getStore('pflegedoc_theme') || 'system';
+    const next = order[(order.indexOf(cur) + 1) % order.length];
+    setStore('pflegedoc_theme', next);
+    applyTheme();
+    if (typeof authState !== 'undefined' && authState.authenticated) {
+        apiFetch('/api/settings', { method: 'PATCH', body: { theme: next } }).catch(() => {});
+    }
 });
 
 /* ---- Nume + salut ---- */
@@ -1586,10 +1767,16 @@ userNameInput.addEventListener('input', () => {
 });
 function updateGreeting() {
     const h = new Date().getHours();
-    const g = h < 11 ? 'Guten Morgen' : (h < 18 ? 'Guten Tag' : 'Guten Abend');
-    const name = (getStore('pflegedoc_name') || '').trim();
+    const hasT = typeof t === 'function';
+    const g = h < 11
+        ? (hasT ? t('greet.morning') : 'Guten Morgen')
+        : (h < 18 ? (hasT ? t('greet.day') : 'Guten Tag') : (hasT ? t('greet.evening') : 'Guten Abend'));
+    let name = (getStore('pflegedoc_name') || '').trim();
+    if (!name && typeof authState !== 'undefined' && authState.authenticated && authState.user) {
+        name = authState.user.email.split('@')[0];
+    }
     const el = document.getElementById('greeting');
-    if (el) el.textContent = name ? (g + ', ' + name) : g;
+    if (el) el.textContent = name ? (g + ', ' + name) : (g || (hasT ? t('greet.welcome') : 'Willkommen'));
 }
 
 /* ---- Rutare (hash) ---- */
@@ -1600,14 +1787,20 @@ const ROUTES = {
     korrigieren:   { screen: 'screen-korrigieren',   title: 'Korrigieren',       nav: null },
     uebersetzen:   { screen: 'screen-uebersetzen',   title: 'Übersetzen',        nav: null },
     verlauf:       { screen: 'screen-verlauf',       title: 'Verlauf',           nav: 'verlauf' },
-    einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' }
+    einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
+    login:         { screen: 'screen-login',         title: 'Anmelden',          nav: null },
+    register:      { screen: 'screen-register',      title: 'Registrieren',      nav: null },
+    konto:         { screen: 'screen-konto',         title: 'Konto',             nav: null }
 };
 function currentRouteKey() {
     const h = location.hash.replace(/^#\/?/, '').trim();
     return ROUTES[h] ? h : 'home';
 }
 function route() {
-    const key = currentRouteKey();
+    let key = currentRouteKey();
+    // Guard: paginile de cont necesită sesiune; ecranele auth sunt inutile dacă ești deja logat.
+    if (key === 'konto' && !authState.authenticated) key = 'login';
+    if ((key === 'login' || key === 'register') && authState.authenticated) key = 'konto';
     const r = ROUTES[key];
     document.querySelectorAll('.screen').forEach(s => { s.hidden = (s.id !== r.screen); });
     document.querySelectorAll('[data-nav]').forEach(a => {
@@ -1618,6 +1811,7 @@ function route() {
     document.title = 'PflegeDoc – ' + r.title;
     if (key === 'home') updateGreeting();
     if (key === 'verlauf') renderHistory();
+    if (key === 'konto') fillKonto();
     const screen = document.getElementById(r.screen);
     const head = screen && screen.querySelector('h1');
     if (head) { try { head.focus({ preventScroll: true }); } catch (e) {} }
@@ -1653,10 +1847,395 @@ document.addEventListener('click', (e) => {
     }
 })();
 
+/* ================================================================
+   7. Konten + i18n + API-Client   (Pasul 4)
+   Nu modifică: Documentation Engine, prompt, Voice/Speech, callGemini.
+   Pentru utilizatori neautentificați comportamentul rămâne identic.
+   ================================================================ */
+
+/* ---- i18n ---- */
+const LOCALES = [
+    { code: 'de', name: 'Deutsch' },   { code: 'en', name: 'English' },
+    { code: 'fr', name: 'Français' },  { code: 'es', name: 'Español' },
+    { code: 'it', name: 'Italiano' },  { code: 'pt', name: 'Português' },
+    { code: 'pl', name: 'Polski' },    { code: 'tr', name: 'Türkçe' },
+    { code: 'ro', name: 'Română' },    { code: 'ru', name: 'Русский' },
+    { code: 'uk', name: 'Українська' }, { code: 'ar', name: 'العربية' }
+];
+const LOCALE_CODES = LOCALES.map(l => l.code);
+
+// DE = sursă (fallback). EN + RO complete. Restul: gol -> fallback DE.
+// Pasul 5 extinde cheile pe tot UI-ul și completează celelalte 9 limbi.
+const I18N = {
+    de: {
+        'home.sub': 'Wobei möchtest du heute Hilfe?',
+        'auth.email': 'E-Mail', 'auth.password': 'Passwort', 'auth.password.hint': 'Mindestens 8 Zeichen.',
+        'auth.login.title': 'Anmelden', 'auth.login.sub': 'Melde dich an, um deinen persönlichen Verlauf zu sehen.',
+        'auth.login.switch': 'Noch kein Konto?', 'auth.acct.login': 'Anmelden',
+        'auth.register.title': 'Registrieren', 'auth.register.sub': 'Kostenloses Konto für deinen persönlichen Verlauf.',
+        'auth.register.switch': 'Schon ein Konto?',
+        'konto.title': 'Konto', 'konto.since': 'Mitglied seit', 'konto.sync': 'Einstellungen',
+        'konto.sync.note': 'Sprache und Design werden in deinem Konto gespeichert.',
+        'konto.logout': 'Abmelden', 'konto.manage': 'Konto verwalten',
+        'konto.loggedout.hint': 'Melde dich an, damit dein Verlauf und deine Einstellungen geräteübergreifend gespeichert werden.',
+        'settings.title': 'Einstellungen', 'settings.uilang': 'Sprache der Oberfläche',
+        'settings.name': 'Dein Name (für die Begrüßung)', 'settings.theme': 'Darstellung',
+        'verlauf.sub.local': 'Übernommene Dokumentationen – nur auf diesem Gerät gespeichert.',
+        'verlauf.sub.account': 'Übernommene Dokumentationen – in deinem Konto gespeichert.',
+        'hist.more': 'Mehr laden', 'hist.copy': 'Kopieren', 'hist.delete': 'Löschen',
+        'hist.confirmDelete': 'Diesen Eintrag löschen?',
+        'toast.loggedin': 'Angemeldet.', 'toast.loggedout': 'Abgemeldet.',
+        'toast.registered': 'Konto erstellt.',
+        'toast.exists': 'Falls du bereits ein Konto hast, melde dich bitte an.',
+        'toast.migrated': 'Lokaler Verlauf in dein Konto übernommen.',
+        'toast.deleted': 'Eintrag gelöscht.',
+        'greet.morning': 'Guten Morgen', 'greet.day': 'Guten Tag', 'greet.evening': 'Guten Abend', 'greet.welcome': 'Willkommen',
+        'theme.cycle': 'Design'
+    },
+    en: {
+        'home.sub': 'What can I help you with today?',
+        'auth.email': 'Email', 'auth.password': 'Password', 'auth.password.hint': 'At least 8 characters.',
+        'auth.login.title': 'Sign in', 'auth.login.sub': 'Sign in to see your personal history.',
+        'auth.login.switch': 'No account yet?', 'auth.acct.login': 'Sign in',
+        'auth.register.title': 'Register', 'auth.register.sub': 'A free account for your personal history.',
+        'auth.register.switch': 'Already have an account?',
+        'konto.title': 'Account', 'konto.since': 'Member since', 'konto.sync': 'Settings',
+        'konto.sync.note': 'Language and theme are stored in your account.',
+        'konto.logout': 'Sign out', 'konto.manage': 'Manage account',
+        'konto.loggedout.hint': 'Sign in so your history and settings are stored across devices.',
+        'settings.title': 'Settings', 'settings.uilang': 'Interface language',
+        'settings.name': 'Your name (for the greeting)', 'settings.theme': 'Appearance',
+        'verlauf.sub.local': 'Accepted documentation – stored on this device only.',
+        'verlauf.sub.account': 'Accepted documentation – stored in your account.',
+        'hist.more': 'Load more', 'hist.copy': 'Copy', 'hist.delete': 'Delete',
+        'hist.confirmDelete': 'Delete this entry?',
+        'toast.loggedin': 'Signed in.', 'toast.loggedout': 'Signed out.',
+        'toast.registered': 'Account created.',
+        'toast.exists': 'If you already have an account, please sign in.',
+        'toast.migrated': 'Local history moved into your account.',
+        'toast.deleted': 'Entry deleted.',
+        'greet.morning': 'Good morning', 'greet.day': 'Good day', 'greet.evening': 'Good evening', 'greet.welcome': 'Welcome',
+        'theme.cycle': 'Theme'
+    },
+    ro: {
+        'home.sub': 'Cu ce te pot ajuta azi?',
+        'auth.email': 'E-mail', 'auth.password': 'Parolă', 'auth.password.hint': 'Cel puțin 8 caractere.',
+        'auth.login.title': 'Autentificare', 'auth.login.sub': 'Autentifică-te ca să-ți vezi istoricul personal.',
+        'auth.login.switch': 'Nu ai cont?', 'auth.acct.login': 'Autentificare',
+        'auth.register.title': 'Înregistrare', 'auth.register.sub': 'Cont gratuit pentru istoricul tău personal.',
+        'auth.register.switch': 'Ai deja cont?',
+        'konto.title': 'Cont', 'konto.since': 'Membru din', 'konto.sync': 'Setări',
+        'konto.sync.note': 'Limba și tema se salvează în contul tău.',
+        'konto.logout': 'Deconectare', 'konto.manage': 'Gestionează contul',
+        'konto.loggedout.hint': 'Autentifică-te ca istoricul și setările să fie salvate pe toate dispozitivele.',
+        'settings.title': 'Setări', 'settings.uilang': 'Limba interfeței',
+        'settings.name': 'Numele tău (pentru salut)', 'settings.theme': 'Aspect',
+        'verlauf.sub.local': 'Documentații preluate – salvate doar pe acest dispozitiv.',
+        'verlauf.sub.account': 'Documentații preluate – salvate în contul tău.',
+        'hist.more': 'Încarcă mai multe', 'hist.copy': 'Copiază', 'hist.delete': 'Șterge',
+        'hist.confirmDelete': 'Ștergi această intrare?',
+        'toast.loggedin': 'Autentificat.', 'toast.loggedout': 'Deconectat.',
+        'toast.registered': 'Cont creat.',
+        'toast.exists': 'Dacă ai deja cont, autentifică-te.',
+        'toast.migrated': 'Istoricul local a fost mutat în cont.',
+        'toast.deleted': 'Intrare ștearsă.',
+        'greet.morning': 'Bună dimineața', 'greet.day': 'Bună ziua', 'greet.evening': 'Bună seara', 'greet.welcome': 'Bun venit',
+        'theme.cycle': 'Temă'
+    },
+    fr: {}, es: {}, it: {}, pt: {}, pl: {}, tr: {}, ru: {}, uk: {}, ar: {}
+};
+
+function getLocale() {
+    const stored = getStore('pflegedoc_locale');
+    if (stored && LOCALE_CODES.includes(stored)) return stored;
+    const nav = (navigator.language || 'de').slice(0, 2).toLowerCase();
+    return LOCALE_CODES.includes(nav) ? nav : 'de';
+}
+function t(key) {
+    const loc = getLocale();
+    return (I18N[loc] && I18N[loc][key]) || I18N.de[key] || key;
+}
+function applyI18n() {
+    const loc = getLocale();
+    document.documentElement.lang = loc;
+    document.documentElement.dir = (loc === 'ar') ? 'rtl' : 'ltr';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = t(el.dataset.i18n);
+        if (v) el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const v = t(el.dataset.i18nPh);
+        if (v) el.setAttribute('placeholder', v);
+    });
+    document.querySelectorAll('[data-lang-select]').forEach(sel => {
+        if (!sel.options.length) LOCALES.forEach(l => sel.add(new Option(l.name, l.code)));
+        sel.value = loc;
+    });
+    updateGreeting();
+    applyAuthUI();
+}
+function setLocale(code) {
+    if (!LOCALE_CODES.includes(code)) return;
+    setStore('pflegedoc_locale', code);
+    applyI18n();
+    if (authState.authenticated) {
+        apiFetch('/api/settings', { method: 'PATCH', body: { ui_language: code } }).catch(() => {});
+    }
+}
+document.addEventListener('change', (e) => {
+    const sel = e.target.closest('[data-lang-select]');
+    if (sel) setLocale(sel.value);
+});
+
+/* ---- API client ---- */
+const authState = { authenticated: false, user: null, csrfToken: null };
+
+async function apiFetch(path, { method = 'GET', body = null } = {}) {
+    const opts = { method, headers: {}, credentials: 'same-origin' };
+    if (body != null) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    if (method !== 'GET' && authState.csrfToken) opts.headers['X-CSRF-Token'] = authState.csrfToken;
+    const r = await fetch(path, opts);
+    let data = null;
+    try { data = await r.json(); } catch (e) { /* fără corp JSON */ }
+    if (!r.ok) {
+        const err = new Error((data && data.error) || ('HTTP ' + r.status));
+        err.status = r.status;
+        throw err;
+    }
+    return data || {};
+}
+
+async function refreshAuth() {
+    try {
+        const d = await apiFetch('/api/auth/me');
+        if (d.authenticated) {
+            authState.authenticated = true;
+            authState.user = d.user;
+            authState.csrfToken = d.csrfToken;
+            if (d.user.ui_language && LOCALE_CODES.includes(d.user.ui_language)) {
+                setStore('pflegedoc_locale', d.user.ui_language);
+            }
+            if (d.user.theme) setStore('pflegedoc_theme', d.user.theme);
+        } else {
+            authState.authenticated = false; authState.user = null; authState.csrfToken = null;
+        }
+    } catch (e) {
+        authState.authenticated = false; authState.user = null; authState.csrfToken = null;
+    }
+    applyTheme();
+    applyI18n();
+}
+
+function applyAuthUI() {
+    const authed = authState.authenticated;
+    const label = (authed && authState.user) ? authState.user.email.split('@')[0] : t('auth.acct.login');
+    document.querySelectorAll('[data-acct-label]').forEach(el => { el.textContent = label; });
+    document.querySelectorAll('[data-acct-link]').forEach(a => a.setAttribute('href', authed ? '#/konto' : '#/login'));
+    const li = document.getElementById('settingsLoginBtn');
+    const ri = document.getElementById('settingsRegisterBtn');
+    const ki = document.getElementById('settingsKontoBtn');
+    if (li) li.hidden = authed;
+    if (ri) ri.hidden = authed;
+    if (ki) ki.hidden = !authed;
+    const hint = document.getElementById('settingsKontoHint');
+    if (hint) hint.textContent = authed ? authState.user.email : t('konto.loggedout.hint');
+    const vs = document.querySelector('#screen-verlauf .screen__sub');
+    if (vs) vs.textContent = authed ? t('verlauf.sub.account') : t('verlauf.sub.local');
+}
+
+function fillKonto() {
+    if (!authState.user) return;
+    const e = document.getElementById('kontoEmail');
+    if (e) e.textContent = authState.user.email;
+    const s = document.getElementById('kontoSince');
+    if (s) {
+        try { s.textContent = new Date(authState.user.created_at).toLocaleDateString(localeTag()); }
+        catch (_) { s.textContent = String(authState.user.created_at).slice(0, 10); }
+    }
+}
+function localeTag() {
+    const l = getLocale();
+    return l === 'de' ? 'de-DE' : (l === 'en' ? 'en-GB' : l);
+}
+
+/* ---- Login / Register / Logout ---- */
+const loginForm = document.getElementById('loginForm');
+if (loginForm) loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginSubmit');
+    btn.disabled = true;
+    try {
+        const d = await apiFetch('/api/auth/login', {
+            method: 'POST',
+            body: {
+                email: document.getElementById('loginEmail').value.trim(),
+                password: document.getElementById('loginPassword').value
+            }
+        });
+        authState.authenticated = true; authState.user = d.user; authState.csrfToken = d.csrfToken;
+        document.getElementById('loginPassword').value = '';
+        if (d.user.ui_language) setStore('pflegedoc_locale', d.user.ui_language);
+        if (d.user.theme) setStore('pflegedoc_theme', d.user.theme);
+        applyTheme(); applyI18n();
+        await migrateLocalHistory();
+        toast('success', t('toast.loggedin'));
+        location.hash = '#/verlauf';
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+const registerForm = document.getElementById('registerForm');
+if (registerForm) registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('registerSubmit');
+    btn.disabled = true;
+    try {
+        const d = await apiFetch('/api/auth/register', {
+            method: 'POST',
+            body: {
+                email: document.getElementById('regEmail').value.trim(),
+                password: document.getElementById('regPassword').value
+            }
+        });
+        document.getElementById('regPassword').value = '';
+        if (d.created) {
+            authState.authenticated = true; authState.user = d.user; authState.csrfToken = d.csrfToken;
+            applyTheme(); applyI18n();
+            await migrateLocalHistory();
+            toast('success', t('toast.registered'));
+            location.hash = '#/verlauf';
+        } else {
+            toast('info', t('toast.exists'));
+            location.hash = '#/login';
+        }
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) logoutBtn.addEventListener('click', async () => {
+    logoutBtn.disabled = true;
+    try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch (e) { /* oricum curățăm */ }
+    authState.authenticated = false; authState.user = null; authState.csrfToken = null;
+    applyI18n();
+    toast('info', t('toast.loggedout'));
+    location.hash = '#/home';
+    logoutBtn.disabled = false;
+});
+
+/* ---- Migrare istoric local -> cont (o singură dată, la login) ---- */
+async function migrateLocalHistory() {
+    if (!authState.authenticated) return;
+    let local = readHistory();
+    if (!local.length) return;
+    local = local.slice().reverse(); // cele mai vechi întâi
+    let ok = 0;
+    for (const it of local) {
+        try {
+            await apiFetch('/api/history', {
+                method: 'POST',
+                body: {
+                    type: 'dokumentation',
+                    input_text: ((it.original || '').slice(0, 20000)) || '(kein Text)',
+                    result_text: (it.improved || '').slice(0, 40000),
+                    mode: 'formulieren'
+                }
+            });
+            ok++;
+        } catch (e) { /* continuăm cu următoarea */ }
+    }
+    if (ok) { writeHistory([]); toast('success', t('toast.migrated')); }
+}
+
+/* ---- Verlauf remote (paginat) ---- */
+let historyCursor = null;
+async function renderHistoryRemote(append = false) {
+    const wrap = document.getElementById('historyList');
+    const empty = document.getElementById('historyEmpty');
+    const toolbar = document.getElementById('verlaufToolbar');
+    if (!wrap) return;
+    if (!append) { wrap.innerHTML = ''; historyCursor = null; }
+    if (toolbar) toolbar.hidden = true; // fără „Alles löschen" în modul cont
+    let d;
+    try {
+        d = await apiFetch('/api/history?limit=20' + (historyCursor ? '&cursor=' + encodeURIComponent(historyCursor) : ''));
+    } catch (e) {
+        toast('error', e.message);
+        return;
+    }
+    if (!append && (!d.items || !d.items.length)) { empty.hidden = false; return; }
+    empty.hidden = true;
+    (d.items || []).forEach(it => wrap.appendChild(buildHistItemRemote(it)));
+    historyCursor = d.nextCursor || null;
+    const old = document.getElementById('histMore');
+    if (old) old.remove();
+    if (historyCursor) {
+        const more = document.createElement('button');
+        more.id = 'histMore';
+        more.className = 'btn btn--subtle btn--block';
+        more.style.marginTop = '10px';
+        more.textContent = t('hist.more');
+        more.addEventListener('click', () => renderHistoryRemote(true));
+        wrap.appendChild(more);
+    }
+}
+function buildHistItemRemote(it) {
+    const el = document.createElement('details');
+    el.className = 'histitem';
+    let when;
+    try { when = new Date(it.created_at).toLocaleString(localeTag(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+    catch (e) { when = String(it.created_at).slice(0, 16).replace('T', ' '); }
+    el.innerHTML =
+        '<summary><span class="histitem__when"></span><span class="histitem__snip"></span></summary>' +
+        '<div class="histitem__body"><pre class="histitem__text">…</pre>' +
+        '<div class="histitem__actions">' +
+        '<button class="btn btn--subtle btn--sm" type="button" data-copy><svg class="ic"><use href="#ic-copy"/></svg> <span></span></button>' +
+        '<button class="btn btn--subtle btn--sm" type="button" data-del><svg class="ic"><use href="#ic-trash"/></svg> <span></span></button>' +
+        '</div></div>';
+    el.querySelector('.histitem__when').textContent = when;
+    el.querySelector('.histitem__snip').textContent = it.preview || '';
+    el.querySelector('[data-copy] span').textContent = t('hist.copy');
+    el.querySelector('[data-del] span').textContent = t('hist.delete');
+    let loaded = false;
+    el.addEventListener('toggle', async () => {
+        if (!el.open || loaded) return;
+        loaded = true;
+        try {
+            const full = await apiFetch('/api/history/' + encodeURIComponent(it.id));
+            const txt = (full.item && full.item.result_text) || '';
+            el.querySelector('.histitem__text').textContent = txt;
+            el.querySelector('[data-copy]').addEventListener('click', () => copyText(txt));
+        } catch (e) {
+            el.querySelector('.histitem__text').textContent = e.message;
+        }
+    });
+    el.querySelector('[data-del]').addEventListener('click', async () => {
+        if (!window.confirm(t('hist.confirmDelete'))) return;
+        try {
+            await apiFetch('/api/history/' + encodeURIComponent(it.id), { method: 'DELETE' });
+            el.remove();
+            toast('info', t('toast.deleted'));
+            if (!document.querySelector('#historyList .histitem')) {
+                document.getElementById('historyEmpty').hidden = false;
+            }
+        } catch (e) {
+            toast('error', e.message);
+        }
+    });
+    return el;
+}
+
 /* ---- Init ---- */
 applyTheme();
-updateGreeting();
+applyI18n();
 route();
+refreshAuth().then(route);
 </script>
 
 </body>
