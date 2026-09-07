@@ -234,6 +234,8 @@
         <option value="de-DE">Germană (vorbită / simplă)</option>
         <option value="en-US">Engleză</option>
         <option value="es-ES">Spaniolă</option>
+        <option value="ru-RU">Rusă</option>
+        <option value="tr-TR">Turcă</option>
     </select>
 
     <label for="userInput">Note / Înregistrare Vocală:</label>
@@ -450,14 +452,15 @@ function clearInput() {
 const SYSTEM_PROMPT = `Du bist eine erfahrene deutsche Pflegefachkraft und Experte für Pflegedokumentation nach dem Strukturmodell (SIS) und Pflegefachsprache.
 
 AUFGABE:
-Nimm die rohen Notizen des Nutzers entgegen (gesprochen oder geschrieben, auf Rumänisch, einfachem Deutsch, Spanisch oder Englisch) und wandle sie in eine fachlich einwandfreie, sachliche deutsche Pflegedokumentation um.
+Nimm die rohen Notizen des Nutzers entgegen – gesprochen oder geschrieben, in EINER BELIEBIGEN Sprache oder in gemischter Sprache (typisch: Rumänisch, Deutsch, Englisch, Spanisch, Russisch, Türkisch) – und wandle sie in eine fachlich einwandfreie, sachliche deutsche Pflegedokumentation um.
 
 REGELN:
-1. Schreibe ausschließlich auf Deutsch, in professioneller Pflegefachsprache.
-2. Korrigiere automatisch Rechtschreib- und Grammatikfehler aus dem Eingabetext.
-3. Bleibe streng sachlich und wertfrei. Erfinde KEINE Informationen. Was nicht genannt wurde, wird weggelassen.
-4. Verwende Fachbegriffe (z. B. "Mobilisation", "Dekubitusprophylaxe", "Vitalzeichenkontrolle", "Kontinenzversorgung").
-5. Strukturiere die Ausgabe exakt in diese Abschnitte (Überschriften genau so schreiben):
+1. Die GESAMTE Ausgabe ist ausschließlich auf Deutsch, auf muttersprachlichem professionellem Niveau (Pflegefachsprache / SIS, Niveau C2), grammatikalisch und orthografisch fehlerfrei.
+2. Übersetze restlos ALLES ins Deutsche. KEIN einziges Wort darf in der Ausgangssprache (Rumänisch, Englisch, Spanisch, Russisch, Türkisch usw.) verbleiben – auch nicht Alltagswörter wie Mahlzeiten, Tätigkeiten, Körperteile, Uhrzeiten oder Wochentage. Unverändert bleiben ausschließlich: Eigennamen von Personen sowie Zahlen- und Messwerte.
+3. Korrigiere stillschweigend alle Rechtschreib-, Grammatik- und Ausdrucksfehler sowie Umgangssprache aus der Eingabe.
+4. Bleibe streng sachlich und wertfrei. Erfinde KEINE Informationen. Was nicht genannt wurde, wird weggelassen.
+5. Verwende pflegerische Fachbegriffe (z. B. "Mobilisation", "Dekubitusprophylaxe", "Vitalzeichenkontrolle", "Kontinenzversorgung", "Nahrungsaufnahme").
+6. Strukturiere die Ausgabe exakt in diese Abschnitte (Überschriften genau so schreiben):
 
 Situation / Beobachtung:
 <Beschreibung des Zustands, Verhaltens und der Beobachtungen>
@@ -468,7 +471,7 @@ Vitalwerte:
 Durchgeführte Maßnahmen:
 <Aufzählung der durchgeführten pflegerischen Maßnahmen, jeweils mit "- " am Zeilenanfang>
 
-6. Gib NUR diesen strukturierten Text zurück, ohne Einleitung, ohne Kommentar, bereit zum Kopieren in die Pflegesoftware.`;
+7. Gib NUR diesen strukturierten Text zurück, ohne Einleitung, ohne Kommentar, bereit zum Kopieren in die Pflegesoftware. Der zurückgegebene Text enthält KEIN nicht-deutsches Wort.`;
 
 const generateBtn = document.getElementById('generateBtn');
 

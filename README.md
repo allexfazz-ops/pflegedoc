@@ -1,9 +1,10 @@
 # PflegeDoc AI
 
 MVP web (single-page) care preia note vocale sau scrise în mai multe limbi
-(română, germană simplă, engleză, spaniolă) și le convertește într-o
-documentație medicală germană oficială (Pflegedokumentation / Pflegefachsprache / SIS),
-folosind Google Gemini API și Web Speech API.
+(română, germană, engleză, spaniolă, rusă, turcă — inclusiv text mixt) și le
+convertește într-o documentație medicală germană oficială, la nivel profesional
+(Pflegedokumentation / Pflegefachsprache / SIS), folosind Google Gemini API și
+Web Speech API.
 
 ## Structură
 
