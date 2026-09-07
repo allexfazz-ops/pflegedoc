@@ -587,10 +587,11 @@
         background-repeat: no-repeat; background-position: right 9px center;
     }
     .topbar__acct {
-        display: inline-flex; align-items: center; gap: 7px;
+        display: inline-flex; align-items: center; gap: 7px; flex: none;
         font-size: .84rem; font-weight: 650; color: var(--accent-strong);
-        padding: 7px 12px; border-radius: var(--r-pill);
+        padding: 7px 14px; border-radius: var(--r-pill);
         border: 1px solid var(--accent-weak-bd); background: var(--accent-weak);
+        white-space: nowrap;
     }
     .topbar__acct .ic { width: 1.15em; height: 1.15em; }
     .rail__acct {
@@ -653,7 +654,6 @@
         <span class="brand__name">Pflege<b>Doc</b></span>
     </a>
     <span class="topbar__spacer"></span>
-    <select class="topbar__lang" data-lang-select aria-label="Sprache der Oberfläche"></select>
     <a class="topbar__acct" data-acct-link href="#/login">
         <svg class="ic"><use href="#ic-settings"/></svg><span data-acct-label>Anmelden</span>
     </a>
@@ -686,7 +686,7 @@
         <div class="home__bar">
             <select class="home__lang" data-lang-select aria-label="Sprache der Oberfläche"></select>
             <button class="btn btn--subtle" type="button" data-theme-cycle title="Darstellung wechseln">
-                <svg class="ic"><use href="#ic-settings"/></svg> <span data-theme-cycle-label>Design</span>
+                <svg class="ic"><use href="#ic-settings"/></svg> <span data-i18n="theme.cycle">Design</span>
             </button>
             <span style="flex:1"></span>
             <a class="btn btn--ghost" data-acct-link href="#/login"><span data-acct-label>Anmelden</span></a>
@@ -1771,10 +1771,7 @@ function updateGreeting() {
     const g = h < 11
         ? (hasT ? t('greet.morning') : 'Guten Morgen')
         : (h < 18 ? (hasT ? t('greet.day') : 'Guten Tag') : (hasT ? t('greet.evening') : 'Guten Abend'));
-    let name = (getStore('pflegedoc_name') || '').trim();
-    if (!name && typeof authState !== 'undefined' && authState.authenticated && authState.user) {
-        name = authState.user.email.split('@')[0];
-    }
+    const name = (getStore('pflegedoc_name') || '').trim();
     const el = document.getElementById('greeting');
     if (el) el.textContent = name ? (g + ', ' + name) : (g || (hasT ? t('greet.welcome') : 'Willkommen'));
 }
@@ -2028,7 +2025,7 @@ async function refreshAuth() {
 
 function applyAuthUI() {
     const authed = authState.authenticated;
-    const label = (authed && authState.user) ? authState.user.email.split('@')[0] : t('auth.acct.login');
+    const label = authed ? t('konto.title') : t('auth.acct.login');
     document.querySelectorAll('[data-acct-label]').forEach(el => { el.textContent = label; });
     document.querySelectorAll('[data-acct-link]').forEach(a => a.setAttribute('href', authed ? '#/konto' : '#/login'));
     const li = document.getElementById('settingsLoginBtn');
