@@ -666,17 +666,17 @@
         <span class="brand__name">Pflege<b>Doc</b></span>
     </a>
     <div class="rail__nav">
-        <a data-nav="home" href="#/home"><svg class="ic"><use href="#ic-home"/></svg> Start</a>
-        <a data-nav="doc" href="#/doc"><svg class="ic"><use href="#ic-doc"/></svg> Dokumentation</a>
-        <a data-nav="plan" href="#/plan"><svg class="ic"><use href="#ic-plan"/></svg> Pflegeplanung</a>
-        <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> Verlauf</a>
-        <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> Einstellungen</a>
+        <a data-nav="home" href="#/home"><svg class="ic"><use href="#ic-home"/></svg> <span data-i18n="nav.home">Start</span></a>
+        <a data-nav="doc" href="#/doc"><svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="nav.doc">Dokumentation</span></a>
+        <a data-nav="plan" href="#/plan"><svg class="ic"><use href="#ic-plan"/></svg> <span data-i18n="nav.plan">Pflegeplanung</span></a>
+        <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> <span data-i18n="nav.verlauf">Verlauf</span></a>
+        <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> <span data-i18n="nav.einstellungen">Einstellungen</span></a>
     </div>
     <a class="rail__acct" data-acct-link href="#/login">
         <svg class="ic"><use href="#ic-settings"/></svg>
         <span data-acct-label>Anmelden</span>
     </a>
-    <p class="rail__foot">Dokumentationshilfe – keine medizinische Entscheidung.</p>
+    <p class="rail__foot" data-i18n="rail.foot">Dokumentationshilfe – keine medizinische Entscheidung.</p>
 </nav>
 
 <main class="content">
@@ -698,38 +698,38 @@
         </div>
 
         <article class="card card--primary">
-            <h2>Neue Dokumentation</h2>
-            <p>Schreib oder sprich, was passiert ist – die professionelle Formulierung übernimmt PflegeDoc.</p>
+            <h2 data-i18n="home.card.title">Neue Dokumentation</h2>
+            <p data-i18n="home.card.desc">Schreib oder sprich, was passiert ist – die professionelle Formulierung übernimmt PflegeDoc.</p>
             <div class="card--primary__actions">
                 <button class="btn btn--primary btn--lg" type="button" data-go="doc-voice">
-                    <svg class="ic"><use href="#ic-mic"/></svg> Spracheingabe
+                    <svg class="ic"><use href="#ic-mic"/></svg> <span data-i18n="home.voice">Spracheingabe</span>
                 </button>
                 <button class="btn btn--ghost btn--lg" type="button" data-go="doc-text">
-                    <svg class="ic"><use href="#ic-keyboard"/></svg> Text eingeben
+                    <svg class="ic"><use href="#ic-keyboard"/></svg> <span data-i18n="home.text">Text eingeben</span>
                 </button>
             </div>
         </article>
 
-        <h2 class="section-label">Weitere Hilfen</h2>
+        <h2 class="section-label" data-i18n="home.more">Weitere Hilfen</h2>
         <div class="grid-2">
             <button class="tile" type="button" data-nav-go="plan">
                 <svg class="ic"><use href="#ic-plan"/></svg>
-                <span class="tile__name">Pflegeplanung</span>
-                <span class="tile__tag">In Vorbereitung</span>
+                <span class="tile__name" data-i18n="tile.plan">Pflegeplanung</span>
+                <span class="tile__tag" data-i18n="tag.soon">In Vorbereitung</span>
             </button>
             <button class="tile" type="button" data-nav-go="korrigieren">
                 <svg class="ic"><use href="#ic-edit"/></svg>
-                <span class="tile__name">Korrigieren</span>
-                <span class="tile__tag">In Vorbereitung</span>
+                <span class="tile__name" data-i18n="tile.korrigieren">Korrigieren</span>
+                <span class="tile__tag" data-i18n="tag.soon">In Vorbereitung</span>
             </button>
             <button class="tile" type="button" data-nav-go="uebersetzen">
                 <svg class="ic"><use href="#ic-globe"/></svg>
-                <span class="tile__name">Übersetzen</span>
-                <span class="tile__tag">In Vorbereitung</span>
+                <span class="tile__name" data-i18n="tile.uebersetzen">Übersetzen</span>
+                <span class="tile__tag" data-i18n="tag.soon">In Vorbereitung</span>
             </button>
             <button class="tile" type="button" data-nav-go="verlauf">
                 <svg class="ic"><use href="#ic-history"/></svg>
-                <span class="tile__name">Verlauf</span>
+                <span class="tile__name" data-i18n="tile.verlauf">Verlauf</span>
             </button>
         </div>
     </section>
@@ -737,75 +737,75 @@
     <!-- ===================== DOKUMENTATION ===================== -->
     <section id="screen-doc" class="screen" aria-labelledby="doc-h" hidden>
         <div class="screen__head">
-            <h1 id="doc-h" tabindex="-1">Neue Dokumentation</h1>
-            <p class="screen__sub">Beschreibe kurz, was passiert ist.</p>
+            <h1 id="doc-h" tabindex="-1" data-i18n="doc.title">Neue Dokumentation</h1>
+            <p class="screen__sub" data-i18n="doc.sub">Beschreibe kurz, was passiert ist.</p>
         </div>
 
         <div id="docForm">
             <div class="field">
-                <label class="field__label" for="userInput">Deine Notiz</label>
-                <textarea id="userInput" class="textarea"
+                <label class="field__label" for="userInput" data-i18n="doc.note.label">Deine Notiz</label>
+                <textarea id="userInput" class="textarea" data-i18n-ph="doc.note.ph"
                     placeholder="Zum Beispiel:&#10;Herr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen."></textarea>
             </div>
 
             <div class="doc__row">
                 <div class="field">
-                    <label class="field__label" for="inputLanguage">Eingabesprache</label>
+                    <label class="field__label" for="inputLanguage" data-i18n="doc.inputlang">Eingabesprache</label>
                     <select id="inputLanguage" class="select">
-                        <option value="ro-RO">Rumänisch</option>
-                        <option value="de-DE" selected>Deutsch</option>
-                        <option value="en-US">Englisch</option>
-                        <option value="es-ES">Spanisch</option>
-                        <option value="ru-RU">Russisch</option>
-                        <option value="tr-TR">Türkisch</option>
+                        <option value="ro-RO" data-i18n="lang.ro">Rumänisch</option>
+                        <option value="de-DE" selected data-i18n="lang.de">Deutsch</option>
+                        <option value="en-US" data-i18n="lang.en">Englisch</option>
+                        <option value="es-ES" data-i18n="lang.es">Spanisch</option>
+                        <option value="ru-RU" data-i18n="lang.ru">Russisch</option>
+                        <option value="tr-TR" data-i18n="lang.tr">Türkisch</option>
                     </select>
                 </div>
                 <button id="clearBtn" class="btn btn--subtle" type="button" onclick="clearInput()">
-                    <svg class="ic"><use href="#ic-trash"/></svg> Leeren
+                    <svg class="ic"><use href="#ic-trash"/></svg> <span data-i18n="doc.clear">Leeren</span>
                 </button>
             </div>
 
             <div class="doc__actions">
                 <button id="micBtn" class="btn btn--ghost btn--lg" type="button" onclick="toggleRecording()" aria-pressed="false">
-                    <svg class="ic"><use href="#ic-mic"/></svg> Spracheingabe
+                    <svg class="ic"><use href="#ic-mic"/></svg> <span data-i18n="doc.voice">Spracheingabe</span>
                 </button>
-                <button id="generateBtn" class="btn btn--primary btn--lg" type="button" onclick="generateDoc()">
+                <button id="generateBtn" class="btn btn--primary btn--lg" type="button" onclick="generateDoc()" data-i18n="doc.generate">
                     Dokumentation erstellen
                 </button>
             </div>
-            <p id="micStatus" class="doc__michint" aria-live="polite">Tippe auf „Spracheingabe“, um zu diktieren.</p>
+            <p id="micStatus" class="doc__michint" aria-live="polite" data-i18n="doc.michint">Tippe auf „Spracheingabe“, um zu diktieren.</p>
 
             <p class="disclaimer">
                 <svg class="ic"><use href="#ic-shield"/></svg>
-                PflegeDoc ist eine Dokumentationshilfe: Sie formuliert deine Angaben, stellt aber keine Diagnosen und trifft keine medizinischen Entscheidungen.
+                <span data-i18n="doc.disclaimer">PflegeDoc ist eine Dokumentationshilfe: Sie formuliert deine Angaben, stellt aber keine Diagnosen und trifft keine medizinischen Entscheidungen.</span>
             </p>
         </div>
 
         <div id="processing" class="processing" hidden aria-live="polite">
             <div class="spinner" aria-hidden="true"></div>
-            <p class="processing__title">Dokumentation wird vorbereitet …</p>
+            <p class="processing__title" data-i18n="proc.title">Dokumentation wird vorbereitet …</p>
             <ol class="steps">
-                <li class="step" data-state="pending"><span class="step__icon"></span> Inhalt erkannt</li>
-                <li class="step" data-state="pending"><span class="step__icon"></span> Sprache korrigiert</li>
-                <li class="step" data-state="pending"><span class="step__icon"></span> Dokumentation wird formuliert</li>
+                <li class="step" data-state="pending"><span class="step__icon"></span> <span data-i18n="proc.step1">Inhalt erkannt</span></li>
+                <li class="step" data-state="pending"><span class="step__icon"></span> <span data-i18n="proc.step2">Sprache korrigiert</span></li>
+                <li class="step" data-state="pending"><span class="step__icon"></span> <span data-i18n="proc.step3">Dokumentation wird formuliert</span></li>
             </ol>
         </div>
 
         <section id="resultSection" class="result" hidden aria-live="polite">
             <div class="notice notice--warning">
                 <svg class="ic"><use href="#ic-info"/></svg>
-                Bitte überprüfe die Dokumentation vor der Übernahme.
+                <span data-i18n="result.check">Bitte überprüfe die Dokumentation vor der Übernahme.</span>
             </div>
 
             <details class="result__original">
-                <summary>Deine ursprüngliche Notiz anzeigen</summary>
+                <summary data-i18n="result.original">Deine ursprüngliche Notiz anzeigen</summary>
                 <div id="originalText" class="result__originaltext"></div>
             </details>
 
             <div class="result__block">
                 <div class="result__blockhead">
-                    <h2><svg class="ic"><use href="#ic-sparkle"/></svg> Verbesserte Dokumentation</h2>
-                    <button class="btn btn--link" type="button" id="diffBtn" onclick="toggleDiff()" hidden>Unterschiede zur Notiz</button>
+                    <h2><svg class="ic"><use href="#ic-sparkle"/></svg> <span data-i18n="result.improved">Verbesserte Dokumentation</span></h2>
+                    <button class="btn btn--link" type="button" id="diffBtn" onclick="toggleDiff()" hidden data-i18n="result.diff">Unterschiede zur Notiz</button>
                 </div>
                 <div id="output" class="result__text"></div>
                 <textarea id="outputEdit" class="textarea" hidden></textarea>
@@ -814,13 +814,13 @@
 
             <div class="result__actions">
                 <button class="btn btn--primary" type="button" onclick="acceptDoc()">
-                    <svg class="ic"><use href="#ic-check"/></svg> Übernehmen
+                    <svg class="ic"><use href="#ic-check"/></svg> <span data-i18n="result.accept">Übernehmen</span>
                 </button>
                 <button class="btn btn--ghost" type="button" id="editBtn" onclick="toggleEditResult()">
-                    <svg class="ic"><use href="#ic-edit"/></svg> Bearbeiten
+                    <svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="result.edit">Bearbeiten</span>
                 </button>
                 <button class="btn btn--subtle" type="button" onclick="copyOutput()">
-                    <svg class="ic"><use href="#ic-copy"/></svg> Kopieren
+                    <svg class="ic"><use href="#ic-copy"/></svg> <span data-i18n="result.copy">Kopieren</span>
                 </button>
             </div>
         </section>
@@ -828,54 +828,54 @@
 
     <!-- ===================== PFLEGEPLANUNG (Platzhalter) ===================== -->
     <section id="screen-plan" class="screen" aria-labelledby="plan-h" hidden>
-        <div class="screen__head"><h1 id="plan-h" tabindex="-1">Pflegeplanung</h1></div>
+        <div class="screen__head"><h1 id="plan-h" tabindex="-1" data-i18n="tile.plan">Pflegeplanung</h1></div>
         <div class="empty">
             <svg class="ic ic--xl"><use href="#ic-plan"/></svg>
-            <p class="empty__title">In Vorbereitung</p>
-            <p class="empty__text">Die Pflegeplanung wird an dieselbe Dokumentations­engine angebunden. Die Oberfläche ist hier bereits vorgesehen.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+            <p class="empty__title" data-i18n="soon.title">In Vorbereitung</p>
+            <p class="empty__text" data-i18n="plan.soon.text">Die Pflegeplanung wird an dieselbe Dokumentationsengine angebunden. Die Oberfläche ist hier bereits vorgesehen.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
         </div>
     </section>
 
     <!-- ===================== KORRIGIEREN (Platzhalter) ===================== -->
     <section id="screen-korrigieren" class="screen" aria-labelledby="korr-h" hidden>
-        <div class="screen__head"><h1 id="korr-h" tabindex="-1">Korrigieren</h1></div>
+        <div class="screen__head"><h1 id="korr-h" tabindex="-1" data-i18n="tile.korrigieren">Korrigieren</h1></div>
         <div class="empty">
             <svg class="ic ic--xl"><use href="#ic-edit"/></svg>
-            <p class="empty__title">In Vorbereitung</p>
-            <p class="empty__text">Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+            <p class="empty__title" data-i18n="soon.title">In Vorbereitung</p>
+            <p class="empty__text" data-i18n="korr.soon.text">Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
         </div>
     </section>
 
     <!-- ===================== ÜBERSETZEN (Platzhalter) ===================== -->
     <section id="screen-uebersetzen" class="screen" aria-labelledby="ueb-h" hidden>
-        <div class="screen__head"><h1 id="ueb-h" tabindex="-1">Übersetzen</h1></div>
+        <div class="screen__head"><h1 id="ueb-h" tabindex="-1" data-i18n="tile.uebersetzen">Übersetzen</h1></div>
         <div class="empty">
             <svg class="ic ic--xl"><use href="#ic-globe"/></svg>
-            <p class="empty__title">In Vorbereitung</p>
-            <p class="empty__text">Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+            <p class="empty__title" data-i18n="soon.title">In Vorbereitung</p>
+            <p class="empty__text" data-i18n="ueb.soon.text">Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
         </div>
     </section>
 
     <!-- ===================== VERLAUF ===================== -->
     <section id="screen-verlauf" class="screen" aria-labelledby="verlauf-h" hidden>
         <div class="screen__head">
-            <h1 id="verlauf-h" tabindex="-1">Verlauf</h1>
+            <h1 id="verlauf-h" tabindex="-1" data-i18n="verlauf.title">Verlauf</h1>
             <p class="screen__sub">Übernommene Dokumentationen – nur auf diesem Gerät gespeichert.</p>
         </div>
         <div class="verlauf__toolbar" id="verlaufToolbar" hidden>
             <button class="btn btn--subtle btn--sm" type="button" onclick="clearHistory()">
-                <svg class="ic"><use href="#ic-trash"/></svg> Alles löschen
+                <svg class="ic"><use href="#ic-trash"/></svg> <span data-i18n="verlauf.clearAll">Alles löschen</span>
             </button>
         </div>
         <div id="historyList"></div>
         <div id="historyEmpty" class="empty" hidden>
             <svg class="ic ic--xl"><use href="#ic-history"/></svg>
-            <p class="empty__title">Noch kein Verlauf</p>
-            <p class="empty__text">Erstellte Dokumentationen erscheinen hier, sobald du sie mit „Übernehmen“ speicherst.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc">Neue Dokumentation</button>
+            <p class="empty__title" data-i18n="verlauf.empty.title">Noch kein Verlauf</p>
+            <p class="empty__text" data-i18n="verlauf.empty.text">Erstellte Dokumentationen erscheinen hier, sobald du sie mit „Übernehmen“ speicherst.</p>
+            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
         </div>
     </section>
 
@@ -900,42 +900,42 @@
 
         <div class="field">
             <label class="field__label" for="userName" data-i18n="settings.name">Dein Name (für die Begrüßung)</label>
-            <input id="userName" class="input" type="text" autocomplete="name" placeholder="z. B. Alexandru">
+            <input id="userName" class="input" type="text" autocomplete="name" data-i18n-ph="settings.name.ph" placeholder="z. B. Alexandru">
         </div>
 
         <div class="setting">
             <span class="setting__label" data-i18n="settings.theme">Darstellung</span>
             <div class="segmented" role="group" aria-label="Darstellung wählen">
-                <button type="button" data-theme-choice="system">System</button>
-                <button type="button" data-theme-choice="light">Hell</button>
-                <button type="button" data-theme-choice="dark">Dunkel</button>
+                <button type="button" data-theme-choice="system" data-i18n="theme.system">System</button>
+                <button type="button" data-theme-choice="light" data-i18n="theme.light">Hell</button>
+                <button type="button" data-theme-choice="dark" data-i18n="theme.dark">Dunkel</button>
             </div>
         </div>
 
         <div class="setting setting--switch">
             <label class="setting__label" for="voiceCommands">
-                Satzzeichen per Sprachbefehl
-                <span class="setting__hint">Der Spracherkenner setzt keine Satzzeichen automatisch. Du diktierst sie: „Komma“, „Punkt“, „Doppelpunkt“, „Fragezeichen“, „neue Zeile“, „Klammer auf/zu“. (Auch auf Rumänisch/Englisch.)</span>
+                <span data-i18n="settings.punct.label">Satzzeichen per Sprachbefehl</span>
+                <span class="setting__hint" data-i18n="settings.punct.hint">Der Spracherkenner setzt keine Satzzeichen automatisch. Du diktierst sie: „Komma“, „Punkt“, „Doppelpunkt“, „Fragezeichen“, „neue Zeile“, „Klammer auf/zu“. (Auch auf Rumänisch/Englisch.)</span>
             </label>
             <input type="checkbox" id="voiceCommands" class="switch" checked>
         </div>
 
         <details id="apiKeyBox" class="setting setting--details">
-            <summary>Erweitert: eigener API-Schlüssel</summary>
-            <p class="setting__hint">Leer lassen, um den gesicherten Server der App zu nutzen (empfohlen). Mit eigenem Schlüssel wird Gemini direkt von diesem Gerät aufgerufen – der Schlüssel bleibt lokal im Browser.</p>
-            <label class="field__label" for="apiKey">Google-Gemini-API-Schlüssel</label>
+            <summary data-i18n="settings.apikey.summary">Erweitert: eigener API-Schlüssel</summary>
+            <p class="setting__hint" data-i18n="settings.apikey.hint">Leer lassen, um den gesicherten Server der App zu nutzen (empfohlen). Mit eigenem Schlüssel wird Gemini direkt von diesem Gerät aufgerufen – der Schlüssel bleibt lokal im Browser.</p>
+            <label class="field__label" for="apiKey" data-i18n="settings.apikey.label">Google-Gemini-API-Schlüssel</label>
             <input type="password" id="apiKey" class="input" placeholder="AIzaSy…" autocomplete="off" spellcheck="false">
-            <label class="setting__inline"><input type="checkbox" id="rememberKey"> Schlüssel auf diesem Gerät merken</label>
+            <label class="setting__inline"><input type="checkbox" id="rememberKey"> <span data-i18n="settings.apikey.remember">Schlüssel auf diesem Gerät merken</span></label>
         </details>
 
         <div class="setting">
-            <span class="setting__label">Verarbeitung</span>
-            <span class="setting__hint">Modell <code>gemini-3.6-flash</code> über gesicherten Server. Der API-Schlüssel verlässt den Browser nicht. Ausgabe stets in professioneller deutscher Pflegefachsprache (SIS).</span>
+            <span class="setting__label" data-i18n="settings.proc.label">Verarbeitung</span>
+            <span class="setting__hint" data-i18n="settings.proc.hint">Modell gemini-3.6-flash über gesicherten Server. Der API-Schlüssel verlässt den Browser nicht. Ausgabe stets in professioneller deutscher Pflegefachsprache (SIS).</span>
         </div>
 
         <p class="disclaimer">
             <svg class="ic"><use href="#ic-shield"/></svg>
-            PflegeDoc unterstützt bei der Formulierung der Pflegedokumentation. Fachliche Prüfung und Verantwortung bleiben bei der Pflegekraft.
+            <span data-i18n="settings.disclaimer">PflegeDoc unterstützt bei der Formulierung der Pflegedokumentation. Fachliche Prüfung und Verantwortung bleiben bei der Pflegekraft.</span>
         </p>
     </section>
 
@@ -1010,22 +1010,22 @@
 
 <!-- ===================== Untere Navigation (Mobile) ===================== -->
 <nav class="tabbar" aria-label="Hauptnavigation">
-    <a data-nav="home" href="#/home"><svg class="ic"><use href="#ic-home"/></svg> Start</a>
-    <a data-nav="doc" href="#/doc"><svg class="ic"><use href="#ic-doc"/></svg> Doku</a>
-    <a data-nav="plan" href="#/plan"><svg class="ic"><use href="#ic-plan"/></svg> Plan</a>
-    <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> Verlauf</a>
-    <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> Mehr</a>
+    <a data-nav="home" href="#/home"><svg class="ic"><use href="#ic-home"/></svg> <span data-i18n="nav.home">Start</span></a>
+    <a data-nav="doc" href="#/doc"><svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="nav.doc.short">Doku</span></a>
+    <a data-nav="plan" href="#/plan"><svg class="ic"><use href="#ic-plan"/></svg> <span data-i18n="nav.plan.short">Plan</span></a>
+    <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> <span data-i18n="nav.verlauf">Verlauf</span></a>
+    <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> <span data-i18n="nav.einstellungen.short">Mehr</span></a>
 </nav>
 
 <!-- ===================== Aufnahme-Overlay ===================== -->
 <div class="recorder" id="recorder" hidden role="dialog" aria-modal="true" aria-label="Spracheingabe läuft">
     <div class="recorder__card">
-        <div class="recorder__status"><span class="dot" aria-hidden="true"></span> Aufnahme läuft</div>
+        <div class="recorder__status"><span class="dot" aria-hidden="true"></span> <span data-i18n="rec.status">Aufnahme läuft</span></div>
         <div class="wave" id="wave" aria-hidden="true"></div>
-        <p class="recorder__hint">Sprich ruhig und deutlich. Der Text wird laufend ergänzt.</p>
+        <p class="recorder__hint" data-i18n="rec.hint">Sprich ruhig und deutlich. Der Text wird laufend ergänzt.</p>
         <div class="recorder__preview" id="recorderPreview" aria-live="polite"></div>
         <button class="btn btn--danger btn--block btn--lg" type="button" onclick="stopRecording()">
-            <svg class="ic"><use href="#ic-stop"/></svg> Aufnahme beenden
+            <svg class="ic"><use href="#ic-stop"/></svg> <span data-i18n="rec.stop">Aufnahme beenden</span>
         </button>
     </div>
 </div>
@@ -1119,12 +1119,12 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     recognition.onerror = (event) => {
         if (event.error === 'no-speech') {
-            micStatus.textContent = 'Keine Sprache erkannt. Bitte erneut versuchen.';
+            micStatus.textContent = t('mic.nospeech');
             return;
         }
         if (event.error === 'aborted') return;
-        toast('error', 'Mikrofonfehler: ' + event.error +
-            (event.error === 'not-allowed' ? ' – bitte Mikrofonzugriff im Browser erlauben.' : ''));
+        toast('error', t('mic.errPrefix') + event.error +
+            (event.error === 'not-allowed' ? t('mic.notAllowedSuffix') : ''));
         stopRecording();
     };
 
@@ -1136,7 +1136,8 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 } else {
     micBtn.disabled = true;
-    micStatus.textContent = 'Spracheingabe wird von diesem Browser nicht unterstützt (Chrome oder Edge verwenden).';
+    micStatus.textContent = t('mic.unsupported');
+    micStatus.dataset.i18n = 'mic.unsupported';
 }
 
 function toggleRecording() {
@@ -1148,13 +1149,13 @@ function toggleRecording() {
         try {
             recognition.start();
         } catch (e) {
-            toast('error', 'Spracheingabe konnte nicht gestartet werden: ' + e.message);
+            toast('error', t('mic.startFailPrefix') + e.message);
             return;
         }
         isRecording = true;
         micBtn.classList.add('is-recording');
         micBtn.setAttribute('aria-pressed', 'true');
-        micStatus.textContent = 'Aufnahme läuft …';
+        micStatus.textContent = t('mic.recording');
         const rp = document.getElementById('recorderPreview');
         if (rp) rp.textContent = baseText;
         if (recorderEl) recorderEl.hidden = false;
@@ -1170,7 +1171,7 @@ function stopRecording() {
     }
     micBtn.classList.remove('is-recording');
     micBtn.setAttribute('aria-pressed', 'false');
-    micStatus.textContent = 'Aufnahme beendet. Du kannst den Text bearbeiten.';
+    micStatus.textContent = t('mic.stopped');
     if (recorderEl) recorderEl.hidden = true;
 
     let consolidated = joinSmart(baseText, finalizedInSession.trim());
@@ -1275,10 +1276,10 @@ async function generateDoc() {
     const resultSection = document.getElementById('resultSection');
 
     if (!CONFIG.BACKEND_ENDPOINT && !apiKey) {
-        return toast('error', 'Bitte in den Einstellungen einen API-Schlüssel hinterlegen.');
+        return toast('error', t('toast.noApiKey'));
     }
     if (!userInput) {
-        return toast('warning', 'Bitte zuerst etwas eingeben oder diktieren.');
+        return toast('warning', t('toast.needText'));
     }
     if (isRecording) stopRecording();
 
@@ -1295,12 +1296,12 @@ async function generateDoc() {
         const oe = document.getElementById('outputEdit');
         oe.hidden = true; oe.value = '';
         document.getElementById('diffView').hidden = true;
-        document.getElementById('editBtn').innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> Bearbeiten';
+        document.getElementById('editBtn').innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="result.edit">' + t('result.edit') + '</span>';
         document.getElementById('diffBtn').hidden = false;
 
         resultSection.hidden = false;
         resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        toast('success', 'Dokumentation erstellt. Bitte prüfen.');
+        toast('success', t('toast.docReady'));
     } catch (err) {
         resultSection.hidden = true;
         toast('error', err.message);
@@ -1531,7 +1532,7 @@ function finishProcessingSteps() {
 
 function setLoading(loading) {
     generateBtn.disabled = loading;
-    generateBtn.textContent = loading ? 'Wird erstellt …' : 'Dokumentation erstellen';
+    generateBtn.textContent = loading ? t('doc.generate.loading') : t('doc.generate');
     const proc = document.getElementById('processing');
     const form = document.getElementById('docForm');
     if (loading) {
@@ -1558,12 +1559,12 @@ function toggleEditResult() {
     if (ta.hidden) {
         ta.value = box.textContent;
         ta.hidden = false; box.hidden = true; diff.hidden = true;
-        btn.innerHTML = '<svg class="ic"><use href="#ic-check"/></svg> Fertig';
+        btn.innerHTML = '<svg class="ic"><use href="#ic-check"/></svg> <span>' + t('result.editDone') + '</span>';
         ta.focus();
     } else {
         box.textContent = ta.value;
         ta.hidden = true; box.hidden = false;
-        btn.innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> Bearbeiten';
+        btn.innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="result.edit">' + t('result.edit') + '</span>';
     }
 }
 
@@ -1575,7 +1576,7 @@ function toggleDiff() {
     try {
         diff.innerHTML = wordDiff(a, b);
     } catch (e) {
-        diff.textContent = 'Vergleich derzeit nicht verfügbar.';
+        diff.textContent = t('diff.unavailable');
     }
     diff.hidden = false;
 }
@@ -1607,16 +1608,16 @@ function wordDiff(a, b) {
 
 async function copyText(text) {
     text = (text || '').trim();
-    if (!text) { toast('warning', 'Kein Text zum Kopieren.'); return; }
+    if (!text) { toast('warning', t('toast.noCopy')); return; }
     try {
         await navigator.clipboard.writeText(text);
-        toast('success', 'In die Zwischenablage kopiert.');
+        toast('success', t('toast.copied'));
     } catch (e) {
         const ta = document.createElement('textarea');
         ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
         document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); toast('success', 'Kopiert.'); }
-        catch (e2) { toast('error', 'Automatisches Kopieren nicht möglich. Bitte Text manuell markieren.'); }
+        try { document.execCommand('copy'); toast('success', t('toast.copiedShort')); }
+        catch (e2) { toast('error', t('toast.copyFail')); }
         document.body.removeChild(ta);
     }
 }
@@ -1632,7 +1633,7 @@ function writeHistory(list) { setStore(HKEY, JSON.stringify(list)); }
 
 async function acceptDoc() {
     const improved = (currentResultText() || '').trim();
-    if (!improved) { toast('warning', 'Es gibt noch keine Dokumentation zum Übernehmen.'); return; }
+    if (!improved) { toast('warning', t('toast.nothingAccept')); return; }
     const original = (document.getElementById('originalText').textContent || '').trim();
 
     if (typeof authState !== 'undefined' && authState.authenticated) {
@@ -1648,7 +1649,7 @@ async function acceptDoc() {
                     mode: 'formulieren'
                 }
             });
-            toast('success', 'In den Verlauf übernommen.');
+            toast('success', t('toast.accepted'));
         } catch (e) {
             toast('error', e.message);
         }
@@ -1686,17 +1687,19 @@ function renderHistory() {
             '<summary><span class="histitem__when"></span><span class="histitem__snip"></span></summary>' +
             '<div class="histitem__body"><pre class="histitem__text"></pre>' +
             '<div class="histitem__actions">' +
-            '<button class="btn btn--subtle btn--sm" type="button" data-copy><svg class="ic"><use href="#ic-copy"/></svg> Kopieren</button>' +
-            '<button class="btn btn--subtle btn--sm" type="button" data-del><svg class="ic"><use href="#ic-trash"/></svg> Löschen</button>' +
+            '<button class="btn btn--subtle btn--sm" type="button" data-copy><svg class="ic"><use href="#ic-copy"/></svg> <span></span></button>' +
+            '<button class="btn btn--subtle btn--sm" type="button" data-del><svg class="ic"><use href="#ic-trash"/></svg> <span></span></button>' +
             '</div></div>';
         el.querySelector('.histitem__when').textContent = when;
         el.querySelector('.histitem__snip').textContent = snippet;
         el.querySelector('.histitem__text').textContent = item.improved || '';
+        el.querySelector('[data-copy] span').textContent = t('hist.copy');
+        el.querySelector('[data-del] span').textContent = t('hist.delete');
         el.querySelector('[data-copy]').addEventListener('click', () => copyText(item.improved || ''));
         el.querySelector('[data-del]').addEventListener('click', () => {
             writeHistory(readHistory().filter(x => x.id !== item.id));
             renderHistory();
-            toast('info', 'Eintrag gelöscht.');
+            toast('info', t('toast.deleted'));
         });
         wrap.appendChild(el);
     });
@@ -1704,10 +1707,10 @@ function renderHistory() {
 
 function clearHistory() {
     if (!readHistory().length) return;
-    if (!window.confirm('Gesamten Verlauf auf diesem Gerät löschen?')) return;
+    if (!window.confirm(t('confirm.clearAll'))) return;
     writeHistory([]);
     renderHistory();
-    toast('info', 'Verlauf gelöscht.');
+    toast('info', t('toast.histCleared'));
 }
 
 /* ---- Temă ---- */
@@ -1861,11 +1864,60 @@ const LOCALES = [
 ];
 const LOCALE_CODES = LOCALES.map(l => l.code);
 
-// DE = sursă (fallback). EN + RO complete. Restul: gol -> fallback DE.
-// Pasul 5 extinde cheile pe tot UI-ul și completează celelalte 9 limbi.
+// DE = sursă (fallback). EN + RO complete inline. Celelalte 9 limbi se încarcă
+// din /i18n/<code>.json la cerere (schelet — vezi "_reviewed": false).
+// Adăugarea unei limbi = un fișier JSON nou; niciun text nu e hardcodat în componente.
 const I18N = {
     de: {
-        'home.sub': 'Wobei möchtest du heute Hilfe?',
+        'nav.home': 'Start', 'nav.doc': 'Dokumentation', 'nav.doc.short': 'Doku',
+        'nav.plan': 'Pflegeplanung', 'nav.plan.short': 'Plan', 'nav.verlauf': 'Verlauf',
+        'nav.einstellungen': 'Einstellungen', 'nav.einstellungen.short': 'Mehr',
+        'rail.foot': 'Dokumentationshilfe – keine medizinische Entscheidung.',
+        'home.sub': 'Wobei möchtest du heute Hilfe?', 'theme.cycle': 'Design',
+        'home.card.title': 'Neue Dokumentation',
+        'home.card.desc': 'Schreib oder sprich, was passiert ist – die professionelle Formulierung übernimmt PflegeDoc.',
+        'home.voice': 'Spracheingabe', 'home.text': 'Text eingeben', 'home.more': 'Weitere Hilfen',
+        'tile.plan': 'Pflegeplanung', 'tile.korrigieren': 'Korrigieren', 'tile.uebersetzen': 'Übersetzen',
+        'tile.verlauf': 'Verlauf', 'tag.soon': 'In Vorbereitung', 'soon.title': 'In Vorbereitung',
+        'common.newDoc': 'Neue Dokumentation',
+        'doc.title': 'Neue Dokumentation', 'doc.sub': 'Beschreibe kurz, was passiert ist.',
+        'doc.note.label': 'Deine Notiz',
+        'doc.note.ph': 'Zum Beispiel:\nHerr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen.',
+        'doc.inputlang': 'Eingabesprache',
+        'lang.ro': 'Rumänisch', 'lang.de': 'Deutsch', 'lang.en': 'Englisch',
+        'lang.es': 'Spanisch', 'lang.ru': 'Russisch', 'lang.tr': 'Türkisch',
+        'doc.clear': 'Leeren', 'doc.voice': 'Spracheingabe',
+        'doc.generate': 'Dokumentation erstellen', 'doc.generate.loading': 'Wird erstellt …',
+        'doc.michint': 'Tippe auf „Spracheingabe“, um zu diktieren.',
+        'doc.disclaimer': 'PflegeDoc ist eine Dokumentationshilfe: Sie formuliert deine Angaben, stellt aber keine Diagnosen und trifft keine medizinischen Entscheidungen.',
+        'proc.title': 'Dokumentation wird vorbereitet …',
+        'proc.step1': 'Inhalt erkannt', 'proc.step2': 'Sprache korrigiert', 'proc.step3': 'Dokumentation wird formuliert',
+        'result.check': 'Bitte überprüfe die Dokumentation vor der Übernahme.',
+        'result.original': 'Deine ursprüngliche Notiz anzeigen',
+        'result.improved': 'Verbesserte Dokumentation', 'result.diff': 'Unterschiede zur Notiz',
+        'result.accept': 'Übernehmen', 'result.edit': 'Bearbeiten', 'result.editDone': 'Fertig', 'result.copy': 'Kopieren',
+        'plan.soon.text': 'Die Pflegeplanung wird an dieselbe Dokumentationsengine angebunden. Die Oberfläche ist hier bereits vorgesehen.',
+        'korr.soon.text': 'Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.',
+        'ueb.soon.text': 'Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.',
+        'verlauf.title': 'Verlauf', 'verlauf.clearAll': 'Alles löschen',
+        'verlauf.empty.title': 'Noch kein Verlauf',
+        'verlauf.empty.text': 'Erstellte Dokumentationen erscheinen hier, sobald du sie mit „Übernehmen“ speicherst.',
+        'verlauf.sub.local': 'Übernommene Dokumentationen – nur auf diesem Gerät gespeichert.',
+        'verlauf.sub.account': 'Übernommene Dokumentationen – in deinem Konto gespeichert.',
+        'hist.more': 'Mehr laden', 'hist.copy': 'Kopieren', 'hist.delete': 'Löschen',
+        'hist.confirmDelete': 'Diesen Eintrag löschen?',
+        'settings.title': 'Einstellungen', 'settings.uilang': 'Sprache der Oberfläche',
+        'settings.name': 'Dein Name (für die Begrüßung)', 'settings.name.ph': 'z. B. Alexandru',
+        'settings.theme': 'Darstellung', 'theme.system': 'System', 'theme.light': 'Hell', 'theme.dark': 'Dunkel',
+        'settings.punct.label': 'Satzzeichen per Sprachbefehl',
+        'settings.punct.hint': 'Der Spracherkenner setzt keine Satzzeichen automatisch. Du diktierst sie: „Komma“, „Punkt“, „Doppelpunkt“, „Fragezeichen“, „neue Zeile“, „Klammer auf/zu“. (Auch auf Rumänisch/Englisch.)',
+        'settings.apikey.summary': 'Erweitert: eigener API-Schlüssel',
+        'settings.apikey.hint': 'Leer lassen, um den gesicherten Server der App zu nutzen (empfohlen). Mit eigenem Schlüssel wird Gemini direkt von diesem Gerät aufgerufen – der Schlüssel bleibt lokal im Browser.',
+        'settings.apikey.label': 'Google-Gemini-API-Schlüssel',
+        'settings.apikey.remember': 'Schlüssel auf diesem Gerät merken',
+        'settings.proc.label': 'Verarbeitung',
+        'settings.proc.hint': 'Modell gemini-3.6-flash über gesicherten Server. Der API-Schlüssel verlässt den Browser nicht. Ausgabe stets in professioneller deutscher Pflegefachsprache (SIS).',
+        'settings.disclaimer': 'PflegeDoc unterstützt bei der Formulierung der Pflegedokumentation. Fachliche Prüfung und Verantwortung bleiben bei der Pflegekraft.',
         'auth.email': 'E-Mail', 'auth.password': 'Passwort', 'auth.password.hint': 'Mindestens 8 Zeichen.',
         'auth.login.title': 'Anmelden', 'auth.login.sub': 'Melde dich an, um deinen persönlichen Verlauf zu sehen.',
         'auth.login.switch': 'Noch kein Konto?', 'auth.acct.login': 'Anmelden',
@@ -1875,22 +1927,80 @@ const I18N = {
         'konto.sync.note': 'Sprache und Design werden in deinem Konto gespeichert.',
         'konto.logout': 'Abmelden', 'konto.manage': 'Konto verwalten',
         'konto.loggedout.hint': 'Melde dich an, damit dein Verlauf und deine Einstellungen geräteübergreifend gespeichert werden.',
-        'settings.title': 'Einstellungen', 'settings.uilang': 'Sprache der Oberfläche',
-        'settings.name': 'Dein Name (für die Begrüßung)', 'settings.theme': 'Darstellung',
-        'verlauf.sub.local': 'Übernommene Dokumentationen – nur auf diesem Gerät gespeichert.',
-        'verlauf.sub.account': 'Übernommene Dokumentationen – in deinem Konto gespeichert.',
-        'hist.more': 'Mehr laden', 'hist.copy': 'Kopieren', 'hist.delete': 'Löschen',
-        'hist.confirmDelete': 'Diesen Eintrag löschen?',
-        'toast.loggedin': 'Angemeldet.', 'toast.loggedout': 'Abgemeldet.',
-        'toast.registered': 'Konto erstellt.',
+        'rec.status': 'Aufnahme läuft', 'rec.hint': 'Sprich ruhig und deutlich. Der Text wird laufend ergänzt.',
+        'rec.stop': 'Aufnahme beenden',
+        'toast.loggedin': 'Angemeldet.', 'toast.loggedout': 'Abgemeldet.', 'toast.registered': 'Konto erstellt.',
         'toast.exists': 'Falls du bereits ein Konto hast, melde dich bitte an.',
         'toast.migrated': 'Lokaler Verlauf in dein Konto übernommen.',
-        'toast.deleted': 'Eintrag gelöscht.',
-        'greet.morning': 'Guten Morgen', 'greet.day': 'Guten Tag', 'greet.evening': 'Guten Abend', 'greet.welcome': 'Willkommen',
-        'theme.cycle': 'Design'
+        'toast.deleted': 'Eintrag gelöscht.', 'toast.histCleared': 'Verlauf gelöscht.',
+        'toast.docReady': 'Dokumentation erstellt. Bitte prüfen.',
+        'toast.accepted': 'In den Verlauf übernommen.',
+        'toast.nothingAccept': 'Es gibt noch keine Dokumentation zum Übernehmen.',
+        'toast.needText': 'Bitte zuerst etwas eingeben oder diktieren.',
+        'toast.noApiKey': 'Bitte in den Einstellungen einen API-Schlüssel hinterlegen.',
+        'toast.copied': 'In die Zwischenablage kopiert.', 'toast.copiedShort': 'Kopiert.',
+        'toast.copyFail': 'Automatisches Kopieren nicht möglich. Bitte Text manuell markieren.',
+        'toast.noCopy': 'Kein Text zum Kopieren.',
+        'diff.unavailable': 'Vergleich derzeit nicht verfügbar.',
+        'confirm.clearAll': 'Gesamten Verlauf auf diesem Gerät löschen?',
+        'mic.unsupported': 'Spracheingabe wird von diesem Browser nicht unterstützt (Chrome oder Edge verwenden).',
+        'mic.recording': 'Aufnahme läuft …',
+        'mic.stopped': 'Aufnahme beendet. Du kannst den Text bearbeiten.',
+        'mic.nospeech': 'Keine Sprache erkannt. Bitte erneut versuchen.',
+        'mic.errPrefix': 'Mikrofonfehler: ', 'mic.notAllowedSuffix': ' – bitte Mikrofonzugriff im Browser erlauben.',
+        'mic.startFailPrefix': 'Spracheingabe konnte nicht gestartet werden: ',
+        'greet.morning': 'Guten Morgen', 'greet.day': 'Guten Tag', 'greet.evening': 'Guten Abend', 'greet.welcome': 'Willkommen'
     },
     en: {
-        'home.sub': 'What can I help you with today?',
+        'nav.home': 'Home', 'nav.doc': 'Documentation', 'nav.doc.short': 'Docs',
+        'nav.plan': 'Care planning', 'nav.plan.short': 'Plan', 'nav.verlauf': 'History',
+        'nav.einstellungen': 'Settings', 'nav.einstellungen.short': 'More',
+        'rail.foot': 'A documentation aid – not a medical decision.',
+        'home.sub': 'What can I help you with today?', 'theme.cycle': 'Theme',
+        'home.card.title': 'New documentation',
+        'home.card.desc': 'Write or speak what happened – PflegeDoc handles the professional wording.',
+        'home.voice': 'Voice input', 'home.text': 'Type text', 'home.more': 'More tools',
+        'tile.plan': 'Care planning', 'tile.korrigieren': 'Proofread', 'tile.uebersetzen': 'Translate',
+        'tile.verlauf': 'History', 'tag.soon': 'Coming soon', 'soon.title': 'Coming soon',
+        'common.newDoc': 'New documentation',
+        'doc.title': 'New documentation', 'doc.sub': 'Briefly describe what happened.',
+        'doc.note.label': 'Your note',
+        'doc.note.ph': 'For example:\nMr Müller complained of pain in his right knee this morning. Blood pressure 150/95. Medication given and assisted with mobilisation.',
+        'doc.inputlang': 'Input language',
+        'lang.ro': 'Romanian', 'lang.de': 'German', 'lang.en': 'English',
+        'lang.es': 'Spanish', 'lang.ru': 'Russian', 'lang.tr': 'Turkish',
+        'doc.clear': 'Clear', 'doc.voice': 'Voice input',
+        'doc.generate': 'Create documentation', 'doc.generate.loading': 'Creating …',
+        'doc.michint': 'Tap “Voice input” to dictate.',
+        'doc.disclaimer': 'PflegeDoc is a documentation aid: it phrases your input but does not make diagnoses or medical decisions.',
+        'proc.title': 'Preparing documentation …',
+        'proc.step1': 'Content recognised', 'proc.step2': 'Language corrected', 'proc.step3': 'Documentation being written',
+        'result.check': 'Please review the documentation before accepting it.',
+        'result.original': 'Show your original note',
+        'result.improved': 'Improved documentation', 'result.diff': 'Differences from the note',
+        'result.accept': 'Accept', 'result.edit': 'Edit', 'result.editDone': 'Done', 'result.copy': 'Copy',
+        'plan.soon.text': 'Care planning will use the same documentation engine. The interface is already prepared here.',
+        'korr.soon.text': 'Smooth existing texts linguistically and professionally – without changing the content. Integration to follow.',
+        'ueb.soon.text': 'Transfer documentation into another language – for handovers and relatives. Integration to follow.',
+        'verlauf.title': 'History', 'verlauf.clearAll': 'Delete all',
+        'verlauf.empty.title': 'No history yet',
+        'verlauf.empty.text': 'Created documentation appears here once you save it with “Accept”.',
+        'verlauf.sub.local': 'Accepted documentation – stored on this device only.',
+        'verlauf.sub.account': 'Accepted documentation – stored in your account.',
+        'hist.more': 'Load more', 'hist.copy': 'Copy', 'hist.delete': 'Delete',
+        'hist.confirmDelete': 'Delete this entry?',
+        'settings.title': 'Settings', 'settings.uilang': 'Interface language',
+        'settings.name': 'Your name (for the greeting)', 'settings.name.ph': 'e.g. Alexandru',
+        'settings.theme': 'Appearance', 'theme.system': 'System', 'theme.light': 'Light', 'theme.dark': 'Dark',
+        'settings.punct.label': 'Punctuation by voice command',
+        'settings.punct.hint': 'The recogniser does not add punctuation automatically. You dictate it: “comma”, “full stop”, “colon”, “question mark”, “new line”, “open/close bracket”. (Also in Romanian/German.)',
+        'settings.apikey.summary': 'Advanced: your own API key',
+        'settings.apikey.hint': 'Leave empty to use the app’s secure server (recommended). With your own key, Gemini is called directly from this device – the key stays local in the browser.',
+        'settings.apikey.label': 'Google Gemini API key',
+        'settings.apikey.remember': 'Remember the key on this device',
+        'settings.proc.label': 'Processing',
+        'settings.proc.hint': 'Model gemini-3.6-flash via a secure server. The API key never leaves the browser. Output always in professional German nursing language (SIS).',
+        'settings.disclaimer': 'PflegeDoc assists with phrasing the nursing documentation. Professional review and responsibility remain with the nurse.',
         'auth.email': 'Email', 'auth.password': 'Password', 'auth.password.hint': 'At least 8 characters.',
         'auth.login.title': 'Sign in', 'auth.login.sub': 'Sign in to see your personal history.',
         'auth.login.switch': 'No account yet?', 'auth.acct.login': 'Sign in',
@@ -1900,22 +2010,80 @@ const I18N = {
         'konto.sync.note': 'Language and theme are stored in your account.',
         'konto.logout': 'Sign out', 'konto.manage': 'Manage account',
         'konto.loggedout.hint': 'Sign in so your history and settings are stored across devices.',
-        'settings.title': 'Settings', 'settings.uilang': 'Interface language',
-        'settings.name': 'Your name (for the greeting)', 'settings.theme': 'Appearance',
-        'verlauf.sub.local': 'Accepted documentation – stored on this device only.',
-        'verlauf.sub.account': 'Accepted documentation – stored in your account.',
-        'hist.more': 'Load more', 'hist.copy': 'Copy', 'hist.delete': 'Delete',
-        'hist.confirmDelete': 'Delete this entry?',
-        'toast.loggedin': 'Signed in.', 'toast.loggedout': 'Signed out.',
-        'toast.registered': 'Account created.',
+        'rec.status': 'Recording', 'rec.hint': 'Speak calmly and clearly. The text is added continuously.',
+        'rec.stop': 'Stop recording',
+        'toast.loggedin': 'Signed in.', 'toast.loggedout': 'Signed out.', 'toast.registered': 'Account created.',
         'toast.exists': 'If you already have an account, please sign in.',
         'toast.migrated': 'Local history moved into your account.',
-        'toast.deleted': 'Entry deleted.',
-        'greet.morning': 'Good morning', 'greet.day': 'Good day', 'greet.evening': 'Good evening', 'greet.welcome': 'Welcome',
-        'theme.cycle': 'Theme'
+        'toast.deleted': 'Entry deleted.', 'toast.histCleared': 'History deleted.',
+        'toast.docReady': 'Documentation created. Please review.',
+        'toast.accepted': 'Saved to history.',
+        'toast.nothingAccept': 'There is no documentation to accept yet.',
+        'toast.needText': 'Please enter or dictate something first.',
+        'toast.noApiKey': 'Please add an API key in the settings.',
+        'toast.copied': 'Copied to clipboard.', 'toast.copiedShort': 'Copied.',
+        'toast.copyFail': 'Automatic copying failed. Please select the text manually.',
+        'toast.noCopy': 'Nothing to copy.',
+        'diff.unavailable': 'Comparison not available right now.',
+        'confirm.clearAll': 'Delete the entire history on this device?',
+        'mic.unsupported': 'Voice input is not supported by this browser (use Chrome or Edge).',
+        'mic.recording': 'Recording …',
+        'mic.stopped': 'Recording stopped. You can edit the text.',
+        'mic.nospeech': 'No speech detected. Please try again.',
+        'mic.errPrefix': 'Microphone error: ', 'mic.notAllowedSuffix': ' – please allow microphone access in the browser.',
+        'mic.startFailPrefix': 'Voice input could not be started: ',
+        'greet.morning': 'Good morning', 'greet.day': 'Good day', 'greet.evening': 'Good evening', 'greet.welcome': 'Welcome'
     },
     ro: {
-        'home.sub': 'Cu ce te pot ajuta azi?',
+        'nav.home': 'Start', 'nav.doc': 'Documentație', 'nav.doc.short': 'Docum.',
+        'nav.plan': 'Planificarea îngrijirii', 'nav.plan.short': 'Plan', 'nav.verlauf': 'Istoric',
+        'nav.einstellungen': 'Setări', 'nav.einstellungen.short': 'Mai mult',
+        'rail.foot': 'Ajutor de documentare – nu o decizie medicală.',
+        'home.sub': 'Cu ce te pot ajuta azi?', 'theme.cycle': 'Temă',
+        'home.card.title': 'Documentație nouă',
+        'home.card.desc': 'Scrie sau vorbește ce s-a întâmplat – formularea profesională o face PflegeDoc.',
+        'home.voice': 'Dictare', 'home.text': 'Scrie text', 'home.more': 'Alte funcții',
+        'tile.plan': 'Planificarea îngrijirii', 'tile.korrigieren': 'Corectare', 'tile.uebersetzen': 'Traducere',
+        'tile.verlauf': 'Istoric', 'tag.soon': 'În pregătire', 'soon.title': 'În pregătire',
+        'common.newDoc': 'Documentație nouă',
+        'doc.title': 'Documentație nouă', 'doc.sub': 'Descrie pe scurt ce s-a întâmplat.',
+        'doc.note.label': 'Nota ta',
+        'doc.note.ph': 'De exemplu:\nDomnul Müller a acuzat azi dimineață dureri la genunchiul drept. Tensiune 150/95. I s-au administrat medicamentele și a fost ajutat la mobilizare.',
+        'doc.inputlang': 'Limba de intrare',
+        'lang.ro': 'Română', 'lang.de': 'Germană', 'lang.en': 'Engleză',
+        'lang.es': 'Spaniolă', 'lang.ru': 'Rusă', 'lang.tr': 'Turcă',
+        'doc.clear': 'Golește', 'doc.voice': 'Dictare',
+        'doc.generate': 'Creează documentația', 'doc.generate.loading': 'Se creează …',
+        'doc.michint': 'Apasă „Dictare” ca să dictezi.',
+        'doc.disclaimer': 'PflegeDoc este un ajutor de documentare: formulează datele tale, dar nu pune diagnostice și nu ia decizii medicale.',
+        'proc.title': 'Se pregătește documentația …',
+        'proc.step1': 'Conținut recunoscut', 'proc.step2': 'Limbă corectată', 'proc.step3': 'Se formulează documentația',
+        'result.check': 'Verifică documentația înainte de a o prelua.',
+        'result.original': 'Arată nota inițială',
+        'result.improved': 'Documentație îmbunătățită', 'result.diff': 'Diferențe față de notă',
+        'result.accept': 'Preia', 'result.edit': 'Editează', 'result.editDone': 'Gata', 'result.copy': 'Copiază',
+        'plan.soon.text': 'Planificarea îngrijirii va folosi același motor de documentare. Interfața este deja pregătită aici.',
+        'korr.soon.text': 'Netezește texte existente lingvistic și profesional – fără a schimba conținutul. Integrarea urmează.',
+        'ueb.soon.text': 'Transferă documentația în altă limbă – pentru predări și aparținători. Integrarea urmează.',
+        'verlauf.title': 'Istoric', 'verlauf.clearAll': 'Șterge tot',
+        'verlauf.empty.title': 'Încă niciun istoric',
+        'verlauf.empty.text': 'Documentațiile create apar aici după ce le salvezi cu „Preia”.',
+        'verlauf.sub.local': 'Documentații preluate – salvate doar pe acest dispozitiv.',
+        'verlauf.sub.account': 'Documentații preluate – salvate în contul tău.',
+        'hist.more': 'Încarcă mai multe', 'hist.copy': 'Copiază', 'hist.delete': 'Șterge',
+        'hist.confirmDelete': 'Ștergi această intrare?',
+        'settings.title': 'Setări', 'settings.uilang': 'Limba interfeței',
+        'settings.name': 'Numele tău (pentru salut)', 'settings.name.ph': 'ex. Alexandru',
+        'settings.theme': 'Aspect', 'theme.system': 'Sistem', 'theme.light': 'Luminos', 'theme.dark': 'Întunecat',
+        'settings.punct.label': 'Punctuație prin comenzi vocale',
+        'settings.punct.hint': 'Recunoașterea nu pune punctuație automat. O dictezi: „virgulă”, „punct”, „două puncte”, „semnul întrebării”, „rând nou”, „deschide/închide paranteza”. (Și în germană/engleză.)',
+        'settings.apikey.summary': 'Avansat: cheie API proprie',
+        'settings.apikey.hint': 'Lasă gol pentru a folosi serverul securizat al aplicației (recomandat). Cu cheie proprie, Gemini e apelat direct de pe acest dispozitiv – cheia rămâne local în browser.',
+        'settings.apikey.label': 'Cheie API Google Gemini',
+        'settings.apikey.remember': 'Ține minte cheia pe acest dispozitiv',
+        'settings.proc.label': 'Procesare',
+        'settings.proc.hint': 'Model gemini-3.6-flash prin server securizat. Cheia API nu părăsește browserul. Rezultatul mereu în limbaj profesional german de îngrijire (SIS).',
+        'settings.disclaimer': 'PflegeDoc ajută la formularea documentației de îngrijire. Verificarea profesională și răspunderea rămân la asistent.',
         'auth.email': 'E-mail', 'auth.password': 'Parolă', 'auth.password.hint': 'Cel puțin 8 caractere.',
         'auth.login.title': 'Autentificare', 'auth.login.sub': 'Autentifică-te ca să-ți vezi istoricul personal.',
         'auth.login.switch': 'Nu ai cont?', 'auth.acct.login': 'Autentificare',
@@ -1925,22 +2093,41 @@ const I18N = {
         'konto.sync.note': 'Limba și tema se salvează în contul tău.',
         'konto.logout': 'Deconectare', 'konto.manage': 'Gestionează contul',
         'konto.loggedout.hint': 'Autentifică-te ca istoricul și setările să fie salvate pe toate dispozitivele.',
-        'settings.title': 'Setări', 'settings.uilang': 'Limba interfeței',
-        'settings.name': 'Numele tău (pentru salut)', 'settings.theme': 'Aspect',
-        'verlauf.sub.local': 'Documentații preluate – salvate doar pe acest dispozitiv.',
-        'verlauf.sub.account': 'Documentații preluate – salvate în contul tău.',
-        'hist.more': 'Încarcă mai multe', 'hist.copy': 'Copiază', 'hist.delete': 'Șterge',
-        'hist.confirmDelete': 'Ștergi această intrare?',
-        'toast.loggedin': 'Autentificat.', 'toast.loggedout': 'Deconectat.',
-        'toast.registered': 'Cont creat.',
+        'rec.status': 'Înregistrare în curs', 'rec.hint': 'Vorbește calm și clar. Textul se adaugă continuu.',
+        'rec.stop': 'Oprește înregistrarea',
+        'toast.loggedin': 'Autentificat.', 'toast.loggedout': 'Deconectat.', 'toast.registered': 'Cont creat.',
         'toast.exists': 'Dacă ai deja cont, autentifică-te.',
         'toast.migrated': 'Istoricul local a fost mutat în cont.',
-        'toast.deleted': 'Intrare ștearsă.',
-        'greet.morning': 'Bună dimineața', 'greet.day': 'Bună ziua', 'greet.evening': 'Bună seara', 'greet.welcome': 'Bun venit',
-        'theme.cycle': 'Temă'
-    },
-    fr: {}, es: {}, it: {}, pt: {}, pl: {}, tr: {}, ru: {}, uk: {}, ar: {}
+        'toast.deleted': 'Intrare ștearsă.', 'toast.histCleared': 'Istoric șters.',
+        'toast.docReady': 'Documentație creată. Verific-o.',
+        'toast.accepted': 'Salvat în istoric.',
+        'toast.nothingAccept': 'Încă nu există o documentație de preluat.',
+        'toast.needText': 'Introdu sau dictează întâi ceva.',
+        'toast.noApiKey': 'Adaugă o cheie API în setări.',
+        'toast.copied': 'Copiat în clipboard.', 'toast.copiedShort': 'Copiat.',
+        'toast.copyFail': 'Copierea automată nu a reușit. Selectează textul manual.',
+        'toast.noCopy': 'Nimic de copiat.',
+        'diff.unavailable': 'Comparația nu e disponibilă acum.',
+        'confirm.clearAll': 'Ștergi tot istoricul de pe acest dispozitiv?',
+        'mic.unsupported': 'Dictarea nu e suportată de acest browser (folosește Chrome sau Edge).',
+        'mic.recording': 'Înregistrare în curs …',
+        'mic.stopped': 'Înregistrare oprită. Poți edita textul.',
+        'mic.nospeech': 'Nicio voce detectată. Încearcă din nou.',
+        'mic.errPrefix': 'Eroare microfon: ', 'mic.notAllowedSuffix': ' – permite accesul la microfon în browser.',
+        'mic.startFailPrefix': 'Dictarea nu a putut porni: ',
+        'greet.morning': 'Bună dimineața', 'greet.day': 'Bună ziua', 'greet.evening': 'Bună seara', 'greet.welcome': 'Bun venit'
+    }
+    // fr, es, it, pt, pl, tr, ru, uk, ar -> încărcate din /i18n/<code>.json
 };
+
+const loadedLocales = new Set(['de', 'en', 'ro']);
+function loadLocale(code) {
+    if (loadedLocales.has(code) || !LOCALE_CODES.includes(code)) return Promise.resolve();
+    return fetch('/i18n/' + code + '.json', { cache: 'force-cache' })
+        .then(r => r.ok ? r.json() : {})
+        .then(dict => { I18N[code] = dict && typeof dict === 'object' ? dict : {}; loadedLocales.add(code); })
+        .catch(() => { I18N[code] = {}; loadedLocales.add(code); });
+}
 
 function getLocale() {
     const stored = getStore('pflegedoc_locale');
@@ -1949,8 +2136,13 @@ function getLocale() {
     return LOCALE_CODES.includes(nav) ? nav : 'de';
 }
 function t(key) {
-    const loc = getLocale();
-    return (I18N[loc] && I18N[loc][key]) || I18N.de[key] || key;
+    try {
+        const loc = getLocale();
+        return (I18N[loc] && I18N[loc][key]) || I18N.de[key] || key;
+    } catch (e) {
+        // I18N încă în TDZ (apel foarte devreme, ex. mic nesuportat) -> cheia brută
+        return key;
+    }
 }
 function applyI18n() {
     const loc = getLocale();
@@ -1970,14 +2162,20 @@ function applyI18n() {
     });
     updateGreeting();
     applyAuthUI();
+    // reflectă butonul de generare / editare dacă sunt vizibile
+    if (typeof generateBtn !== 'undefined' && generateBtn && !generateBtn.disabled) {
+        generateBtn.textContent = t('doc.generate');
+    }
 }
 function setLocale(code) {
     if (!LOCALE_CODES.includes(code)) return;
     setStore('pflegedoc_locale', code);
-    applyI18n();
-    if (authState.authenticated) {
-        apiFetch('/api/settings', { method: 'PATCH', body: { ui_language: code } }).catch(() => {});
-    }
+    loadLocale(code).then(() => {
+        applyI18n();
+        if (authState.authenticated) {
+            apiFetch('/api/settings', { method: 'PATCH', body: { ui_language: code } }).catch(() => {});
+        }
+    });
 }
 document.addEventListener('change', (e) => {
     const sel = e.target.closest('[data-lang-select]');
@@ -2230,9 +2428,12 @@ function buildHistItemRemote(it) {
 
 /* ---- Init ---- */
 applyTheme();
-applyI18n();
-route();
-refreshAuth().then(route);
+// dacă limba salvată e una „externă" (fr/es/…), o încărcăm înainte de primul render
+loadLocale(getLocale()).then(() => {
+    applyI18n();
+    route();
+    refreshAuth().then(route);
+});
 </script>
 
 </body>

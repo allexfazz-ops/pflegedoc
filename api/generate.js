@@ -139,6 +139,26 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Methode nicht erlaubt. Bitte POST verwenden." });
     }
 
+    // --- Rate limiting (spec. pct. 12) — guard la începutul handler-ului.
+    //     NU atinge logica engine-ului. Fail-open dacă baza de date nu răspunde.
+    try {
+        const { hasDatabase, ensureSchema } = await import("../lib/db.mjs");
+        if (hasDatabase()) {
+            await ensureSchema();
+            const { rateLimit } = await import("../lib/ratelimit.mjs");
+            const { clientIp } = await import("../lib/http.mjs");
+            const rl = await rateLimit(`generate:ip:${clientIp(req)}`, 40, 3600);
+            if (!rl.allowed) {
+                res.setHeader("Retry-After", String(rl.retryAfter));
+                return res.status(429).json({
+                    error: "Zu viele Anfragen. Bitte in einer Stunde erneut versuchen."
+                });
+            }
+        }
+    } catch (e) {
+        console.error("[generate] rate-limit skipped:", e.message);
+    }
+
     // --- Cheia API din mediu ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
