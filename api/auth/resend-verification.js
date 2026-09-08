@@ -31,14 +31,22 @@ export default async function handler(req, res) {
 
         let emailSent = false;
         let devVerifyUrl;
+        let emailError;
         try {
             const r = await sendVerificationEmail(req, u);
             emailSent = !!r.delivered;
             if (!emailEnabled()) devVerifyUrl = r.url;
+            // Diagnostic: motivul de la Resend (textul lor de eroare, fără secrete).
+            if (!r.delivered && r.detail) emailError = r.detail;
         } catch (e) {
             console.error("[resend-verification]", e.message);
+            emailError = e.message;
         }
-        return json(res, 200, { ok: true, emailSent, ...(devVerifyUrl ? { devVerifyUrl } : {}) });
+        return json(res, 200, {
+            ok: true, emailSent,
+            ...(devVerifyUrl ? { devVerifyUrl } : {}),
+            ...(emailError ? { emailError } : {}),
+        });
     } catch (err) {
         return fail(res, 500, "E-Mail konnte nicht erneut gesendet werden.", err);
     }
