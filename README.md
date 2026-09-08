@@ -58,10 +58,12 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 |---|---|---|---|
 | `/api/generate` | POST | nu | proxy Gemini; rate limit 40/h/IP |
 | `/api/health` | GET | nu | doar stare schemă, fără detalii sensibile |
-| `/api/auth/register` | POST | nu | rate limit IP; nu confirmă existența e-mailului |
+| `/api/auth/register` | POST | nu | rate limit IP; nu confirmă existența e-mailului; trimite e-mail de verificare |
 | `/api/auth/login` | POST | nu | rate limit IP+e-mail; mesaj generic |
 | `/api/auth/logout` | POST | da (cookie) | CSRF obligatoriu; șterge rândul sesiunii |
-| `/api/auth/me` | GET | opțional | `{ authenticated, user, csrfToken }` |
+| `/api/auth/me` | GET | opțional | `{ authenticated, user (+email_verified), csrfToken }` |
+| `/api/auth/verify` | POST | nu | `{ token }` — single-use, rate limit IP |
+| `/api/auth/resend-verification` | POST | da | CSRF; 3/oră/user |
 | `/api/history` | GET / POST | da | GET paginat (preview); POST creează (CSRF) |
 | `/api/history/:id` | GET / DELETE | da | ownership; 404 (nu 403) la miss; CSRF la DELETE |
 | `/api/settings` | GET / PATCH | da | `ui_language`, `theme` (enum-uri validate; CSRF) |
@@ -69,11 +71,14 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 ## Bază de date (schema)
 
 ```
-users(id, email UNIQUE, password_hash, ui_language, theme, created_at, updated_at)
+users(id, email UNIQUE, password_hash, email_verified, email_verified_at,
+      ui_language, theme, created_at, updated_at)
 sessions(id, user_id →users ON DELETE CASCADE, token_hash UNIQUE, csrf_token,
          created_at, last_seen_at, expires_at, user_agent, ip)
 activities(id, user_id →users ON DELETE CASCADE, type, input_text, input_language,
            mode, result_text, created_at)            -- index (user_id, created_at DESC)
+email_tokens(id, user_id →users ON DELETE CASCADE, token_hash UNIQUE, purpose,
+             created_at, expires_at, used_at)          -- purpose: verify_email | reset_password
 rate_limits(bucket, window_start, count)              -- PK (bucket, window_start)
 ```
 
@@ -109,11 +114,26 @@ vercel dev                  # http://localhost:3000
 
 Migrarea rulează automat; manual: `node --env-file=.env.local db/migrate.mjs`.
 
+## Verificare e-mail
+
+- La înregistrare se trimite un e-mail cu link `/?verify=<token>` (ecran cu buton
+  → `POST /api/auth/verify`). Token single-use, valabil 24h (`email_tokens`).
+- Contul e **utilizabil imediat**; cât timp e neconfirmat apare un banner cu
+  „Trimite din nou". Verificarea devine obligatorie când se adaugă resetarea
+  parolei (un singur switch de config).
+- **Provider**: [Resend](https://resend.com). Fără `RESEND_API_KEY` setat →
+  „dev mode": link-ul e returnat de `/api/auth/register` și logat pe server
+  (util pentru test). Cu cheia setată → e-mailuri reale, zero schimbare de cod.
+- Pentru e-mailuri reale: cont Resend → verifică un domeniu (DNS SPF/DKIM) →
+  setează în Vercel `RESEND_API_KEY` și `EMAIL_FROM`
+  (ex. `PflegeDoc <noreply@domeniul-tau.de>`).
+
 ## Deploy
 
 Push pe `main` → Vercel publică automat. Variabile de mediu în Vercel:
 `GEMINI_API_KEY` (obligatoriu), `GEMINI_MODEL` (opțional, implicit
-`gemini-3.6-flash`), `DATABASE_URL` (setat automat de integrarea Neon).
+`gemini-3.6-flash`), `DATABASE_URL` (setat automat de integrarea Neon),
+`RESEND_API_KEY` + `EMAIL_FROM` (opțional — pentru e-mailuri de verificare reale).
 
 ## Test suite (engine de documentație)
 
