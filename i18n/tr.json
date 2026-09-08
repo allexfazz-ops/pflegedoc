@@ -159,7 +159,7 @@
   "konto.delete.needpw": "Lütfen parolanı gir.",
   "konto.delete.confirm": "Hesabın ve tüm veriler geri alınamaz şekilde silinsin mi?",
   "konto.delete.done": "Hesabın silindi.",
-  "doc.model": "Dokümantasyon modeli",
+  "doc.model": "Plan modeli",
   "doc.model.sis": "Yapısal model (SIS)",
   "doc.model.klassisch": "Klasik"
 }

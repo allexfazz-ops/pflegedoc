@@ -159,7 +159,7 @@
   "konto.delete.needpw": "Veuillez saisir votre mot de passe.",
   "konto.delete.confirm": "Supprimer définitivement votre compte et toutes les données ?",
   "konto.delete.done": "Votre compte a été supprimé.",
-  "doc.model": "Modèle de documentation",
+  "doc.model": "Modèle de plan",
   "doc.model.sis": "Modèle structurel (SIS)",
   "doc.model.klassisch": "Classique"
 }

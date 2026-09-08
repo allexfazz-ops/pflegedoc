@@ -130,32 +130,20 @@ function schreibRahmen() {
     return `${TREUE_REGELN}\n\n${PFLEGEFACHSPRACHE}\n\n${STANDARDS[DEFAULT_REGION]}`;
 }
 
-// MODE: formulieren / uebersetzen — notiță -> Verlaufs-/Berichteintrag.
-function promptFormulieren(docModel) {
-    const modell = docModel === "klassisch"
-        ? `DOKUMENTATIONSMODELL: KLASSISCHE PFLEGEDOKUMENTATION
-Bei mehreren Aspekten nach folgenden Überschriften gliedern (genau so); nicht belegte Abschnitte entfallen vollständig, kein Platzhaltertext:
-
-Situation / Beobachtung:
-<Zustand, Verhalten, Beobachtungen; berichtete Aussagen als solche kennzeichnen>
-
-Vitalwerte:
-<NUR genannte Werte. Format je Wert: RR <Wert> mmHg | Puls <Wert>/min | SpO2 <Wert> % | BZ <Wert> mg/dl | Temp <Wert> °C.>
-
-Durchgeführte Maßnahmen:
-<NUR wenn genannt. Je Zeile mit "- ".>`
-        : `DOKUMENTATIONSMODELL: STRUKTURMODELL (SIS / Ein-STEP)
-Schreibe einen Eintrag im Sinne des Berichteblatts: dokumentiert werden AUSSCHLIESSLICH Abweichungen von der vereinbarten Regelversorgung sowie besondere Vorkommnisse, Beobachtungen und durchgeführte Maßnahmen. Die Regelversorgung selbst wird NICHT wiederholt. Sachlich, chronologisch, in ganzen Sätzen.
-Wenn der Inhalt eindeutig zu einem SIS-Themenfeld gehört, stelle dieses dem Absatz voran (z. B. „Mobilität und Bewegung:“). Themenfelder: Kognition und Kommunikation; Mobilität und Bewegung; Krankheitsbezogene Anforderungen und Belastungen; Selbstversorgung; Leben in sozialen Beziehungen; Wohnen bzw. Haushaltsführung. Passt nichts eindeutig, ohne Zuordnung schreiben.`;
-
+// MODE: formulieren / uebersetzen — notiță -> Pflege-Verlaufsbericht (pe tură/ore).
+// Documentația de tură: CE s-a făcut cu persoana și CE s-a observat, în ordine
+// cronologică, profesional. Fără alegere de model (SIS/clasic e doar pt Planung).
+function promptFormulieren() {
     return `${schreibRahmen()}
 
-MODUS: ÜBERSETZEN & PROFESSIONELL FORMULIEREN
-Überführe die Angaben in einen professionellen deutschen Pflege-Verlaufseintrag.
+MODUS: PFLEGEDOKUMENTATION (VERLAUFSBERICHT)
+Formuliere die Angaben als professionellen deutschen Pflege-Verlaufseintrag: sachlich, chronologisch, in vollständigen Sätzen. Dokumentiert wird, WAS mit der pflegebedürftigen Person getan wurde und WAS beobachtet wurde – einschließlich ihrer eigenen Aussagen (als solche gekennzeichnet).
 
-${modell}
+ZEITLICHE GLIEDERUNG
+Umfassen die Angaben mehrere Tageszeiten oder Schichten, gliedere nach den GENANNTEN Zeiten/Schichten, jeweils als vorangestellte Zeile: „Morgens:“ / „Mittags:“ / „Nachmittags:“ / „Abends:“ / „Nachts:“ / „Bei Bedarf:“ (bzw. „Frühdienst:“ / „Spätdienst:“ / „Nachtdienst:“, wenn so genannt). Konkrete Uhrzeiten nur übernehmen, wenn sie genannt wurden – niemals erfinden. Betrifft alles denselben Zeitpunkt oder ist es ein einzelnes Ereignis, genügt EIN sachlicher Satz bzw. Absatz ohne Zeit-Zwischenzeilen.
 
-Bei einer einzelnen kurzen Beobachtung ist EIN sachlicher Satz ohne Überschriften vorzuziehen.
+INHALT
+Durchgeführte Maßnahmen (Körperpflege, An-/Auskleiden, Mobilisation/Transfer, Ernährung und Flüssigkeit, Ausscheidung/Kontinenzversorgung, Lagerung, Prophylaxen, Medikamentengabe, Arzt-/Angehörigenkontakt – NUR wie genannt), dazu Beobachtungen, Reaktionen und Befinden der Person. Vitalwerte, falls genannt, im Format: RR <Wert> mmHg | Puls <Wert>/min | SpO2 <Wert> % | BZ <Wert> mg/dl | Temp <Wert> °C. Keine Wiederholung der Regelversorgung ohne Abweichung, kein Füllmaterial.
 
 AUSGABEFORMAT
 Gib NUR den fertigen Dokumentationstext zurück. Keine Einleitung („Hier ist …“), keine Erklärung, kein medizinischer Rat, kein Disclaimer im Text.`;
@@ -223,11 +211,12 @@ Gib NUR den korrigierten Text zurück – ohne Einleitung, ohne Kommentar.`;
 
 const VALID_MODES = ["formulieren", "uebersetzen", "korrigieren", "pflegeplanung"];
 
-// Asamblează promptul de sistem pentru mod + model de documentație.
+// Asamblează promptul de sistem. docModel e relevant DOAR pentru pflegeplanung
+// (Maßnahmenplan vs. clasic); Dokumentation e mereu Verlaufsbericht pe tură.
 function buildSystemPrompt(mode, docModel) {
     if (mode === "korrigieren") return PROMPT_KORRIGIEREN;
     if (mode === "pflegeplanung") return promptPflegeplanung(docModel);
-    return promptFormulieren(docModel); // formulieren + uebersetzen
+    return promptFormulieren(); // formulieren + uebersetzen
 }
 
 export default async function handler(req, res) {

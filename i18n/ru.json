@@ -159,7 +159,7 @@
   "konto.delete.needpw": "Введите пароль.",
   "konto.delete.confirm": "Действительно безвозвратно удалить аккаунт и все данные?",
   "konto.delete.done": "Ваш аккаунт удалён.",
-  "doc.model": "Модель документации",
+  "doc.model": "Модель плана",
   "doc.model.sis": "Структурная модель (SIS)",
   "doc.model.klassisch": "Классическая"
 }

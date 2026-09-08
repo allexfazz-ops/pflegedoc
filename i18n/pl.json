@@ -159,7 +159,7 @@
   "konto.delete.needpw": "Wpisz swoje hasło.",
   "konto.delete.confirm": "Na pewno nieodwracalnie usunąć konto i wszystkie dane?",
   "konto.delete.done": "Twoje konto zostało usunięte.",
-  "doc.model": "Model dokumentacji",
+  "doc.model": "Model planu",
   "doc.model.sis": "Model strukturalny (SIS)",
   "doc.model.klassisch": "Klasyczny"
 }

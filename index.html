@@ -777,7 +777,7 @@
                     </select>
                 </div>
                 <div class="field" id="docModelRow">
-                    <label class="field__label" for="docModel" data-i18n="doc.model">Dokumentationsmodell</label>
+                    <label class="field__label" for="docModel" data-i18n="doc.model">Planungsmodell</label>
                     <select id="docModel" class="select">
                         <option value="sis" data-i18n="doc.model.sis">Strukturmodell (SIS)</option>
                         <option value="klassisch" data-i18n="doc.model.klassisch">Klassisch</option>
@@ -1354,7 +1354,7 @@ async function generateDoc() {
         const outSel = document.getElementById('outputLanguage');
         const modelSel = document.getElementById('docModel');
         const targetLang = (currentDocMode !== 'korrigieren' && outSel) ? outSel.value : 'de';
-        const docModel = (currentDocMode !== 'korrigieren' && modelSel) ? modelSel.value : 'sis';
+        const docModel = (currentDocMode === 'pflegeplanung' && modelSel) ? modelSel.value : 'sis';
         const text = await callGemini(apiKey, userInput, {
             mode: currentDocMode, targetLang: targetLang, docModel: docModel
         });
@@ -1398,7 +1398,7 @@ async function callGemini(apiKey, userInput, opts) {
         if (opts.mode !== 'korrigieren' && opts.targetLang && opts.targetLang !== 'de') {
             payload.targetLang = opts.targetLang;
         }
-        if (opts.mode !== 'korrigieren' && opts.docModel && opts.docModel !== 'sis') {
+        if (opts.mode === 'pflegeplanung' && opts.docModel && opts.docModel !== 'sis') {
             payload.docModel = opts.docModel;
         }
     } else {
@@ -1927,13 +1927,13 @@ function applyDocMode(mode) {
     if (sub) sub.dataset.i18n = m.sub;
     if (ta)  ta.dataset.i18nPh = m.ph;
     if (gb)  gb.dataset.i18n = m.gen;
-    // „Ausgabesprache" + „Dokumentationsmodell" au sens pentru formulieren +
-    // pflegeplanung, nu pentru korrigieren.
-    const hideExtras = (currentDocMode === 'korrigieren');
+    // „Ausgabesprache": pentru formulieren + pflegeplanung (nu korrigieren).
     const row = document.getElementById('outputLangRow');
-    if (row) row.hidden = hideExtras;
+    if (row) row.hidden = (currentDocMode === 'korrigieren');
+    // „Planungsmodell" (SIS / clasic): DOAR pentru pflegeplanung. Documentația
+    // este mereu un Verlaufsbericht pe tură, fără alegere de model.
     const mrow = document.getElementById('docModelRow');
-    if (mrow) mrow.hidden = hideExtras;
+    if (mrow) mrow.hidden = (currentDocMode !== 'pflegeplanung');
     applyI18n();
 }
 
@@ -2060,7 +2060,7 @@ const I18N = {
         'doc.note.label': 'Deine Notiz',
         'doc.note.ph': 'Zum Beispiel:\nHerr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen.',
         'doc.inputlang': 'Eingabesprache', 'doc.outputlang': 'Ausgabesprache',
-        'doc.model': 'Dokumentationsmodell', 'doc.model.sis': 'Strukturmodell (SIS)', 'doc.model.klassisch': 'Klassisch',
+        'doc.model': 'Planungsmodell', 'doc.model.sis': 'Strukturmodell (SIS)', 'doc.model.klassisch': 'Klassisch',
         'doc.k.title': 'Text korrigieren',
         'doc.k.sub': 'Rechtschreibung und Grammatik werden korrigiert, ohne den Inhalt zu ändern.',
         'doc.k.ph': 'Text einfügen, der sprachlich korrigiert werden soll …',
@@ -2177,7 +2177,7 @@ const I18N = {
         'doc.note.label': 'Your note',
         'doc.note.ph': 'For example:\nMr Müller complained of pain in his right knee this morning. Blood pressure 150/95. Medication given and assisted with mobilisation.',
         'doc.inputlang': 'Input language', 'doc.outputlang': 'Output language',
-        'doc.model': 'Documentation model', 'doc.model.sis': 'Structural model (SIS)', 'doc.model.klassisch': 'Classic',
+        'doc.model': 'Planning model', 'doc.model.sis': 'Structural model (SIS)', 'doc.model.klassisch': 'Classic',
         'doc.k.title': 'Correct text',
         'doc.k.sub': 'Spelling and grammar are corrected without changing the content.',
         'doc.k.ph': 'Paste the text to be corrected linguistically …',
@@ -2294,7 +2294,7 @@ const I18N = {
         'doc.note.label': 'Nota ta',
         'doc.note.ph': 'De exemplu:\nDomnul Müller a acuzat azi dimineață dureri la genunchiul drept. Tensiune 150/95. I s-au administrat medicamentele și a fost ajutat la mobilizare.',
         'doc.inputlang': 'Limba de intrare', 'doc.outputlang': 'Limba de ieșire',
-        'doc.model': 'Model de documentație', 'doc.model.sis': 'Model structural (SIS)', 'doc.model.klassisch': 'Clasic',
+        'doc.model': 'Model de planificare', 'doc.model.sis': 'Model structural (SIS)', 'doc.model.klassisch': 'Clasic',
         'doc.k.title': 'Corectează textul',
         'doc.k.sub': 'Se corectează ortografia și gramatica, fără a schimba conținutul.',
         'doc.k.ph': 'Lipește textul care trebuie corectat lingvistic …',

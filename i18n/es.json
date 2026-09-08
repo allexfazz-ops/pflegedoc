@@ -159,7 +159,7 @@
   "konto.delete.needpw": "Introduce tu contraseña.",
   "konto.delete.confirm": "¿Eliminar de forma irreversible tu cuenta y todos los datos?",
   "konto.delete.done": "Tu cuenta ha sido eliminada.",
-  "doc.model": "Modelo de documentación",
+  "doc.model": "Modelo de plan",
   "doc.model.sis": "Modelo estructural (SIS)",
   "doc.model.klassisch": "Clásico"
 }
