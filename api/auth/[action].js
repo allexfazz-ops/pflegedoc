@@ -92,6 +92,7 @@ async function register(req, res) {
             user: {
                 id: user.id, email: user.email,
                 ui_language: user.ui_language, theme: user.theme, email_verified: false,
+                display_name: null,
             },
             csrfToken: csrf, emailSent,
             ...(devVerifyUrl ? { devVerifyUrl } : {}),
@@ -132,7 +133,7 @@ async function login(req, res) {
         appendCookie(res, sessionCookie(token, req));
 
         const u = await sql`
-            SELECT id, email, ui_language, theme, created_at, email_verified
+            SELECT id, email, ui_language, theme, created_at, email_verified, display_name
             FROM users WHERE id = ${rows[0].id}
         `;
         return json(res, 200, {
@@ -141,6 +142,7 @@ async function login(req, res) {
                 id: u[0].id, email: u[0].email,
                 ui_language: u[0].ui_language, theme: u[0].theme, created_at: u[0].created_at,
                 email_verified: u[0].email_verified === true,
+                display_name: u[0].display_name ?? null,
             },
             csrfToken: csrf,
         });
@@ -182,6 +184,7 @@ async function me(req, res) {
                 id: auth.user.id, email: auth.user.email,
                 ui_language: auth.user.ui_language, theme: auth.user.theme,
                 created_at: auth.user.created_at, email_verified: auth.user.email_verified,
+                display_name: auth.user.display_name ?? null,
             },
             csrfToken: auth.session.csrf,
         });

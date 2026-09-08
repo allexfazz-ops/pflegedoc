@@ -72,13 +72,13 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 | `/api/history/:id` | GET / DELETE | da | ownership; 404 (nu 403) la miss; CSRF la DELETE |
 | `/api/patients` | GET / POST | da | GET lista de pacienți (+ `plan_count`); POST creează (CSRF, rate limit) |
 | `/api/patients/:id` | GET / PATCH / DELETE | da | GET = pacient + versiuni plan + planul curent; PATCH nume/notă; DELETE (cascadă pe planuri); CSRF |
-| `/api/settings` | GET / PATCH | da | `ui_language`, `theme` (enum-uri validate; CSRF) |
+| `/api/settings` | GET / PATCH | da | `ui_language`, `theme` (enum-uri validate), `display_name` (≤80, poate fi golit); CSRF |
 
 ## Bază de date (schema)
 
 ```
 users(id, email UNIQUE, password_hash, email_verified, email_verified_at,
-      ui_language, theme, created_at, updated_at)
+      display_name, ui_language, theme, created_at, updated_at)
 sessions(id, user_id →users ON DELETE CASCADE, token_hash UNIQUE, csrf_token,
          created_at, last_seen_at, expires_at, user_agent, ip)
 activities(id, user_id →users ON DELETE CASCADE, type, input_text, input_language,

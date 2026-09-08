@@ -53,8 +53,8 @@
   "hist.confirmDelete": "Видалити цей запис?",
   "settings.title": "Налаштування",
   "settings.uilang": "Мова інтерфейсу",
-  "settings.name": "Ваше імʼя (для привітання)",
-  "settings.name.ph": "напр. Alexandru",
+  "settings.name": "Відображуване ім'я",
+  "settings.name.ph": "напр. Alex",
   "settings.theme": "Вигляд",
   "theme.system": "Системна",
   "theme.light": "Світла",
@@ -198,5 +198,12 @@
   "home.b3": "Особиста історія, надійно збережена",
   "home.doc.desc": "Що було зроблено з пацієнтом – за зміну або час.",
   "home.plan.desc": "Один проєкт на пацієнта: проблеми, цілі, заходи.",
-  "home.settings.desc": "Обліковий запис, мова, вигляд, голосове введення."
+  "home.settings.desc": "Обліковий запис, мова, вигляд, голосове введення.",
+  "settings.name.hint": "Показується у привітанні. Можна змінити будь-коли.",
+  "settings.name.saved": "Відображуване ім'я збережено.",
+  "settings.group.konto": "Обліковий запис",
+  "settings.group.lang": "Мова",
+  "settings.group.appearance": "Вигляд",
+  "settings.group.voice": "Голосове введення",
+  "settings.group.advanced": "Додатково"
 }

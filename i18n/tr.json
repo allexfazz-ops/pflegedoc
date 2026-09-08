@@ -53,8 +53,8 @@
   "hist.confirmDelete": "Bu kayıt silinsin mi?",
   "settings.title": "Ayarlar",
   "settings.uilang": "Arayüz dili",
-  "settings.name": "Adın (selamlama için)",
-  "settings.name.ph": "örn. Alexandru",
+  "settings.name": "Görünen ad",
+  "settings.name.ph": "örn. Alex",
   "settings.theme": "Görünüm",
   "theme.system": "Sistem",
   "theme.light": "Açık",
@@ -198,5 +198,12 @@
   "home.b3": "Kişisel geçmiş, güvenle saklanır",
   "home.doc.desc": "Hastayla ne yapıldığı – vardiyaya veya saate göre.",
   "home.plan.desc": "Hasta başına bir proje: sorunlar, hedefler, önlemler.",
-  "home.settings.desc": "Hesap, dil, görünüm, sesli giriş."
+  "home.settings.desc": "Hesap, dil, görünüm, sesli giriş.",
+  "settings.name.hint": "Karşılamada gösterilir. İstediğin zaman değiştirebilirsin.",
+  "settings.name.saved": "Görünen ad kaydedildi.",
+  "settings.group.konto": "Hesap",
+  "settings.group.lang": "Dil",
+  "settings.group.appearance": "Görünüm",
+  "settings.group.voice": "Sesli giriş",
+  "settings.group.advanced": "Gelişmiş"
 }

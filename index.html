@@ -704,9 +704,6 @@
         <span class="brand__name">Pflege<b>Doc</b></span>
     </a>
     <span class="topbar__spacer"></span>
-    <a class="topbar__acct" data-acct-link href="#/einstellungen" aria-label="Konto und Einstellungen">
-        <svg class="ic"><use href="#ic-settings"/></svg><span data-acct-label>Konto</span>
-    </a>
 </header>
 
 <!-- ===================== Seitenleiste (Desktop) ===================== -->
@@ -722,10 +719,6 @@
         <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> <span data-i18n="nav.verlauf">Verlauf</span></a>
         <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> <span data-i18n="nav.einstellungen">Einstellungen</span></a>
     </div>
-    <a class="rail__acct" data-acct-link href="#/einstellungen" aria-label="Konto und Einstellungen">
-        <svg class="ic"><use href="#ic-settings"/></svg>
-        <span data-acct-label>Konto</span>
-    </a>
     <p class="rail__foot" data-i18n="rail.foot">Dokumentationshilfe – keine medizinische Entscheidung.</p>
 </nav>
 
@@ -781,7 +774,6 @@
         </div>
 
         <div class="home__secondary">
-            <button class="btn btn--link" type="button" data-nav-go="korrigieren" data-i18n="tile.korrigieren">Text korrigieren</button>
             <button class="btn btn--link" type="button" data-nav-go="verlauf" data-i18n="tile.verlauf">Verlauf</button>
         </div>
     </section>
@@ -991,8 +983,9 @@
     <section id="screen-einstellungen" class="screen" aria-labelledby="settings-h" hidden>
         <div class="screen__head"><h1 id="settings-h" tabindex="-1" data-i18n="settings.title">Einstellungen</h1></div>
 
+        <!-- Gruppe: Konto -->
+        <h2 class="section-label" data-i18n="settings.group.konto">Konto</h2>
         <div class="setting" id="settingsKonto">
-            <span class="setting__label" data-i18n="konto.title">Konto</span>
             <div class="konto__row">
                 <span class="setting__hint" data-i18n="auth.email">E-Mail</span>
                 <span class="konto__val" id="kontoEmail">–</span>
@@ -1001,21 +994,25 @@
                 <span class="setting__hint" data-i18n="konto.since">Mitglied seit</span>
                 <span class="konto__val" id="kontoSince">–</span>
             </div>
-            <button class="btn btn--ghost btn--sm" type="button" id="logoutBtn" style="margin-top:12px" data-i18n="konto.logout">Abmelden</button>
+            <div class="field" style="margin-top:14px">
+                <label class="field__label" for="userName" data-i18n="settings.name">Anzeigename</label>
+                <input id="userName" class="input" type="text" maxlength="80" autocomplete="off" data-i18n-ph="settings.name.ph" placeholder="z. B. Alex">
+                <span class="setting__hint" data-i18n="settings.name.hint">Wird in der Begrüßung angezeigt. Jederzeit änderbar.</span>
+            </div>
+            <button class="btn btn--ghost btn--sm" type="button" id="logoutBtn" style="margin-top:14px" data-i18n="konto.logout">Abmelden</button>
         </div>
 
+        <!-- Gruppe: Sprache -->
+        <h2 class="section-label" data-i18n="settings.group.lang">Sprache</h2>
         <div class="setting">
             <label class="setting__label" for="uiLangSelect" data-i18n="settings.uilang">Sprache der Oberfläche</label>
             <select id="uiLangSelect" class="select" data-lang-select style="margin-top:8px; max-width:280px"></select>
         </div>
 
-        <div class="field">
-            <label class="field__label" for="userName" data-i18n="settings.name">Dein Name (für die Begrüßung)</label>
-            <input id="userName" class="input" type="text" autocomplete="name" data-i18n-ph="settings.name.ph" placeholder="z. B. Alexandru">
-        </div>
-
+        <!-- Gruppe: Darstellung -->
+        <h2 class="section-label" data-i18n="settings.group.appearance">Darstellung</h2>
         <div class="setting">
-            <span class="setting__label" data-i18n="settings.theme">Darstellung</span>
+            <span class="setting__label" data-i18n="settings.theme">Design</span>
             <div class="segmented" role="group" aria-label="Darstellung wählen">
                 <button type="button" data-theme-choice="system" data-i18n="theme.system">System</button>
                 <button type="button" data-theme-choice="light" data-i18n="theme.light">Hell</button>
@@ -1023,6 +1020,8 @@
             </div>
         </div>
 
+        <!-- Gruppe: Spracheingabe -->
+        <h2 class="section-label" data-i18n="settings.group.voice">Spracheingabe</h2>
         <div class="setting setting--switch">
             <label class="setting__label" for="voiceCommands">
                 <span data-i18n="settings.punct.label">Satzzeichen per Sprachbefehl</span>
@@ -1031,6 +1030,8 @@
             <input type="checkbox" id="voiceCommands" class="switch" checked>
         </div>
 
+        <!-- Gruppe: Erweitert -->
+        <h2 class="section-label" data-i18n="settings.group.advanced">Erweitert</h2>
         <details id="apiKeyBox" class="setting setting--details">
             <summary data-i18n="settings.apikey.summary">Erweitert: eigener API-Schlüssel</summary>
             <p class="setting__hint" data-i18n="settings.apikey.hint">Leer lassen, um den gesicherten Server der App zu nutzen (empfohlen). Mit eigenem Schlüssel wird Gemini direkt von diesem Gerät aufgerufen – der Schlüssel bleibt lokal im Browser.</p>
@@ -1970,20 +1971,35 @@ document.addEventListener('click', (e) => {
     }
 });
 
-/* ---- Nume + salut ---- */
+/* ---- Anzeigename (cont) + salut ---- */
 const userNameInput = document.getElementById('userName');
-userNameInput.value = getStore('pflegedoc_name') || '';
-userNameInput.addEventListener('input', () => {
-    setStore('pflegedoc_name', userNameInput.value.trim());
-    updateGreeting();
+// Salvare la părăsirea câmpului (change), nu la fiecare tastă.
+userNameInput.addEventListener('change', async () => {
+    const v = userNameInput.value.trim().slice(0, 80);
+    userNameInput.value = v;
+    if (!(typeof authState !== 'undefined' && authState.authenticated)) return;
+    try {
+        const d = await apiFetch('/api/settings', { method: 'PATCH', body: { display_name: v || null } });
+        if (authState.user) authState.user.display_name = (d.settings && d.settings.display_name) || null;
+        updateGreeting();
+        toast('success', t('settings.name.saved'));
+    } catch (e) {
+        toast('error', e.message);
+    }
 });
+function currentDisplayName() {
+    if (typeof authState !== 'undefined' && authState.user && authState.user.display_name) {
+        return String(authState.user.display_name).trim();
+    }
+    return '';
+}
 function updateGreeting() {
     const h = new Date().getHours();
     const hasT = typeof t === 'function';
     const g = h < 11
         ? (hasT ? t('greet.morning') : 'Guten Morgen')
         : (h < 18 ? (hasT ? t('greet.day') : 'Guten Tag') : (hasT ? t('greet.evening') : 'Guten Abend'));
-    const name = (getStore('pflegedoc_name') || '').trim();
+    const name = currentDisplayName();
     const el = document.getElementById('greeting');
     if (el) el.textContent = name ? (g + ', ' + name) : (g || (hasT ? t('greet.welcome') : 'Willkommen'));
 }
@@ -1992,7 +2008,6 @@ function updateGreeting() {
 const ROUTES = {
     home:          { screen: 'screen-home',          title: 'Start',             nav: 'home' },
     doc:           { screen: 'screen-doc',           title: 'Neue Dokumentation', nav: 'doc' },
-    korrigieren:   { screen: 'screen-doc',           title: 'Text korrigieren',  nav: 'doc' },
     plan:          { screen: 'screen-plan',          title: 'Pflegeplanung',     nav: 'plan' },
     patient:       { screen: 'screen-patient',       title: 'Patient',           nav: 'plan' },
     planedit:      { screen: 'screen-doc',           title: 'Pflegeplanung',     nav: 'plan' },
@@ -2020,16 +2035,12 @@ function parseHash() {
 let planningPatient = null;
 
 /* ---- Moduri pe ecranul Dokumentation ----
-   formulieren (implicit) : notiță -> documentație (SIS); traducerea = selectorul
-                            „Ausgabesprache" (nu e mod separat).
-   korrigieren            : doar netezește limba, fără restructurare.
-   pflegeplanung          : descriere liberă -> Pflegeplanung structurată
-                            (Pflegeproblem / Ressourcen / Ziel / Maßnahmen / Evaluation). */
-const DOC_MODES = ['formulieren', 'korrigieren', 'pflegeplanung'];
+   formulieren (implicit) : notiță -> Verlaufsbericht pe tură.
+   pflegeplanung          : descriere liberă -> Pflegeplanung structurată. */
+const DOC_MODES = ['formulieren', 'pflegeplanung'];
 let currentDocMode = 'formulieren';
 const DOC_MODE_I18N = {
     formulieren:   { title: 'doc.title',   sub: 'doc.sub',   ph: 'doc.note.ph', gen: 'doc.generate' },
-    korrigieren:   { title: 'doc.k.title', sub: 'doc.k.sub', ph: 'doc.k.ph',    gen: 'doc.k.generate' },
     pflegeplanung: { title: 'doc.p.title', sub: 'doc.p.sub', ph: 'doc.p.ph',    gen: 'doc.p.generate' }
 };
 function resetDocWorkspace() {
@@ -2059,9 +2070,9 @@ function applyDocMode(mode) {
     if (sub) sub.dataset.i18n = m.sub;
     if (ta)  ta.dataset.i18nPh = m.ph;
     if (gb)  gb.dataset.i18n = m.gen;
-    // „Ausgabesprache": pentru formulieren + pflegeplanung (nu korrigieren).
+    // „Ausgabesprache": vizibil pentru ambele moduri (formulieren + pflegeplanung).
     const row = document.getElementById('outputLangRow');
-    if (row) row.hidden = (currentDocMode === 'korrigieren');
+    if (row) row.hidden = false;
     // „Planungsmodell" (SIS / clasic): DOAR pentru pflegeplanung. Documentația
     // este mereu un Verlaufsbericht pe tură, fără alegere de model.
     const mrow = document.getElementById('docModelRow');
@@ -2109,7 +2120,7 @@ function route() {
     const r = ROUTES[key];
     if (r.screen === 'screen-doc') {
         if (key === 'planedit') { planningPatient = routeId; applyDocMode('pflegeplanung'); }
-        else { planningPatient = null; applyDocMode(key === 'korrigieren' ? 'korrigieren' : 'formulieren'); }
+        else { planningPatient = null; applyDocMode('formulieren'); }
     } else if (key !== 'patient') {
         planningPatient = null;
     }
@@ -2252,7 +2263,12 @@ const I18N = {
         'patient.deleted': 'Patient gelöscht.', 'patient.versions': 'Frühere Versionen',
         'toast.planSaved': 'Plan gespeichert.',
         'settings.title': 'Einstellungen', 'settings.uilang': 'Sprache der Oberfläche',
-        'settings.name': 'Dein Name (für die Begrüßung)', 'settings.name.ph': 'z. B. Alexandru',
+        'settings.name': 'Anzeigename', 'settings.name.ph': 'z. B. Alex',
+        'settings.name.hint': 'Wird in der Begrüßung angezeigt. Jederzeit änderbar.',
+        'settings.name.saved': 'Anzeigename gespeichert.',
+        'settings.group.konto': 'Konto', 'settings.group.lang': 'Sprache',
+        'settings.group.appearance': 'Darstellung', 'settings.group.voice': 'Spracheingabe',
+        'settings.group.advanced': 'Erweitert',
         'settings.theme': 'Darstellung', 'theme.system': 'System', 'theme.light': 'Hell', 'theme.dark': 'Dunkel',
         'settings.punct.label': 'Satzzeichen per Sprachbefehl',
         'settings.punct.hint': 'Der Spracherkenner setzt keine Satzzeichen automatisch. Du diktierst sie: „Komma“, „Punkt“, „Doppelpunkt“, „Fragezeichen“, „neue Zeile“, „Klammer auf/zu“. (Auch auf Rumänisch/Englisch.)',
@@ -2391,7 +2407,12 @@ const I18N = {
         'patient.deleted': 'Patient deleted.', 'patient.versions': 'Previous versions',
         'toast.planSaved': 'Plan saved.',
         'settings.title': 'Settings', 'settings.uilang': 'Interface language',
-        'settings.name': 'Your name (for the greeting)', 'settings.name.ph': 'e.g. Alexandru',
+        'settings.name': 'Display name', 'settings.name.ph': 'e.g. Alex',
+        'settings.name.hint': 'Shown in the greeting. Change it anytime.',
+        'settings.name.saved': 'Display name saved.',
+        'settings.group.konto': 'Account', 'settings.group.lang': 'Language',
+        'settings.group.appearance': 'Appearance', 'settings.group.voice': 'Voice input',
+        'settings.group.advanced': 'Advanced',
         'settings.theme': 'Appearance', 'theme.system': 'System', 'theme.light': 'Light', 'theme.dark': 'Dark',
         'settings.punct.label': 'Punctuation by voice command',
         'settings.punct.hint': 'The recogniser does not add punctuation automatically. You dictate it: “comma”, “full stop”, “colon”, “question mark”, “new line”, “open/close bracket”. (Also in Romanian/German.)',
@@ -2530,7 +2551,12 @@ const I18N = {
         'patient.deleted': 'Pacient șters.', 'patient.versions': 'Versiuni anterioare',
         'toast.planSaved': 'Plan salvat.',
         'settings.title': 'Setări', 'settings.uilang': 'Limba interfeței',
-        'settings.name': 'Numele tău (pentru salut)', 'settings.name.ph': 'ex. Alexandru',
+        'settings.name': 'Nume afișat', 'settings.name.ph': 'ex. Alex',
+        'settings.name.hint': 'Apare în salut. Îl poți schimba oricând.',
+        'settings.name.saved': 'Nume afișat salvat.',
+        'settings.group.konto': 'Cont', 'settings.group.lang': 'Limbă',
+        'settings.group.appearance': 'Aspect', 'settings.group.voice': 'Dictare',
+        'settings.group.advanced': 'Avansat',
         'settings.theme': 'Aspect', 'theme.system': 'Sistem', 'theme.light': 'Luminos', 'theme.dark': 'Întunecat',
         'settings.punct.label': 'Punctuație prin comenzi vocale',
         'settings.punct.hint': 'Recunoașterea nu pune punctuație automat. O dictezi: „virgulă”, „punct”, „două puncte”, „semnul întrebării”, „rând nou”, „deschide/închide paranteza”. (Și în germană/engleză.)',
@@ -2729,10 +2755,6 @@ function applyAuthUI() {
     // Aplicația e gated: Einstellungen se vede doar autentificat. Contul e o
     // secțiune în #screen-einstellungen (populată de fillKonto).
     const authed = authState.authenticated;
-    // Scurtătura din bară deschide Einstellungen (unde e acum și contul).
-    document.querySelectorAll('[data-acct-label]').forEach(el => {
-        el.textContent = (authed && authState.user) ? authState.user.email : t('konto.title');
-    });
     const vs = document.querySelector('#screen-verlauf .screen__sub');
     if (vs) vs.textContent = authed ? t('verlauf.sub.account') : t('verlauf.sub.local');
     // Banner-ul de verificare e gestionat în route() (depinde de ecranul curent).
@@ -2747,6 +2769,8 @@ function fillKonto() {
         try { s.textContent = new Date(authState.user.created_at).toLocaleDateString(localeTag()); }
         catch (_) { s.textContent = String(authState.user.created_at).slice(0, 10); }
     }
+    const n = document.getElementById('userName');
+    if (n && document.activeElement !== n) n.value = authState.user.display_name || '';
 }
 function localeTag() {
     const l = getLocale();

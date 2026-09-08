@@ -53,8 +53,8 @@
   "hist.confirmDelete": "Eliminare questa voce?",
   "settings.title": "Impostazioni",
   "settings.uilang": "Lingua dell’interfaccia",
-  "settings.name": "Il tuo nome (per il saluto)",
-  "settings.name.ph": "es. Alexandru",
+  "settings.name": "Nome visualizzato",
+  "settings.name.ph": "es. Alex",
   "settings.theme": "Aspetto",
   "theme.system": "Sistema",
   "theme.light": "Chiaro",
@@ -198,5 +198,12 @@
   "home.b3": "Cronologia personale, archiviata in sicurezza",
   "home.doc.desc": "Cosa è stato fatto con il paziente – per turno o orario.",
   "home.plan.desc": "Un progetto per paziente: problemi, obiettivi, interventi.",
-  "home.settings.desc": "Account, lingua, aspetto, input vocale."
+  "home.settings.desc": "Account, lingua, aspetto, input vocale.",
+  "settings.name.hint": "Mostrato nel saluto. Modificabile in qualsiasi momento.",
+  "settings.name.saved": "Nome visualizzato salvato.",
+  "settings.group.konto": "Account",
+  "settings.group.lang": "Lingua",
+  "settings.group.appearance": "Aspetto",
+  "settings.group.voice": "Input vocale",
+  "settings.group.advanced": "Avanzate"
 }

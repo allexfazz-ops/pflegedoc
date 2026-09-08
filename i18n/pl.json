@@ -53,8 +53,8 @@
   "hist.confirmDelete": "Usunąć ten wpis?",
   "settings.title": "Ustawienia",
   "settings.uilang": "Język interfejsu",
-  "settings.name": "Twoje imię (do powitania)",
-  "settings.name.ph": "np. Alexandru",
+  "settings.name": "Wyświetlana nazwa",
+  "settings.name.ph": "np. Alex",
   "settings.theme": "Wygląd",
   "theme.system": "System",
   "theme.light": "Jasny",
@@ -198,5 +198,12 @@
   "home.b3": "Osobista historia, bezpiecznie przechowywana",
   "home.doc.desc": "Co zrobiono z pacjentem – na zmianę lub o danej godzinie.",
   "home.plan.desc": "Jeden projekt na pacjenta: problemy, cele, działania.",
-  "home.settings.desc": "Konto, język, wygląd, wprowadzanie głosowe."
+  "home.settings.desc": "Konto, język, wygląd, wprowadzanie głosowe.",
+  "settings.name.hint": "Widoczna w powitaniu. Możesz ją zmienić w każdej chwili.",
+  "settings.name.saved": "Zapisano wyświetlaną nazwę.",
+  "settings.group.konto": "Konto",
+  "settings.group.lang": "Język",
+  "settings.group.appearance": "Wygląd",
+  "settings.group.voice": "Wprowadzanie głosowe",
+  "settings.group.advanced": "Zaawansowane"
 }

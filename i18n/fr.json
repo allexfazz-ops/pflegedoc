@@ -53,8 +53,8 @@
   "hist.confirmDelete": "Supprimer cette entrée ?",
   "settings.title": "Paramètres",
   "settings.uilang": "Langue de l’interface",
-  "settings.name": "Votre nom (pour la salutation)",
-  "settings.name.ph": "p. ex. Alexandru",
+  "settings.name": "Nom affiché",
+  "settings.name.ph": "p. ex. Alex",
   "settings.theme": "Apparence",
   "theme.system": "Système",
   "theme.light": "Clair",
@@ -198,5 +198,12 @@
   "home.b3": "Historique personnel, stocké en sécurité",
   "home.doc.desc": "Ce qui a été fait avec le patient – par service ou par heure.",
   "home.plan.desc": "Un projet par patient : problèmes, objectifs, interventions.",
-  "home.settings.desc": "Compte, langue, apparence, saisie vocale."
+  "home.settings.desc": "Compte, langue, apparence, saisie vocale.",
+  "settings.name.hint": "Affiché dans le message d'accueil. Modifiable à tout moment.",
+  "settings.name.saved": "Nom affiché enregistré.",
+  "settings.group.konto": "Compte",
+  "settings.group.lang": "Langue",
+  "settings.group.appearance": "Apparence",
+  "settings.group.voice": "Saisie vocale",
+  "settings.group.advanced": "Avancé"
 }

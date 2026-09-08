@@ -53,8 +53,8 @@
   "hist.confirmDelete": "¿Eliminar esta entrada?",
   "settings.title": "Ajustes",
   "settings.uilang": "Idioma de la interfaz",
-  "settings.name": "Tu nombre (para el saludo)",
-  "settings.name.ph": "p. ej. Alexandru",
+  "settings.name": "Nombre visible",
+  "settings.name.ph": "p. ej. Alex",
   "settings.theme": "Apariencia",
   "theme.system": "Sistema",
   "theme.light": "Claro",
@@ -198,5 +198,12 @@
   "home.b3": "Historial personal, guardado de forma segura",
   "home.doc.desc": "Lo que se hizo con el paciente – por turno u hora.",
   "home.plan.desc": "Un proyecto por paciente: problemas, objetivos, medidas.",
-  "home.settings.desc": "Cuenta, idioma, apariencia, entrada de voz."
+  "home.settings.desc": "Cuenta, idioma, apariencia, entrada de voz.",
+  "settings.name.hint": "Se muestra en el saludo. Puedes cambiarlo cuando quieras.",
+  "settings.name.saved": "Nombre visible guardado.",
+  "settings.group.konto": "Cuenta",
+  "settings.group.lang": "Idioma",
+  "settings.group.appearance": "Apariencia",
+  "settings.group.voice": "Entrada de voz",
+  "settings.group.advanced": "Avanzado"
 }

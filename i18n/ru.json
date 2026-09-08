@@ -53,8 +53,8 @@
   "hist.confirmDelete": "Удалить эту запись?",
   "settings.title": "Настройки",
   "settings.uilang": "Язык интерфейса",
-  "settings.name": "Ваше имя (для приветствия)",
-  "settings.name.ph": "напр. Alexandru",
+  "settings.name": "Отображаемое имя",
+  "settings.name.ph": "напр. Alex",
   "settings.theme": "Оформление",
   "theme.system": "Системная",
   "theme.light": "Светлая",
@@ -198,5 +198,12 @@
   "home.b3": "Личная история, надёжно сохранена",
   "home.doc.desc": "Что было сделано с пациентом – по смене или времени.",
   "home.plan.desc": "Один проект на пациента: проблемы, цели, мероприятия.",
-  "home.settings.desc": "Аккаунт, язык, оформление, голосовой ввод."
+  "home.settings.desc": "Аккаунт, язык, оформление, голосовой ввод.",
+  "settings.name.hint": "Показывается в приветствии. Можно изменить в любой момент.",
+  "settings.name.saved": "Отображаемое имя сохранено.",
+  "settings.group.konto": "Аккаунт",
+  "settings.group.lang": "Язык",
+  "settings.group.appearance": "Оформление",
+  "settings.group.voice": "Голосовой ввод",
+  "settings.group.advanced": "Дополнительно"
 }

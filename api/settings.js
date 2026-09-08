@@ -10,7 +10,9 @@ import { ensureSchema, sql } from "../lib/db.mjs";
 import { json, fail, methodNotAllowed, readJson } from "../lib/http.mjs";
 import { requireAuth, requireCsrf, requireVerified } from "../lib/auth.mjs";
 import { enforceRateLimit } from "../lib/ratelimit.mjs";
-import { UI_LANGUAGES, THEMES, inEnum } from "../lib/validate.mjs";
+import { UI_LANGUAGES, THEMES, inEnum, optText } from "../lib/validate.mjs";
+
+const MAX_NAME = 80;
 
 export default async function handler(req, res) {
     if (methodNotAllowed(req, res, ["GET", "PATCH"])) return;
@@ -22,7 +24,7 @@ export default async function handler(req, res) {
         const userId = auth.user.id;
 
         if (req.method === "GET") {
-            const rows = await sql`SELECT ui_language, theme FROM users WHERE id = ${userId}`;
+            const rows = await sql`SELECT ui_language, theme, display_name FROM users WHERE id = ${userId}`;
             return json(res, 200, { settings: rows[0] || null });
         }
 
@@ -39,6 +41,8 @@ export default async function handler(req, res) {
         }
 
         const next = {};
+        let nameGiven = false;
+        let nameValue = null;
         if (body.ui_language !== undefined) {
             if (!inEnum(body.ui_language, UI_LANGUAGES)) return fail(res, 400, "Ungültige Sprache.");
             next.ui_language = body.ui_language;
@@ -47,15 +51,22 @@ export default async function handler(req, res) {
             if (!inEnum(body.theme, THEMES)) return fail(res, 400, "Ungültiges Theme.");
             next.theme = body.theme;
         }
-        if (!Object.keys(next).length) return fail(res, 400, "Keine gültigen Felder angegeben.");
+        if (body.display_name !== undefined) {
+            const n = optText(body.display_name, MAX_NAME);
+            if (!n.ok) return fail(res, 400, n.error);
+            nameGiven = true;
+            nameValue = n.value; // string sau null (golire)
+        }
+        if (!Object.keys(next).length && !nameGiven) return fail(res, 400, "Keine gültigen Felder angegeben.");
 
-        // Update parametrizat, doar câmpurile prezente.
+        // Update parametrizat, doar câmpurile prezente. display_name poate fi golit (NULL).
         const rows = await sql`
             UPDATE users SET
-                ui_language = COALESCE(${next.ui_language ?? null}, ui_language),
-                theme       = COALESCE(${next.theme ?? null}, theme)
+                ui_language  = COALESCE(${next.ui_language ?? null}, ui_language),
+                theme        = COALESCE(${next.theme ?? null}, theme),
+                display_name = CASE WHEN ${nameGiven} THEN ${nameValue} ELSE display_name END
             WHERE id = ${userId}
-            RETURNING ui_language, theme
+            RETURNING ui_language, theme, display_name
         `;
         return json(res, 200, { ok: true, settings: rows[0] });
     } catch (err) {

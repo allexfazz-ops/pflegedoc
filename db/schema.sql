@@ -38,6 +38,12 @@ CREATE TABLE IF NOT EXISTS users (
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified    boolean     NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
 
+-- Nume afișat, ales liber de utilizator (pentru salut). NULL = fără nume.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name text;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_display_name_len;
+ALTER TABLE users ADD  CONSTRAINT users_display_name_len
+    CHECK (display_name IS NULL OR char_length(display_name) BETWEEN 1 AND 80);
+
 -- -----------------------------------------------------------------------------
 -- email_tokens — token-uri single-use pentru acțiuni pe e-mail.
 -- purpose: 'verify_email' acum; 'reset_password' pregătit pentru viitor.

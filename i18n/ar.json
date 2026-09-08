@@ -53,8 +53,8 @@
   "hist.confirmDelete": "حذف هذا العنصر؟",
   "settings.title": "الإعدادات",
   "settings.uilang": "لغة الواجهة",
-  "settings.name": "اسمك (للتحية)",
-  "settings.name.ph": "مثال: Alexandru",
+  "settings.name": "الاسم المعروض",
+  "settings.name.ph": "مثال: Alex",
   "settings.theme": "المظهر",
   "theme.system": "النظام",
   "theme.light": "فاتح",
@@ -198,5 +198,12 @@
   "home.b3": "سجل شخصي محفوظ بأمان",
   "home.doc.desc": "ما تم عمله مع المريض – حسب الوردية أو الوقت.",
   "home.plan.desc": "مشروع واحد لكل مريض: المشكلات والأهداف والتدابير.",
-  "home.settings.desc": "الحساب، اللغة، المظهر، الإدخال الصوتي."
+  "home.settings.desc": "الحساب، اللغة، المظهر، الإدخال الصوتي.",
+  "settings.name.hint": "يظهر في التحية. يمكنك تغييره في أي وقت.",
+  "settings.name.saved": "تم حفظ الاسم المعروض.",
+  "settings.group.konto": "الحساب",
+  "settings.group.lang": "اللغة",
+  "settings.group.appearance": "المظهر",
+  "settings.group.voice": "الإدخال الصوتي",
+  "settings.group.advanced": "متقدم"
 }
