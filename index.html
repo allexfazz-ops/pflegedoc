@@ -1243,7 +1243,7 @@
 const CONFIG = {
     GEMINI_MODEL: "gemini-3.6-flash",
     BACKEND_ENDPOINT: "/api/generate",
-    TIMEOUT_MS: 60000
+    TIMEOUT_MS: 75000
 };
 
 /* ---------- 2. PERSISTENȚĂ CHEIE API ---------- */
@@ -1589,6 +1589,11 @@ async function callGemini(apiKey, userInput, opts) {
 
     // --- Mod BACKEND: răspuns normalizat { text } / { error } ---
     if (useBackend) {
+        // Gemini supraîncărcat (503): o singură reîncercare automată după o scurtă pauză.
+        if (response.status === 503 && (opts._retry || 0) < 1) {
+            await new Promise(r => setTimeout(r, 3500));
+            return callGemini(apiKey, userInput, Object.assign({}, opts, { _retry: (opts._retry || 0) + 1 }));
+        }
         if (!response.ok) {
             throw new Error((data && data.error) || ('Serverfehler (HTTP ' + response.status + ').'));
         }

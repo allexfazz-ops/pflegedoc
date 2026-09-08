@@ -18,8 +18,23 @@
  * ------------------------------------------------------------------
  */
 
+// Vercel Hobby permite până la 60s per funcție; implicit ar fi ~10s, iar o
+// documentație completă pe flash depășește des 10s => „pare blocat". Setăm explicit.
+export const maxDuration = 60;
+
 // Model implicit. Poate fi suprascris din env fără redeploy de cod.
 const DEFAULT_MODEL = "gemini-3.6-flash";
+
+// Reîncercări pe erori tranzitorii de capacitate Gemini (429 / 503 / „overloaded").
+const MAX_ATTEMPTS = 3;
+const RETRY_BACKOFF_MS = [1200, 2600];
+const PER_ATTEMPT_TIMEOUT_MS = 30000;
+const TOTAL_BUDGET_MS = 52000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function isTransientUpstream(status, msg) {
+    if (status === 429 || status === 503 || status === 500) return true;
+    return /overload|high demand|unavailable|temporarily|try again later|RESOURCE_EXHAUSTED|UNAVAILABLE|INTERNAL/i.test(msg || "");
+}
 
 // Limită de siguranță pentru input (caractere). Protejează de abuz/costuri.
 // 8000: o documentație existentă de tradus poate fi mai lungă decât o notiță brută.
@@ -32,8 +47,6 @@ const LANG_NAMES = {
     ro: "Rumänisch", ru: "Russisch", uk: "Ukrainisch", ar: "Arabisch"
 };
 
-// Timp maxim de așteptare pentru răspunsul Gemini.
-const UPSTREAM_TIMEOUT_MS = 55000;
 
 /* ================================================================
    SYSTEM PROMPTS — "Professional Pflegedokumentation Engine"
@@ -342,40 +355,50 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
         }
     };
 
-    // --- Apel Gemini cu timeout ---
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+    // --- Apel Gemini: până la MAX_ATTEMPTS încercări, cu backoff pe erori tranzitorii ---
+    const OVERLOAD_MSG = "Gemini ist zurzeit überlastet (hohe Nachfrage). Bitte in einigen Sekunden erneut versuchen.";
+    const startedAt = Date.now();
+    let data = null;
 
-    let upstream;
-    try {
-        upstream = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-            signal: controller.signal
-        });
-    } catch (err) {
-        clearTimeout(timer);
-        if (err.name === "AbortError") {
-            return res.status(504).json({ error: "Gemini hat nicht rechtzeitig geantwortet. Bitte erneut versuchen." });
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const budgetLeft = () => Date.now() - startedAt < TOTAL_BUDGET_MS;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), PER_ATTEMPT_TIMEOUT_MS);
+
+        let upstream;
+        try {
+            upstream = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+        } catch (err) {
+            clearTimeout(timer);
+            const aborted = err.name === "AbortError";
+            if (attempt < MAX_ATTEMPTS && budgetLeft()) {
+                await sleep(RETRY_BACKOFF_MS[attempt - 1] || 2600);
+                continue;
+            }
+            return res.status(aborted ? 504 : 502).json({
+                error: aborted
+                    ? "Gemini hat nicht rechtzeitig geantwortet. Bitte erneut versuchen."
+                    : "Der Gemini-Server konnte nicht erreicht werden."
+            });
         }
-        return res.status(502).json({ error: "Der Gemini-Server konnte nicht erreicht werden." });
-    }
-    clearTimeout(timer);
+        clearTimeout(timer);
 
-    let data;
-    try {
-        data = await upstream.json();
-    } catch (e) {
-        return res.status(502).json({ error: `Ungültige Antwort von Gemini (HTTP ${upstream.status}).` });
-    }
+        try {
+            data = await upstream.json();
+        } catch (e) {
+            return res.status(502).json({ error: `Ungültige Antwort von Gemini (HTTP ${upstream.status}).` });
+        }
 
-    // --- Erori de la Gemini ---
-    if (!upstream.ok) {
-        const apiMsg = data && data.error && data.error.message
-            ? data.error.message
-            : `HTTP ${upstream.status}`;
+        if (upstream.ok) break;
 
+        const apiMsg = data && data.error && data.error.message ? data.error.message : `HTTP ${upstream.status}`;
+
+        // Erori permanente -> fără reîncercare.
         if (upstream.status === 400 && /API key not valid/i.test(apiMsg)) {
             return res.status(500).json({ error: "Der GEMINI_API_KEY auf dem Server ist ungültig." });
         }
@@ -385,10 +408,24 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
         if (upstream.status === 404) {
             return res.status(500).json({ error: `Modell nicht verfügbar (404): ${apiMsg}. Bitte GEMINI_MODEL ändern.` });
         }
-        if (upstream.status === 429) {
-            return res.status(429).json({ error: "Zu viele Anfragen (429). Bitte kurz warten und erneut versuchen." });
+
+        // Tranzitorie -> backoff + retry cât timp mai avem buget.
+        if (isTransientUpstream(upstream.status, apiMsg) && attempt < MAX_ATTEMPTS && budgetLeft()) {
+            data = null;
+            await sleep(RETRY_BACKOFF_MS[attempt - 1] || 2600);
+            continue;
+        }
+
+        if (upstream.status === 429 || isTransientUpstream(upstream.status, apiMsg)) {
+            res.setHeader("Retry-After", "20");
+            return res.status(503).json({ error: OVERLOAD_MSG });
         }
         return res.status(502).json({ error: `Gemini-Fehler: ${apiMsg}` });
+    }
+
+    if (!data) {
+        res.setHeader("Retry-After", "20");
+        return res.status(503).json({ error: OVERLOAD_MSG });
     }
 
     // --- Blocaje de siguranță pe prompt ---
