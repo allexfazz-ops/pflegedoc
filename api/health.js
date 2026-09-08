@@ -9,7 +9,7 @@
 
 import { sql, ensureSchema, hasDatabase } from "../lib/db.mjs";
 
-const EXPECTED_TABLES = ["activities", "rate_limits", "schema_migrations", "sessions", "users"];
+const EXPECTED_TABLES = ["activities", "patients", "rate_limits", "schema_migrations", "sessions", "users"];
 
 export default async function handler(req, res) {
     res.setHeader("Cache-Control", "no-store");

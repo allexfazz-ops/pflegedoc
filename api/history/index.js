@@ -13,7 +13,7 @@ import { ensureSchema, sql } from "../../lib/db.mjs";
 import { json, fail, methodNotAllowed, readJson } from "../../lib/http.mjs";
 import { requireAuth, requireCsrf, requireVerified } from "../../lib/auth.mjs";
 import { enforceRateLimit } from "../../lib/ratelimit.mjs";
-import { ACTIVITY_TYPES, MODES, inEnum, requireText, optLangCode, outLang } from "../../lib/validate.mjs";
+import { ACTIVITY_TYPES, MODES, inEnum, isUuid, requireText, optLangCode, outLang } from "../../lib/validate.mjs";
 
 const MAX_INPUT = 20000;
 const MAX_RESULT = 40000;
@@ -55,11 +55,14 @@ export default async function handler(req, res) {
             const cursor = cursorRaw ? decodeCursor(cursorRaw) : null;
             if (cursorRaw && !cursor) return fail(res, 400, "Ungültiger Cursor.");
 
+            // Verlauf = doar Dokumentation + Korrektur. Pflegeplanung trăiește
+            // în proiectele de pacient (/api/patients), nu aici.
             const rows = cursor
                 ? await sql`
                     SELECT id, type, output_language, created_at, result_text
                     FROM activities
                     WHERE user_id = ${userId}
+                      AND type <> 'pflegeplanung'
                       AND (created_at, id) < (${cursor.ts}::timestamptz, ${cursor.id}::uuid)
                     ORDER BY created_at DESC, id DESC
                     LIMIT ${limit + 1}
@@ -68,6 +71,7 @@ export default async function handler(req, res) {
                     SELECT id, type, output_language, created_at, result_text
                     FROM activities
                     WHERE user_id = ${userId}
+                      AND type <> 'pflegeplanung'
                     ORDER BY created_at DESC, id DESC
                     LIMIT ${limit + 1}
                   `;
@@ -114,11 +118,26 @@ export default async function handler(req, res) {
         const oLang = outLang(body.output_language);
         if (!oLang.ok) return fail(res, 400, oLang.error);
 
+        // patient_id: obligatoriu pentru pflegeplanung, ignorat (NULL) altfel.
+        // Ownership verificat înainte de insert.
+        let patientId = null;
+        if (body.type === "pflegeplanung") {
+            if (!isUuid(body.patient_id)) return fail(res, 400, "Patient fehlt.");
+            const own = await sql`
+                SELECT 1 FROM patients WHERE id = ${body.patient_id} AND user_id = ${userId} LIMIT 1
+            `;
+            if (!own.length) return fail(res, 404, "Patient nicht gefunden.");
+            patientId = body.patient_id;
+        }
+
         const rows = await sql`
-            INSERT INTO activities (user_id, type, input_text, input_language, mode, result_text, output_language)
-            VALUES (${userId}, ${body.type}, ${inp.value}, ${lang.value}, ${mode}, ${out.value}, ${oLang.value})
+            INSERT INTO activities (user_id, type, input_text, input_language, mode, result_text, output_language, patient_id)
+            VALUES (${userId}, ${body.type}, ${inp.value}, ${lang.value}, ${mode}, ${out.value}, ${oLang.value}, ${patientId})
             RETURNING id, created_at
         `;
+        if (patientId) {
+            await sql`UPDATE patients SET updated_at = now() WHERE id = ${patientId} AND user_id = ${userId}`;
+        }
         return json(res, 201, { ok: true, id: rows[0].id, created_at: rows[0].created_at });
     } catch (err) {
         return fail(res, 500, "Verlauf derzeit nicht verfügbar.", err);

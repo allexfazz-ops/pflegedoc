@@ -118,6 +118,29 @@ ALTER TABLE activities ADD  CONSTRAINT activities_mode
     CHECK (mode IS NULL OR mode IN ('formulieren','korrigieren','uebersetzen','pflegeplanung'));
 
 -- -----------------------------------------------------------------------------
+-- patients — proiecte de Pflegeplanung, unul per pacient/Klient (per utilizator).
+-- Recomandat: nume scurt / inițiale (date medicale, DSGVO). ON DELETE CASCADE
+-- pe user și pe activities => ștergerea pacientului șterge planurile lui.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS patients (
+    id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     uuid        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name        text        NOT NULL,
+    note        text,
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    updated_at  timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT patients_name_len CHECK (char_length(name) BETWEEN 1 AND 120),
+    CONSTRAINT patients_note_len CHECK (note IS NULL OR char_length(note) <= 2000)
+);
+CREATE INDEX IF NOT EXISTS patients_user_idx ON patients (user_id, updated_at DESC, id DESC);
+
+-- Legătura Pflegeplanung -> pacient. NULL pentru dokumentation / korrigierung.
+ALTER TABLE activities ADD COLUMN IF NOT EXISTS patient_id uuid
+    REFERENCES patients(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS activities_patient_idx
+    ON activities (patient_id, created_at DESC, id DESC);
+
+-- -----------------------------------------------------------------------------
 -- rate_limits — contoare fixed-window pentru endpoint-uri sensibile
 -- bucket ex: 'login:ip:203.0.113.7', 'register:ip:…', 'delete:user:<uuid>'
 -- -----------------------------------------------------------------------------
@@ -142,4 +165,9 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS users_set_updated_at ON users;
 CREATE TRIGGER users_set_updated_at
     BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS patients_set_updated_at ON patients;
+CREATE TRIGGER patients_set_updated_at
+    BEFORE UPDATE ON patients
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();

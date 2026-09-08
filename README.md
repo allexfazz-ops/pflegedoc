@@ -68,8 +68,10 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 | `/api/auth/forgot-password` | POST | nu | `{ email }` — răspuns mereu generic; rate limit IP+e-mail |
 | `/api/auth/reset-password` | POST | nu | `{ token, password }` — single-use 1h; scrypt nou; invalidează toate sesiunile; setează `email_verified` |
 | `/api/auth/delete-account` | POST | da (cookie) | CSRF + reintroducerea parolei; `DELETE FROM users` → `ON DELETE CASCADE` șterge sesiuni, activități, token-uri; rate limit IP+user 5/h; ireversibil |
-| `/api/history` | GET / POST | da | GET paginat (preview); POST creează (CSRF) |
+| `/api/history` | GET / POST | da | GET paginat (preview), DOAR `dokumentation`+`korrigierung`; POST creează (CSRF), `patient_id` obligatoriu pt `pflegeplanung` |
 | `/api/history/:id` | GET / DELETE | da | ownership; 404 (nu 403) la miss; CSRF la DELETE |
+| `/api/patients` | GET / POST | da | GET lista de pacienți (+ `plan_count`); POST creează (CSRF, rate limit) |
+| `/api/patients/:id` | GET / PATCH / DELETE | da | GET = pacient + versiuni plan + planul curent; PATCH nume/notă; DELETE (cascadă pe planuri); CSRF |
 | `/api/settings` | GET / PATCH | da | `ui_language`, `theme` (enum-uri validate; CSRF) |
 
 ## Bază de date (schema)
@@ -86,6 +88,8 @@ activities(id, user_id →users ON DELETE CASCADE, type, input_text, input_langu
            -- output_language: cod UI ('tr','ru',…) când rezultatul a fost tradus, altfel NULL
 email_tokens(id, user_id →users ON DELETE CASCADE, token_hash UNIQUE, purpose,
              created_at, expires_at, used_at)          -- purpose: verify_email | reset_password
+patients(id, user_id →users ON DELETE CASCADE, name, note, created_at, updated_at)
+             -- un proiect de Pflegeplanung per pacient; activities.patient_id →patients (CASCADE)
 rate_limits(bucket, window_start, count)              -- PK (bucket, window_start)
 ```
 
@@ -102,6 +106,20 @@ contului / a tuturor datelor.
 - Regenerare schelet: `node scripts/build-i18n.mjs`.
 - Selectorul controlează DOAR limba interfeței; limba textului introdus în
   documentație e separată (`#inputLanguage`).
+
+## Pflegeplanung — proiecte per pacient
+
+Fiecare Pflegeplanung aparține unui **pacient** (`patients`, per user; recomandat
+inițiale/Kürzel — DSGVO). Fluxul:
+
+- `#/plan` = lista de pacienți (Home → tile „Pflegeplanung"). „Neuer Patient" → nume +
+  notă → `#/plan/<id>/neu` (ecranul de scris în mod `pflegeplanung`).
+- `#/plan/<id>` = proiectul pacientului: planul curent (cea mai recentă versiune),
+  „Plan aktualisieren" (note noi → motorul regenerează, versiune nouă), Umbenennen,
+  Löschen, lista versiunilor anterioare.
+- Fiecare generare acceptată = un rând `activities` cu `type='pflegeplanung'` și
+  `patient_id`; cea mai recentă pentru un pacient = planul curent.
+- `#/verlauf` rămâne DOAR pentru Dokumentation + Korrektur.
 
 ## Temă
 

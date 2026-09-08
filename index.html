@@ -853,9 +853,83 @@
         </section>
     </section>
 
-    <!-- Pflegeplanung refolosește #screen-doc în modul 'pflegeplanung' — vezi applyDocMode(). -->
+    <!-- Korrigieren + scrierea unui plan refolosesc #screen-doc (moduri) — vezi applyDocMode(). -->
 
-    <!-- Korrigieren + Übersetzen refolosesc #screen-doc (moduri) — vezi applyDocMode(). -->
+    <!-- ===================== PFLEGEPLANUNG — lista de pacienți ===================== -->
+    <section id="screen-plan" class="screen" aria-labelledby="plan-h" hidden>
+        <div class="screen__head">
+            <h1 id="plan-h" tabindex="-1" data-i18n="plan.title">Pflegeplanung</h1>
+            <p class="screen__sub" data-i18n="plan.sub">Pro Patient ein Projekt – neu anlegen oder fortschreiben.</p>
+        </div>
+
+        <button class="btn btn--primary" type="button" id="newPatientBtn" data-i18n="plan.newPatient">Neuer Patient</button>
+
+        <form id="newPatientForm" class="card" hidden style="margin-top:14px">
+            <div class="field">
+                <label class="field__label" for="newPatientName" data-i18n="plan.name">Name / Kürzel</label>
+                <input class="input" type="text" id="newPatientName" maxlength="120" autocomplete="off"
+                       data-i18n-ph="plan.name.ph" placeholder="z. B. M. K. (Zi. 12)">
+            </div>
+            <div class="field">
+                <label class="field__label" for="newPatientNote" data-i18n="plan.note">Notiz (optional)</label>
+                <input class="input" type="text" id="newPatientNote" maxlength="2000" autocomplete="off"
+                       data-i18n-ph="plan.note.ph" placeholder="Pflegegrad, Zimmer, Diagnose …">
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap">
+                <button class="btn btn--primary btn--sm" type="submit" data-i18n="plan.create">Anlegen</button>
+                <button class="btn btn--subtle btn--sm" type="button" id="newPatientCancel" data-i18n="plan.cancel">Abbrechen</button>
+            </div>
+        </form>
+
+        <p class="disclaimer" style="margin-top:14px">
+            <svg class="ic"><use href="#ic-shield"/></svg>
+            <span data-i18n="plan.privacy">Verwende möglichst Kürzel/Initialen statt vollständiger Namen.</span>
+        </p>
+
+        <div id="patientList" style="margin-top:14px"></div>
+        <div id="patientEmpty" class="empty" hidden>
+            <svg class="ic ic--xl"><use href="#ic-plan"/></svg>
+            <p class="empty__title" data-i18n="plan.empty.title">Noch keine Patienten</p>
+            <p class="empty__text" data-i18n="plan.empty.text">Lege einen Patienten an, um seine Pflegeplanung zu erstellen.</p>
+        </div>
+    </section>
+
+    <!-- ===================== PFLEGEPLANUNG — proiectul unui pacient ===================== -->
+    <section id="screen-patient" class="screen" aria-labelledby="patient-h" hidden>
+        <div class="screen__head">
+            <a class="btn btn--link" data-nav-go="plan" data-i18n="patient.back">← Alle Patienten</a>
+            <h1 id="patient-h" tabindex="-1">–</h1>
+            <p class="screen__sub" id="patientNote" hidden></p>
+        </div>
+
+        <div class="result__block">
+            <div class="result__blockhead">
+                <h2><svg class="ic"><use href="#ic-plan"/></svg> <span data-i18n="patient.current">Aktueller Plan</span></h2>
+                <span class="histitem__when" id="patientPlanWhen"></span>
+            </div>
+            <div id="patientPlan" class="result__text" style="white-space:pre-wrap"></div>
+        </div>
+
+        <div class="result__actions">
+            <button class="btn btn--primary" type="button" id="patientUpdateBtn">
+                <svg class="ic"><use href="#ic-sparkle"/></svg> <span data-i18n="patient.update">Plan aktualisieren</span>
+            </button>
+            <button class="btn btn--subtle" type="button" id="patientCopyBtn">
+                <svg class="ic"><use href="#ic-copy"/></svg> <span data-i18n="result.copy">Kopieren</span>
+            </button>
+            <button class="btn btn--ghost" type="button" id="patientRenameBtn">
+                <svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="patient.rename">Umbenennen</span>
+            </button>
+            <button class="btn btn--danger" type="button" id="patientDeleteBtn">
+                <svg class="ic"><use href="#ic-trash"/></svg> <span data-i18n="patient.delete">Löschen</span>
+            </button>
+        </div>
+
+        <details class="result__original" style="margin-top:16px">
+            <summary data-i18n="patient.versions">Frühere Versionen</summary>
+            <div id="patientVersions" style="margin-top:10px"></div>
+        </details>
+    </section>
 
     <!-- ===================== VERLAUF ===================== -->
     <section id="screen-verlauf" class="screen" aria-labelledby="verlauf-h" hidden>
@@ -1718,13 +1792,15 @@ async function acceptDoc() {
     if (!improved) { toast('warning', t('toast.nothingAccept')); return; }
     const original = (document.getElementById('originalText').textContent || '').trim();
 
+    const isPlan = currentDocMode === 'pflegeplanung';
+    if (isPlan && !planningPatient) { toast('error', t('plan.noPatient')); return; }
+
     if (typeof authState !== 'undefined' && authState.authenticated) {
         try {
             const langEl = document.getElementById('inputLanguage');
             const outEl = document.getElementById('outputLanguage');
             const isKorr = currentDocMode === 'korrigieren';
-            const histType = isKorr ? 'korrigierung'
-                : (currentDocMode === 'pflegeplanung' ? 'pflegeplanung' : 'dokumentation');
+            const histType = isKorr ? 'korrigierung' : (isPlan ? 'pflegeplanung' : 'dokumentation');
             const outLang = (!isKorr && outEl && outEl.value && outEl.value !== 'de') ? outEl.value : null;
             await apiFetch('/api/history', {
                 method: 'POST',
@@ -1734,10 +1810,17 @@ async function acceptDoc() {
                     result_text: improved,
                     input_language: langEl ? langEl.value : null,
                     mode: currentDocMode,
-                    output_language: outLang
+                    output_language: outLang,
+                    patient_id: isPlan ? planningPatient : null
                 }
             });
-            toast('success', t('toast.accepted'));
+            if (isPlan) {
+                toast('success', t('toast.planSaved'));
+                const pid = planningPatient;
+                location.hash = '#/plan/' + pid;
+            } else {
+                toast('success', t('toast.accepted'));
+            }
         } catch (e) {
             toast('error', e.message);
         }
@@ -1871,8 +1954,10 @@ function updateGreeting() {
 const ROUTES = {
     home:          { screen: 'screen-home',          title: 'Start',             nav: 'home' },
     doc:           { screen: 'screen-doc',           title: 'Neue Dokumentation', nav: 'doc' },
-    plan:          { screen: 'screen-doc',           title: 'Pflegeplanung',     nav: 'plan' },
     korrigieren:   { screen: 'screen-doc',           title: 'Text korrigieren',  nav: 'doc' },
+    plan:          { screen: 'screen-plan',          title: 'Pflegeplanung',     nav: 'plan' },
+    patient:       { screen: 'screen-patient',       title: 'Patient',           nav: 'plan' },
+    planedit:      { screen: 'screen-doc',           title: 'Pflegeplanung',     nav: 'plan' },
     verlauf:       { screen: 'screen-verlauf',       title: 'Verlauf',           nav: 'verlauf' },
     einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
     login:         { screen: 'screen-login',         title: 'Anmelden',          nav: null },
@@ -1882,10 +1967,19 @@ const ROUTES = {
     konto:         { screen: 'screen-konto',         title: 'Konto',             nav: null },
     verify:        { screen: 'screen-verify',        title: 'E-Mail bestätigen', nav: null }
 };
-function currentRouteKey() {
-    const h = location.hash.replace(/^#\/?/, '').trim();
-    return ROUTES[h] ? h : 'home';
+function parseHash() {
+    const parts = location.hash.replace(/^#\/?/, '').trim().split('/').filter(Boolean);
+    let key = parts[0] || 'home';
+    // #/plan          -> lista de pacienți
+    // #/plan/<id>      -> proiectul unui pacient
+    // #/plan/<id>/neu  -> ecran de scris (mod pflegeplanung) pentru acel pacient
+    if (key === 'plan' && parts[1]) {
+        return { key: parts[2] === 'neu' ? 'planedit' : 'patient', id: parts[1] };
+    }
+    return { key: ROUTES[key] ? key : 'home', id: null };
 }
+// id-ul pacientului pentru care se scrie un plan (mod planedit).
+let planningPatient = null;
 
 /* ---- Moduri pe ecranul Dokumentation ----
    formulieren (implicit) : notiță -> documentație (SIS); traducerea = selectorul
@@ -1938,7 +2032,7 @@ function applyDocMode(mode) {
 }
 
 function route() {
-    let key = currentRouteKey();
+    let { key, id: routeId } = parseHash();
 
     // === Gate: aplicația se folosește DOAR cu cont + e-mail confirmat. ===
     const authed = authState.authenticated;
@@ -1976,7 +2070,10 @@ function route() {
 
     const r = ROUTES[key];
     if (r.screen === 'screen-doc') {
-        applyDocMode(key === 'korrigieren' ? 'korrigieren' : (key === 'plan' ? 'pflegeplanung' : 'formulieren'));
+        if (key === 'planedit') { planningPatient = routeId; applyDocMode('pflegeplanung'); }
+        else { planningPatient = null; applyDocMode(key === 'korrigieren' ? 'korrigieren' : 'formulieren'); }
+    } else if (key !== 'patient') {
+        planningPatient = null;
     }
     document.querySelectorAll('.screen').forEach(s => { s.hidden = (s.id !== r.screen); });
     document.querySelectorAll('[data-nav]').forEach(a => {
@@ -1987,6 +2084,8 @@ function route() {
     document.title = 'PflegeDoc – ' + r.title;
     if (key === 'home') updateGreeting();
     if (key === 'verlauf') renderHistory();
+    if (key === 'plan') renderPatients();
+    if (key === 'patient') loadPatient(routeId);
     if (key === 'konto') fillKonto();
     const screen = document.getElementById(r.screen);
     const head = screen && screen.querySelector('h1');
@@ -2092,6 +2191,21 @@ const I18N = {
         'hist.more': 'Mehr laden', 'hist.copy': 'Kopieren', 'hist.delete': 'Löschen',
         'hist.confirmDelete': 'Diesen Eintrag löschen?',
         'hist.type.dokumentation': 'Dokumentation', 'hist.type.korrigierung': 'Korrektur',
+        'plan.title': 'Pflegeplanung', 'plan.sub': 'Pro Patient ein Projekt – neu anlegen oder fortschreiben.',
+        'plan.newPatient': 'Neuer Patient', 'plan.name': 'Name / Kürzel', 'plan.name.ph': 'z. B. M. K. (Zi. 12)',
+        'plan.note': 'Notiz (optional)', 'plan.note.ph': 'Pflegegrad, Zimmer, Diagnose …',
+        'plan.create': 'Anlegen', 'plan.cancel': 'Abbrechen',
+        'plan.privacy': 'Verwende möglichst Kürzel/Initialen statt vollständiger Namen.',
+        'plan.empty.title': 'Noch keine Patienten', 'plan.empty.text': 'Lege einen Patienten an, um seine Pflegeplanung zu erstellen.',
+        'plan.planOne': 'Plan', 'plan.planMany': 'Pläne', 'plan.needName': 'Bitte einen Namen eingeben.',
+        'plan.created': 'Patient angelegt.', 'plan.noPatient': 'Kein Patient ausgewählt.',
+        'patient.back': '← Alle Patienten', 'patient.current': 'Aktueller Plan', 'patient.currentTag': 'Aktuell',
+        'patient.noPlan': 'Noch kein Plan – „Plan aktualisieren“, um den ersten zu erstellen.',
+        'patient.update': 'Plan aktualisieren', 'patient.rename': 'Umbenennen',
+        'patient.rename.prompt': 'Neuer Name / Kürzel:', 'patient.renamed': 'Umbenannt.',
+        'patient.delete': 'Löschen', 'patient.delete.confirm': 'Diesen Patienten und alle seine Pläne löschen?',
+        'patient.deleted': 'Patient gelöscht.', 'patient.versions': 'Frühere Versionen',
+        'toast.planSaved': 'Plan gespeichert.',
         'settings.title': 'Einstellungen', 'settings.uilang': 'Sprache der Oberfläche',
         'settings.name': 'Dein Name (für die Begrüßung)', 'settings.name.ph': 'z. B. Alexandru',
         'settings.theme': 'Darstellung', 'theme.system': 'System', 'theme.light': 'Hell', 'theme.dark': 'Dunkel',
@@ -2209,6 +2323,21 @@ const I18N = {
         'hist.more': 'Load more', 'hist.copy': 'Copy', 'hist.delete': 'Delete',
         'hist.confirmDelete': 'Delete this entry?',
         'hist.type.dokumentation': 'Documentation', 'hist.type.korrigierung': 'Correction',
+        'plan.title': 'Care planning', 'plan.sub': 'One project per patient – create a new one or continue.',
+        'plan.newPatient': 'New patient', 'plan.name': 'Name / initials', 'plan.name.ph': 'e.g. M. K. (Rm. 12)',
+        'plan.note': 'Note (optional)', 'plan.note.ph': 'Care level, room, diagnosis …',
+        'plan.create': 'Create', 'plan.cancel': 'Cancel',
+        'plan.privacy': 'Prefer initials/short codes instead of full names.',
+        'plan.empty.title': 'No patients yet', 'plan.empty.text': 'Add a patient to create their care plan.',
+        'plan.planOne': 'plan', 'plan.planMany': 'plans', 'plan.needName': 'Please enter a name.',
+        'plan.created': 'Patient created.', 'plan.noPatient': 'No patient selected.',
+        'patient.back': '← All patients', 'patient.current': 'Current plan', 'patient.currentTag': 'Current',
+        'patient.noPlan': 'No plan yet – use “Update plan” to create the first one.',
+        'patient.update': 'Update plan', 'patient.rename': 'Rename',
+        'patient.rename.prompt': 'New name / initials:', 'patient.renamed': 'Renamed.',
+        'patient.delete': 'Delete', 'patient.delete.confirm': 'Delete this patient and all their plans?',
+        'patient.deleted': 'Patient deleted.', 'patient.versions': 'Previous versions',
+        'toast.planSaved': 'Plan saved.',
         'settings.title': 'Settings', 'settings.uilang': 'Interface language',
         'settings.name': 'Your name (for the greeting)', 'settings.name.ph': 'e.g. Alexandru',
         'settings.theme': 'Appearance', 'theme.system': 'System', 'theme.light': 'Light', 'theme.dark': 'Dark',
@@ -2326,6 +2455,21 @@ const I18N = {
         'hist.more': 'Încarcă mai multe', 'hist.copy': 'Copiază', 'hist.delete': 'Șterge',
         'hist.confirmDelete': 'Ștergi această intrare?',
         'hist.type.dokumentation': 'Documentație', 'hist.type.korrigierung': 'Corectură',
+        'plan.title': 'Planificarea îngrijirii', 'plan.sub': 'Câte un proiect per pacient – creezi unul nou sau continui.',
+        'plan.newPatient': 'Pacient nou', 'plan.name': 'Nume / inițiale', 'plan.name.ph': 'ex. M. K. (cam. 12)',
+        'plan.note': 'Notă (opțional)', 'plan.note.ph': 'Pflegegrad, cameră, diagnostic …',
+        'plan.create': 'Creează', 'plan.cancel': 'Anulează',
+        'plan.privacy': 'Folosește de preferință inițiale/coduri scurte, nu nume complete.',
+        'plan.empty.title': 'Încă niciun pacient', 'plan.empty.text': 'Adaugă un pacient ca să-i creezi planul de îngrijire.',
+        'plan.planOne': 'plan', 'plan.planMany': 'planuri', 'plan.needName': 'Introdu un nume.',
+        'plan.created': 'Pacient creat.', 'plan.noPatient': 'Niciun pacient selectat.',
+        'patient.back': '← Toți pacienții', 'patient.current': 'Planul curent', 'patient.currentTag': 'Curent',
+        'patient.noPlan': 'Încă niciun plan – apasă „Actualizează planul” ca să-l creezi pe primul.',
+        'patient.update': 'Actualizează planul', 'patient.rename': 'Redenumește',
+        'patient.rename.prompt': 'Nume / inițiale noi:', 'patient.renamed': 'Redenumit.',
+        'patient.delete': 'Șterge', 'patient.delete.confirm': 'Ștergi acest pacient și toate planurile lui?',
+        'patient.deleted': 'Pacient șters.', 'patient.versions': 'Versiuni anterioare',
+        'toast.planSaved': 'Plan salvat.',
         'settings.title': 'Setări', 'settings.uilang': 'Limba interfeței',
         'settings.name': 'Numele tău (pentru salut)', 'settings.name.ph': 'ex. Alexandru',
         'settings.theme': 'Aspect', 'theme.system': 'Sistem', 'theme.light': 'Luminos', 'theme.dark': 'Întunecat',
@@ -2874,6 +3018,181 @@ function buildHistItemRemote(it) {
     });
     return el;
 }
+
+/* ---- Pflegeplanung: pacienți (proiecte) ---- */
+let currentPatient = null;
+
+async function renderPatients() {
+    const wrap = document.getElementById('patientList');
+    const empty = document.getElementById('patientEmpty');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    let d;
+    try { d = await apiFetch('/api/patients'); }
+    catch (e) { toast('error', e.message); return; }
+    const items = d.items || [];
+    if (empty) empty.hidden = items.length > 0;
+    items.forEach(p => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'histitem';
+        el.style.cssText = 'width:100%; text-align:left; display:block; cursor:pointer';
+        let when = '';
+        try { when = new Date(p.updated_at).toLocaleDateString(localeTag(), { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+        catch (e) { when = String(p.updated_at).slice(0, 10); }
+        const cnt = p.plan_count || 0;
+        el.innerHTML =
+            '<div style="padding:14px 16px">' +
+            '<span class="pat__name" style="font-weight:700; display:block"></span>' +
+            '<span class="histitem__when pat__meta" style="display:block; margin-top:3px"></span>' +
+            '<span class="histitem__snip pat__note" style="display:block; margin-top:4px" hidden></span>' +
+            '</div>';
+        el.querySelector('.pat__name').textContent = p.name;
+        el.querySelector('.pat__meta').textContent =
+            when + ' · ' + cnt + ' ' + t(cnt === 1 ? 'plan.planOne' : 'plan.planMany');
+        const noteEl = el.querySelector('.pat__note');
+        if (p.note) { noteEl.textContent = p.note; noteEl.hidden = false; }
+        el.addEventListener('click', () => { location.hash = '#/plan/' + p.id; });
+        wrap.appendChild(el);
+    });
+}
+
+async function loadPatient(id) {
+    currentPatient = null;
+    const h = document.getElementById('patient-h');
+    const noteEl = document.getElementById('patientNote');
+    const planEl = document.getElementById('patientPlan');
+    const whenEl = document.getElementById('patientPlanWhen');
+    const versWrap = document.getElementById('patientVersions');
+    if (h) h.textContent = '…';
+    if (planEl) planEl.textContent = '';
+    if (whenEl) whenEl.textContent = '';
+    if (versWrap) versWrap.innerHTML = '';
+
+    let d;
+    try { d = await apiFetch('/api/patients/' + encodeURIComponent(id)); }
+    catch (e) { toast('error', e.message); location.hash = '#/plan'; return; }
+
+    currentPatient = d.patient;
+    document.title = 'PflegeDoc – ' + d.patient.name;
+    if (h) h.textContent = d.patient.name;
+    if (noteEl) { noteEl.textContent = d.patient.note || ''; noteEl.hidden = !d.patient.note; }
+
+    if (d.current) {
+        if (planEl) planEl.textContent = d.current.result_text;
+        try {
+            if (whenEl) whenEl.textContent = new Date(d.current.created_at).toLocaleString(localeTag(),
+                { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) { }
+    } else if (planEl) {
+        planEl.textContent = t('patient.noPlan');
+    }
+
+    (d.versions || []).forEach((v, idx) => {
+        const det = document.createElement('details');
+        det.className = 'histitem';
+        let when = '';
+        try { when = new Date(v.created_at).toLocaleString(localeTag(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+        catch (e) { when = String(v.created_at).slice(0, 16).replace('T', ' '); }
+        det.innerHTML =
+            '<summary><span class="histitem__when"></span>' +
+            (idx === 0 ? '<span class="histitem__tag"></span>' : '') +
+            '<span class="histitem__snip"></span></summary>' +
+            '<div class="histitem__body"><pre class="histitem__text">…</pre>' +
+            '<div class="histitem__actions"><button class="btn btn--subtle btn--sm" type="button" data-copy><svg class="ic"><use href="#ic-copy"/></svg> <span></span></button></div></div>';
+        det.querySelector('.histitem__when').textContent = when;
+        det.querySelector('.histitem__snip').textContent = v.preview || '';
+        const tagEl = det.querySelector('.histitem__tag');
+        if (tagEl) tagEl.textContent = t('patient.currentTag');
+        det.querySelector('[data-copy] span').textContent = t('hist.copy');
+        let loaded = false;
+        det.addEventListener('toggle', async () => {
+            if (!det.open || loaded) return;
+            loaded = true;
+            try {
+                const full = await apiFetch('/api/history/' + encodeURIComponent(v.id));
+                const txt = (full.item && full.item.result_text) || '';
+                det.querySelector('.histitem__text').textContent = txt;
+                det.querySelector('[data-copy]').addEventListener('click', () => copyText(txt));
+            } catch (e) {
+                det.querySelector('.histitem__text').textContent = e.message;
+            }
+        });
+        versWrap.appendChild(det);
+    });
+}
+
+(function wirePatientUI() {
+    const newBtn = document.getElementById('newPatientBtn');
+    const form = document.getElementById('newPatientForm');
+    if (newBtn && form) {
+        const nameEl = document.getElementById('newPatientName');
+        const noteEl = document.getElementById('newPatientNote');
+        newBtn.addEventListener('click', () => {
+            form.hidden = !form.hidden;
+            if (!form.hidden && nameEl) nameEl.focus();
+        });
+        const cancel = document.getElementById('newPatientCancel');
+        if (cancel) cancel.addEventListener('click', () => {
+            form.hidden = true;
+            if (nameEl) nameEl.value = '';
+            if (noteEl) noteEl.value = '';
+        });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = nameEl ? nameEl.value.trim() : '';
+            const note = noteEl ? noteEl.value.trim() : '';
+            if (!name) { toast('warning', t('plan.needName')); return; }
+            const btn = form.querySelector('button[type=submit]');
+            if (btn) btn.disabled = true;
+            try {
+                const d = await apiFetch('/api/patients', { method: 'POST', body: { name: name, note: note || null } });
+                if (nameEl) nameEl.value = '';
+                if (noteEl) noteEl.value = '';
+                form.hidden = true;
+                toast('success', t('plan.created'));
+                location.hash = '#/plan/' + d.patient.id + '/neu';
+            } catch (err) {
+                toast('error', err.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        });
+    }
+
+    const upd = document.getElementById('patientUpdateBtn');
+    if (upd) upd.addEventListener('click', () => {
+        if (currentPatient) location.hash = '#/plan/' + currentPatient.id + '/neu';
+    });
+    const cpy = document.getElementById('patientCopyBtn');
+    if (cpy) cpy.addEventListener('click', () => {
+        const p = document.getElementById('patientPlan');
+        if (p) copyText(p.textContent);
+    });
+    const ren = document.getElementById('patientRenameBtn');
+    if (ren) ren.addEventListener('click', async () => {
+        if (!currentPatient) return;
+        const v = window.prompt(t('patient.rename.prompt'), currentPatient.name);
+        if (v == null) return;
+        const n = v.trim();
+        if (!n) { toast('warning', t('plan.needName')); return; }
+        try {
+            await apiFetch('/api/patients/' + currentPatient.id, { method: 'PATCH', body: { name: n } });
+            toast('success', t('patient.renamed'));
+            loadPatient(currentPatient.id);
+        } catch (e) { toast('error', e.message); }
+    });
+    const del = document.getElementById('patientDeleteBtn');
+    if (del) del.addEventListener('click', async () => {
+        if (!currentPatient) return;
+        if (!window.confirm(t('patient.delete.confirm'))) return;
+        try {
+            await apiFetch('/api/patients/' + currentPatient.id, { method: 'DELETE' });
+            toast('info', t('patient.deleted'));
+            location.hash = '#/plan';
+        } catch (e) { toast('error', e.message); }
+    });
+})();
 
 /* ---- Init ---- */
 applyTheme();
