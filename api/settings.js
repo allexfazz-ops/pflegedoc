@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         // PATCH
         if (!requireVerified(auth, res)) return;
         if (!requireCsrf(req, res, auth.session)) return;
-        if (await enforceRateLimit(res, `settings:user:${userId}`, 60, 3600)) return;
+        if (await enforceRateLimit(res, `settings:user:${userId}`, 60, 3600, req)) return;
 
         let body;
         try {

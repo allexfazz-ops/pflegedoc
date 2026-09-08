@@ -172,16 +172,51 @@ Migrarea rulează automat; manual: `node --env-file=.env.local db/migrate.mjs`.
 ## Deploy
 
 Push pe `main` → Vercel publică automat. Variabile de mediu în Vercel:
-`GEMINI_API_KEY` (obligatoriu), `GEMINI_MODEL` (opțional, implicit
-`gemini-3.6-flash`), `DATABASE_URL` (setat automat de integrarea Neon),
-`RESEND_API_KEY` + `EMAIL_FROM` (opțional — pentru e-mailuri de verificare reale).
 
-## Test suite (engine de documentație)
+| Variabilă | Necesar | Rol |
+|---|---|---|
+| `GEMINI_API_KEY` | da | cheia Gemini (server-side) |
+| `GEMINI_MODEL` | opțional | implicit `gemini-3.6-flash` |
+| `DATABASE_URL` | da | setat automat de integrarea Neon |
+| `RESEND_API_KEY` + `EMAIL_FROM` | pt. e-mailuri reale | verificare / resetare |
+| **`APP_ORIGIN`** | **recomandat** | originea canonică pt. link-urile de securitate (verificare/reset). NU se citește din anteturi. Dacă lipsește, se folosește `VERCEL_PROJECT_PRODUCTION_URL` (setată de platformă). |
+| **`SECURITY_LOG_SALT`** | recomandat | sare aleatoare lungă pt. HMAC-ul IP din log-ul de securitate; nu e logată |
+| `ENGINE_TEST_SECRET` | **NU în producție** | bypass auth pe `/api/generate` — **refuzat structural** când `NODE_ENV`/`VERCEL_ENV` = `production`, indiferent de valoare |
+
+### Preview / Production — izolarea datelor (pas manual în dashboard-ul Vercel)
+
+Codul nu poate garanta singur izolarea. În Vercel → Project → Settings →
+Environment Variables, setează pe **Environment = Preview** valori SEPARATE:
+
+- un `DATABASE_URL` care pointează la o **ramură/bază Neon dedicată de preview**
+  (nu la producție) — altfel deploy-urile de preview scriu/citesc datele reale;
+- opțional un `GEMINI_API_KEY` separat;
+- `APP_ORIGIN` corespunzător.
+
+Preview/Development trebuie folosite DOAR cu date sintetice. Nu declara mediile
+„izolate" până nu ai verificat manual.
+
+### Security headers
+
+`vercel.json` adaugă: `Content-Security-Policy` (permisiv pt. app-ul vanilla —
+`script-src`/`style-src 'unsafe-inline'`; `connect-src` = self + endpointul Gemini
+pt. modul cu cheie proprie; țintă viitoare: eliminarea `'unsafe-inline'`),
+`X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`,
+`X-Frame-Options: DENY` + `frame-ancestors 'none'`, `Permissions-Policy`
+(microfon permis doar pt. dictare; camera/geolocation/etc. dezactivate).
+HSTS rămâne cel adăugat automat de Vercel.
+
+## Test suite
 
 ```bash
-node tests/engine-suite.mjs            # rulează pe deploy-ul live
+node tests/security-suite.mjs          # 8 fix-uri de hardening (fără rețea/DB)
+node tests/engine-suite.mjs            # engine de documentație — vezi mai jos
 PFLEGEDOC_API=<url>/api/generate node tests/engine-suite.mjs
 ```
+
+> **Notă:** bypass-ul `X-Engine-Test` e refuzat în producție. `tests/engine-suite.mjs`
+> rulează acum doar contra unui `vercel dev` local (`NODE_ENV !== "production"`),
+> nu contra deploy-ului de producție.
 
 Verifică automat „Meaning > Style" și „Never invent information": cifre,
 medicamente, lateralitate, cronologie, observație vs. afirmația pacientului,
@@ -211,15 +246,27 @@ Regionalizare viitoare = o intrare nouă în `STANDARDS` + un selector; restul e
 
 ## Securitate — status
 
-Practici moderne aplicate: hashing parole (scrypt), sesiuni stateful invalidabile,
-CSRF (token per-sesiune), autorizare + ownership server-side, query-uri
-parametrizate, validare input server-side, rate limiting, rendering sigur în DOM
-(textContent / escaping), fără secrete în frontend, erori generice către client.
+Practici aplicate: hashing parole (scrypt), sesiuni stateful invalidabile,
+CSRF (token per-sesiune, **inclusiv pe `/api/generate`**), autorizare + ownership
+server-side, query-uri parametrizate, validare input server-side, rate limiting
+**pe IP (sursă de încredere) + pe cont**, rendering sigur în DOM (textContent /
+escaping), fără secrete în frontend, erori generice către client, security headers
+(CSP/nosniff/Referrer-Policy/frame-ancestors/Permissions-Policy), **log de
+securitate doar cu metadate** (`console.log("[sec]", …)` → Vercel logs; IP pseudonimizat
+HMAC; niciun conținut medical / e-mail / token).
 
-Riscuri reziduale cunoscute (Low): rate limiting „fail-open" dacă baza de date
-nu răspunde; `register` nu e 100% opac la enumeration (`created: true/false`);
-fereastră fixă la rate limiting; `/api/health` public. Detalii în raportul de
-security review. **Nicio aplicație nu poate garanta securitate absolută.**
+Hardening tehnic aplicat (fixele F-03/04/05/07/08/17/25 din review):
+link-uri de securitate din `APP_ORIGIN` canonic (nu din anteturi); zero
+dev-token URLs în producție; `X-Engine-Test` inoperabil în producție.
+
+**Neacoperit de acest hardening (necesită decizii separate — provider / infra /
+legal):** furnizor AI (Gemini API de consumator), regiune de procesare/stocare
+(UE), AVV/DPA cu Google/Vercel/Neon/Resend, Datenschutzerklärung/Impressum, DPIA,
+retenție/ștergere documentată, backup-uri Neon.
+
+**Aplicația rămâne un sistem de dezvoltare/demo până la rezolvarea separată a
+cerințelor de furnizor AI, infrastructură, contractuale și juridice.
+Nu procesa date reale de pacienți.**
 
 ## Roadmap
 

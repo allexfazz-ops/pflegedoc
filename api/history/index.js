@@ -93,7 +93,7 @@ export default async function handler(req, res) {
         /* ------------------------------ POST ------------------------------ */
         if (!requireVerified(auth, res)) return;
         if (!requireCsrf(req, res, auth.session)) return;
-        if (await enforceRateLimit(res, `history_create:user:${userId}`, 120, 3600)) return;
+        if (await enforceRateLimit(res, `history_create:user:${userId}`, 120, 3600, req)) return;
 
         let body;
         try {

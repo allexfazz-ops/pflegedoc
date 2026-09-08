@@ -256,11 +256,18 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Methode nicht erlaubt. Bitte POST verwenden." });
     }
 
-    // --- Guard: cont autentificat + e-mail confirmat + rate limit.
+    // --- Guard: cont autentificat + e-mail confirmat + CSRF + rate limit (IP & cont).
     //     NU atinge logica engine-ului (prompt / Gemini / parsare).
-    //     Bypass doar pentru test suite: header X-Engine-Test = ENGINE_TEST_SECRET.
+    //
+    //     Bypass pentru test suite (header X-Engine-Test = ENGINE_TEST_SECRET):
+    //     REFUZAT STRUCTURAL în producție (F-08) — indiferent dacă ENGINE_TEST_SECRET
+    //     e setat. Permis doar când NODE_ENV/VERCEL_ENV nu sunt "production"
+    //     (adică `vercel dev` local).
+    const bypassAllowed =
+        process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production";
     const testSecret = process.env.ENGINE_TEST_SECRET;
-    const isTestCall = testSecret && req.headers["x-engine-test"] === testSecret;
+    const isTestCall =
+        bypassAllowed && !!testSecret && req.headers["x-engine-test"] === testSecret;
 
     try {
         const { hasDatabase, ensureSchema } = await import("../lib/db.mjs");
@@ -268,24 +275,45 @@ export default async function handler(req, res) {
             await ensureSchema();
             const { rateLimit } = await import("../lib/ratelimit.mjs");
             const { clientIp } = await import("../lib/http.mjs");
+            const { securityEvent } = await import("../lib/securitylog.mjs");
             const rl = await rateLimit(`generate:ip:${clientIp(req)}`, 40, 3600);
             if (!rl.allowed) {
                 res.setHeader("Retry-After", String(rl.retryAfter));
+                securityEvent("generate_rate_limit_hit", req, { outcome: "429", detail: "generate:ip" });
                 return res.status(429).json({
                     error: "Zu viele Anfragen. Bitte in einer Stunde erneut versuchen."
                 });
             }
 
             if (!isTestCall) {
-                const { getAuth } = await import("../lib/auth.mjs");
+                const { getAuth, checkCsrf } = await import("../lib/auth.mjs");
                 const auth = await getAuth(req);
                 if (!auth) {
+                    securityEvent("authorization_failure", req, { outcome: "401", route: "/api/generate" });
                     return res.status(401).json({ error: "Anmeldung erforderlich." });
                 }
                 if (auth.user.email_verified !== true) {
+                    securityEvent("authorization_failure", req, { outcome: "email_unverified", route: "/api/generate", userId: auth.user.id });
                     return res.status(403).json({
                         error: "Bitte bestätige zuerst deine E-Mail-Adresse.",
                         code: "email_unverified",
+                    });
+                }
+                // CSRF: aceeași apărare defense-in-depth ca celelalte endpoint-uri
+                // autentificate (F-17). Token-ul din sesiune, trimis ca X-CSRF-Token.
+                if (!checkCsrf(req, auth.session)) {
+                    securityEvent("authorization_failure", req, { outcome: "csrf", route: "/api/generate", userId: auth.user.id });
+                    return res.status(403).json({ error: "Ungültiges oder fehlendes CSRF-Token." });
+                }
+                // Limită pe CONT (nu doar pe IP): un cont care rotește IP-uri nu poate
+                // depăși ~60/oră. Peste limita clasică pe IP (40/oră) -> nu incomodează
+                // utilizarea normală (o documentație/minut, o oră la rând).
+                const rlUser = await rateLimit(`generate:user:${auth.user.id}`, 60, 3600);
+                if (!rlUser.allowed) {
+                    res.setHeader("Retry-After", String(rlUser.retryAfter));
+                    securityEvent("generate_rate_limit_hit", req, { outcome: "429", detail: "generate:user", userId: auth.user.id });
+                    return res.status(429).json({
+                        error: "Zu viele Anfragen. Bitte in einer Stunde erneut versuchen."
                     });
                 }
             }
@@ -294,7 +322,7 @@ export default async function handler(req, res) {
             return res.status(503).json({ error: "Dienst vorübergehend nicht verfügbar." });
         }
     } catch (e) {
-        console.error("[generate] guard error:", e.message);
+        console.error("[generate] guard error:", e.name || "error");
         return res.status(503).json({ error: "Dienst vorübergehend nicht verfügbar." });
     }
 
@@ -358,6 +386,8 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
 
     // --- Apel Gemini: până la MAX_ATTEMPTS încercări, cu backoff pe erori tranzitorii ---
     const OVERLOAD_MSG = "Gemini ist zurzeit überlastet (hohe Nachfrage). Bitte in einigen Sekunden erneut versuchen.";
+    // Mesaj generic pentru clienți la erori de furnizor (detaliile rămân în log server).
+    const SERVICE_ERR = "Der Dokumentationsdienst ist derzeit nicht verfügbar. Bitte später erneut versuchen.";
     const startedAt = Date.now();
     let data = null;
 
@@ -392,22 +422,23 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
         try {
             data = await upstream.json();
         } catch (e) {
-            return res.status(502).json({ error: `Ungültige Antwort von Gemini (HTTP ${upstream.status}).` });
+            console.error("[generate] upstream non-JSON, HTTP", upstream.status);
+            return res.status(502).json({ error: SERVICE_ERR });
         }
 
         if (upstream.ok) break;
 
         const apiMsg = data && data.error && data.error.message ? data.error.message : `HTTP ${upstream.status}`;
+        // Detaliile furnizorului rămân DOAR în log-ul serverului (F-19 / hygiene).
+        console.error("[generate] upstream error", upstream.status, String(apiMsg).slice(0, 200));
 
-        // Erori permanente -> fără reîncercare.
-        if (upstream.status === 400 && /API key not valid/i.test(apiMsg)) {
-            return res.status(500).json({ error: "Der GEMINI_API_KEY auf dem Server ist ungültig." });
-        }
-        if (upstream.status === 403) {
-            return res.status(500).json({ error: "Zugriff von Gemini verweigert (403). Bitte API-Aktivierung prüfen." });
-        }
-        if (upstream.status === 404) {
-            return res.status(500).json({ error: `Modell nicht verfügbar (404): ${apiMsg}. Bitte GEMINI_MODEL ändern.` });
+        // Erori permanente -> fără reîncercare. Mesaj generic către client.
+        if (
+            (upstream.status === 400 && /API key not valid/i.test(apiMsg)) ||
+            upstream.status === 403 ||
+            upstream.status === 404
+        ) {
+            return res.status(502).json({ error: SERVICE_ERR });
         }
 
         // Tranzitorie -> backoff + retry cât timp mai avem buget.
@@ -421,7 +452,7 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
             res.setHeader("Retry-After", "20");
             return res.status(503).json({ error: OVERLOAD_MSG });
         }
-        return res.status(502).json({ error: `Gemini-Fehler: ${apiMsg}` });
+        return res.status(502).json({ error: SERVICE_ERR });
     }
 
     if (!data) {

@@ -32,16 +32,20 @@ import {
 import {
     sendVerificationEmail, sendPasswordResetEmail, consumeEmailToken,
 } from "../../lib/tokens.mjs";
-import { emailEnabled } from "../../lib/email.mjs";
+import { emailEnabled, isProduction } from "../../lib/email.mjs";
+import { securityEvent } from "../../lib/securitylog.mjs";
 
 const GENERIC_LOGIN = "E-Mail oder Passwort ist falsch.";
+
+// Link-uri/erori de e-mail cu potențial de token: DOAR în afara producției (F-04).
+const allowDevEmailHints = () => !isProduction();
 
 /* --------------------------------- register -------------------------------- */
 async function register(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
     try {
         await ensureSchema();
-        if (await enforceRateLimit(res, `register:ip:${clientIp(req)}`, 10, 3600)) return;
+        if (await enforceRateLimit(res, `register:ip:${clientIp(req)}`, 10, 3600, req)) return;
 
         let body;
         try { body = await readJson(req, { maxBytes: 8 * 1024 }); }
@@ -51,6 +55,7 @@ async function register(req, res) {
         if (!isEmail(email)) return fail(res, 400, "Bitte eine gültige E-Mail-Adresse angeben.");
         const pw = checkPassword(body.password);
         if (!pw.ok) return fail(res, 400, pw.error);
+        securityEvent("register_attempt", req, { outcome: "ok" });
 
         // Timing: hash-uim mereu, chiar dacă e-mailul există deja.
         const passwordHash = await hashPassword(body.password);
@@ -80,11 +85,10 @@ async function register(req, res) {
         try {
             const r = await sendVerificationEmail(req, user);
             emailSent = !!r.delivered;
-            if (!emailEnabled() || !r.delivered) devVerifyUrl = r.url;
-            if (!r.delivered && r.detail) emailError = r.detail;
+            if (allowDevEmailHints() && (!emailEnabled() || !r.delivered)) devVerifyUrl = r.url;
         } catch (e) {
-            console.error("[register] verification email:", e.message);
-            emailError = e.message;
+            console.error("[register] verification email:", e.name || "error");
+            if (allowDevEmailHints()) emailError = String(e.message).slice(0, 200);
         }
 
         return json(res, 201, {
@@ -108,7 +112,7 @@ async function login(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
     try {
         await ensureSchema();
-        if (await enforceRateLimit(res, `login:ip:${clientIp(req)}`, 10, 900)) return;
+        if (await enforceRateLimit(res, `login:ip:${clientIp(req)}`, 10, 900, req)) return;
 
         let body;
         try { body = await readJson(req, { maxBytes: 8 * 1024 }); }
@@ -119,18 +123,27 @@ async function login(req, res) {
 
         if (!isEmail(email) || !password || password.length > 200) {
             await dummyVerify(password || "x");
+            securityEvent("login_failure", req, { outcome: "invalid_input" });
             return fail(res, 401, GENERIC_LOGIN);
         }
-        if (await enforceRateLimit(res, `login:email:${email}`, 20, 900)) return;
+        if (await enforceRateLimit(res, `login:email:${email}`, 20, 900, req)) return;
 
         const rows = await sql`SELECT id, password_hash FROM users WHERE email = ${email} LIMIT 1`;
-        if (!rows.length) { await dummyVerify(password); return fail(res, 401, GENERIC_LOGIN); }
+        if (!rows.length) {
+            await dummyVerify(password);
+            securityEvent("login_failure", req, { outcome: "bad_credentials" });
+            return fail(res, 401, GENERIC_LOGIN);
+        }
 
         const ok = await verifyPassword(password, rows[0].password_hash);
-        if (!ok) return fail(res, 401, GENERIC_LOGIN);
+        if (!ok) {
+            securityEvent("login_failure", req, { outcome: "bad_credentials", userId: rows[0].id });
+            return fail(res, 401, GENERIC_LOGIN);
+        }
 
         const { token, csrf } = await createSession(rows[0].id, req);
         appendCookie(res, sessionCookie(token, req));
+        securityEvent("login_success", req, { outcome: "ok", userId: rows[0].id });
 
         const u = await sql`
             SELECT id, email, ui_language, theme, created_at, email_verified, display_name
@@ -198,19 +211,23 @@ async function verify(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
     try {
         await ensureSchema();
-        if (await enforceRateLimit(res, `verify:ip:${clientIp(req)}`, 20, 3600)) return;
+        if (await enforceRateLimit(res, `verify:ip:${clientIp(req)}`, 20, 3600, req)) return;
 
         let body;
         try { body = await readJson(req, { maxBytes: 4 * 1024 }); }
         catch (e) { return fail(res, e.status || 400, e.message || "Ungültige Anfrage."); }
 
         const consumed = await consumeEmailToken(body.token, "verify_email");
-        if (!consumed) return fail(res, 400, "Der Bestätigungslink ist ungültig oder abgelaufen.");
+        if (!consumed) {
+            securityEvent("verification_failure", req, { outcome: "bad_token" });
+            return fail(res, 400, "Der Bestätigungslink ist ungültig oder abgelaufen.");
+        }
 
         await sql`
             UPDATE users SET email_verified = true, email_verified_at = now()
             WHERE id = ${consumed.userId} AND email_verified = false
         `;
+        securityEvent("verification_confirmed", req, { outcome: "ok", userId: consumed.userId });
         return json(res, 200, { ok: true });
     } catch (err) {
         return fail(res, 500, "Bestätigung derzeit nicht möglich.", err);
@@ -225,22 +242,23 @@ async function resendVerification(req, res) {
         const auth = await requireAuth(req, res);
         if (!auth) return;
         if (!requireCsrf(req, res, auth.session)) return;
-        if (await enforceRateLimit(res, `resendverify:user:${auth.user.id}`, 3, 3600)) return;
+        if (await enforceRateLimit(res, `resendverify:user:${auth.user.id}`, 3, 3600, req)) return;
 
         const rows = await sql`SELECT id, email, email_verified FROM users WHERE id = ${auth.user.id}`;
         const u = rows[0];
         if (!u) return fail(res, 404, "Konto nicht gefunden.");
         if (u.email_verified) return json(res, 200, { ok: true, alreadyVerified: true });
 
+        securityEvent("verification_requested", req, { outcome: "ok", userId: u.id });
+
         let emailSent = false, devVerifyUrl, emailError;
         try {
             const r = await sendVerificationEmail(req, u);
             emailSent = !!r.delivered;
-            if (!emailEnabled() || !r.delivered) devVerifyUrl = r.url;
-            if (!r.delivered && r.detail) emailError = r.detail;
+            if (allowDevEmailHints() && (!emailEnabled() || !r.delivered)) devVerifyUrl = r.url;
         } catch (e) {
-            console.error("[resend-verification]", e.message);
-            emailError = e.message;
+            console.error("[resend-verification]", e.name || "error");
+            if (allowDevEmailHints()) emailError = String(e.message).slice(0, 200);
         }
         return json(res, 200, {
             ok: true, emailSent,
@@ -257,7 +275,7 @@ async function forgotPassword(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
     try {
         await ensureSchema();
-        if (await enforceRateLimit(res, `forgot:ip:${clientIp(req)}`, 5, 3600)) return;
+        if (await enforceRateLimit(res, `forgot:ip:${clientIp(req)}`, 5, 3600, req)) return;
 
         let body;
         try { body = await readJson(req, { maxBytes: 4 * 1024 }); }
@@ -265,18 +283,21 @@ async function forgotPassword(req, res) {
 
         const email = normEmail(body.email);
         if (!isEmail(email)) return json(res, 200, { ok: true });
-        if (await enforceRateLimit(res, `forgot:email:${email}`, 3, 3600)) return;
+        if (await enforceRateLimit(res, `forgot:email:${email}`, 3, 3600, req)) return;
+
+        securityEvent("password_reset_requested", req, { outcome: "ok" });
 
         const rows = await sql`SELECT id, email FROM users WHERE email = ${email} LIMIT 1`;
         let devResetUrl;
         if (rows.length) {
             try {
                 const r = await sendPasswordResetEmail(req, rows[0]);
-                if (!emailEnabled() || !r.delivered) devResetUrl = r.url;
+                if (allowDevEmailHints() && (!emailEnabled() || !r.delivered)) devResetUrl = r.url;
             } catch (e) {
-                console.error("[forgot-password] email:", e.message);
+                console.error("[forgot-password] email:", e.name || "error");
             }
         }
+        // Răspuns identic indiferent dacă adresa există (anti-enumerare).
         return json(res, 200, { ok: true, ...(devResetUrl ? { devResetUrl } : {}) });
     } catch (err) {
         return fail(res, 500, "Anfrage derzeit nicht möglich.", err);
@@ -288,7 +309,7 @@ async function resetPassword(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
     try {
         await ensureSchema();
-        if (await enforceRateLimit(res, `reset:ip:${clientIp(req)}`, 20, 3600)) return;
+        if (await enforceRateLimit(res, `reset:ip:${clientIp(req)}`, 20, 3600, req)) return;
 
         let body;
         try { body = await readJson(req, { maxBytes: 8 * 1024 }); }
@@ -299,6 +320,7 @@ async function resetPassword(req, res) {
 
         const consumed = await consumeEmailToken(body.token, "reset_password");
         if (!consumed) {
+            securityEvent("password_reset_failure", req, { outcome: "bad_token" });
             return fail(res, 400, "Der Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an.");
         }
 
@@ -311,6 +333,7 @@ async function resetPassword(req, res) {
             WHERE id = ${consumed.userId}
         `;
         await destroyAllSessions(consumed.userId);
+        securityEvent("password_reset_success", req, { outcome: "ok", userId: consumed.userId });
         return json(res, 200, { ok: true });
     } catch (err) {
         return fail(res, 500, "Zurücksetzen derzeit nicht möglich.", err);
@@ -325,8 +348,8 @@ async function deleteAccount(req, res) {
         const auth = await requireAuth(req, res);
         if (!auth) return;
         if (!requireCsrf(req, res, auth.session)) return;
-        if (await enforceRateLimit(res, `deleteacct:ip:${clientIp(req)}`, 5, 3600)) return;
-        if (await enforceRateLimit(res, `deleteacct:user:${auth.user.id}`, 5, 3600)) return;
+        if (await enforceRateLimit(res, `deleteacct:ip:${clientIp(req)}`, 5, 3600, req)) return;
+        if (await enforceRateLimit(res, `deleteacct:user:${auth.user.id}`, 5, 3600, req)) return;
 
         let body;
         try { body = await readJson(req, { maxBytes: 4 * 1024 }); }
@@ -341,11 +364,15 @@ async function deleteAccount(req, res) {
             return json(res, 200, { ok: true });
         }
         const ok = await verifyPassword(password, rows[0].password_hash);
-        if (!ok) return fail(res, 403, "Passwort ist falsch.");
+        if (!ok) {
+            securityEvent("account_delete_failure", req, { outcome: "bad_password", userId: auth.user.id });
+            return fail(res, 403, "Passwort ist falsch.");
+        }
 
         // ON DELETE CASCADE șterge automat sessions, activities, email_tokens.
         await sql`DELETE FROM users WHERE id = ${auth.user.id}`;
         appendCookie(res, clearSessionCookie(req));
+        securityEvent("account_deleted", req, { outcome: "ok", userId: auth.user.id });
         return json(res, 200, { ok: true });
     } catch (err) {
         return fail(res, 500, "Konto konnte nicht gelöscht werden.", err);

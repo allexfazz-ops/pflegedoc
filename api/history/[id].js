@@ -14,6 +14,7 @@ import { json, fail, methodNotAllowed } from "../../lib/http.mjs";
 import { requireAuth, requireCsrf, requireVerified } from "../../lib/auth.mjs";
 import { enforceRateLimit } from "../../lib/ratelimit.mjs";
 import { isUuid } from "../../lib/validate.mjs";
+import { securityEvent } from "../../lib/securitylog.mjs";
 
 const NOT_FOUND = "Eintrag nicht gefunden.";
 
@@ -38,21 +39,28 @@ export default async function handler(req, res) {
                 WHERE id = ${id} AND user_id = ${userId}
                 LIMIT 1
             `;
-            if (!rows.length) return fail(res, 404, NOT_FOUND);
+            if (!rows.length) {
+                // UUID valid dar nu aparține userului -> posibilă sondare IDOR.
+                securityEvent("foreign_resource_attempt", req, { outcome: "404", route: "/api/history/[id]", userId });
+                return fail(res, 404, NOT_FOUND);
+            }
             return json(res, 200, { item: rows[0] });
         }
 
         /* ----------------------------- DELETE ---------------------------- */
         if (!requireVerified(auth, res)) return;
         if (!requireCsrf(req, res, auth.session)) return;
-        if (await enforceRateLimit(res, `history_delete:user:${userId}`, 120, 3600)) return;
+        if (await enforceRateLimit(res, `history_delete:user:${userId}`, 120, 3600, req)) return;
 
         const rows = await sql`
             DELETE FROM activities
             WHERE id = ${id} AND user_id = ${userId}
             RETURNING id
         `;
-        if (!rows.length) return fail(res, 404, NOT_FOUND);
+        if (!rows.length) {
+            securityEvent("foreign_resource_attempt", req, { outcome: "404", route: "/api/history/[id]", userId });
+            return fail(res, 404, NOT_FOUND);
+        }
         return json(res, 200, { ok: true, id: rows[0].id });
     } catch (err) {
         return fail(res, 500, "Aktion derzeit nicht möglich.", err);

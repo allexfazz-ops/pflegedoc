@@ -1566,14 +1566,20 @@ async function callGemini(apiKey, userInput, opts) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
 
+    // Pentru apelul spre backend-ul propriu: trimitem tokenul CSRF de sesiune
+    // (același mecanism ca apiFetch), NU spre Google. localStorage neatins.
+    const reqHeaders = { "Content-Type": "application/json" };
+    const reqInit = { method: "POST", headers: reqHeaders, body: JSON.stringify(payload), signal: controller.signal };
+    if (useBackend) {
+        reqInit.credentials = 'same-origin';
+        if (typeof authState !== 'undefined' && authState.csrfToken) {
+            reqHeaders['X-CSRF-Token'] = authState.csrfToken;
+        }
+    }
+
     let response;
     try {
-        response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-            signal: controller.signal
-        });
+        response = await fetch(url, reqInit);
     } catch (netErr) {
         if (netErr.name === 'AbortError') {
             throw new Error('Zeitüberschreitung (' + Math.round(CONFIG.TIMEOUT_MS / 1000) +
@@ -1623,8 +1629,6 @@ async function callGemini(apiKey, userInput, opts) {
         }
         throw new Error('API-Fehler: ' + apiMsg);
     }
-
-    console.debug('Gemini raw response:', data);
 
     if (data.promptFeedback && data.promptFeedback.blockReason) {
         throw new Error('Anfrage vom Sicherheitsfilter blockiert: ' + data.promptFeedback.blockReason);
