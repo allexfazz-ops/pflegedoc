@@ -138,5 +138,13 @@
   "auth.reset.sub": "Choisissez un nouveau mot de passe.",
   "auth.reset.save": "Enregistrer le mot de passe",
   "auth.reset.done": "Mot de passe modifié. Reconnectez-vous.",
-  "auth.reset.missing": "Lien non valide. Demandez-en un nouveau."
+  "auth.reset.missing": "Lien non valide. Demandez-en un nouveau.",
+  "doc.outputlang": "Langue de sortie",
+  "doc.k.title": "Corriger le texte",
+  "doc.k.sub": "L’orthographe et la grammaire sont corrigées sans changer le contenu.",
+  "doc.k.ph": "Collez le texte à corriger sur le plan linguistique …",
+  "doc.k.generate": "Corriger le texte",
+  "doc.k.generate.loading": "Correction …",
+  "hist.type.dokumentation": "Documentation",
+  "hist.type.korrigierung": "Correction"
 }

@@ -7,10 +7,13 @@
  * (Project → Settings → Environment Variables) sau în `.env.local`
  * pentru rulare locală cu `vercel dev`.
  *
- * Request  (POST, JSON):  { "input": "...", "mode"?: "formulieren" | "korrigieren" | "uebersetzen" }
+ * Request  (POST, JSON):  { "input": "...", "mode"?: "formulieren" | "korrigieren" | "uebersetzen",
+ *                           "targetLang"?: "de" | "en" | "tr" | ... }
  *   - mode implicit: "formulieren" (übersetzen + professionell formulieren)
+ *   - targetLang: doar pentru "formulieren". Absent / "de" -> ieșire germană (comportament clasic).
+ *                 Alt cod -> documentația e redată în acea limbă (fidelitate neschimbată).
  * Response (JSON):
- *   200 -> { "text": "documentația în germană" }
+ *   200 -> { "text": "documentația (germană sau limba țintă)" }
  *   4xx/5xx -> { "error": "mesaj lizibil pentru UI" }
  * ------------------------------------------------------------------
  */
@@ -19,7 +22,15 @@
 const DEFAULT_MODEL = "gemini-3.6-flash";
 
 // Limită de siguranță pentru input (caractere). Protejează de abuz/costuri.
-const MAX_INPUT_CHARS = 6000;
+// 8000: o documentație existentă de tradus poate fi mai lungă decât o notiță brută.
+const MAX_INPUT_CHARS = 8000;
+
+// Coduri UI -> denumire germană a limbii (pentru instrucțiunea de limbă țintă).
+const LANG_NAMES = {
+    de: "Deutsch", en: "Englisch", fr: "Französisch", es: "Spanisch",
+    it: "Italienisch", pt: "Portugiesisch", pl: "Polnisch", tr: "Türkisch",
+    ro: "Rumänisch", ru: "Russisch", uk: "Ukrainisch", ar: "Arabisch"
+};
 
 // Timp maxim de așteptare pentru răspunsul Gemini.
 const UPSTREAM_TIMEOUT_MS = 55000;
@@ -207,7 +218,20 @@ export default async function handler(req, res) {
 
     // Mod de lucru: formulieren (implicit) | korrigieren | uebersetzen
     const mode = VALID_MODES.includes(body && body.mode) ? body.mode : "formulieren";
-    const systemPrompt = PROMPTS[mode];
+    let systemPrompt = PROMPTS[mode];
+
+    // Limbă țintă: doar pentru "formulieren". Cod valid și ≠ "de" -> instrucțiune
+    // adăugată DUPĂ regulile de fidelitate (le are prioritate doar pe cea de limbă).
+    const targetLang =
+        mode === "formulieren" && body && typeof body.targetLang === "string"
+            ? body.targetLang
+            : "";
+    if (targetLang && targetLang !== "de" && LANG_NAMES[targetLang]) {
+        systemPrompt += `
+
+AUSGABESPRACHE (Vorrang vor der SPRACHE-Regel oben)
+Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus, inklusive der Abschnitts-Überschriften. Alle Fakten, Zahlen, Messwerte, Eigennamen und Seitigkeit (links/rechts) bleiben unverändert. Keine Erfindungen, keine Erklärungen, kein zusätzlicher Text.`;
+    }
 
     const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;

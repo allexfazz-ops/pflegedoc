@@ -33,7 +33,7 @@ export default async function handler(req, res) {
         /* ------------------------------ GET ------------------------------ */
         if (req.method === "GET") {
             const rows = await sql`
-                SELECT id, type, input_text, input_language, mode, result_text, created_at
+                SELECT id, type, input_text, input_language, mode, result_text, output_language, created_at
                 FROM activities
                 WHERE id = ${id} AND user_id = ${userId}
                 LIMIT 1

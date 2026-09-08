@@ -138,5 +138,13 @@
   "auth.reset.sub": "Elige una nueva contraseña.",
   "auth.reset.save": "Guardar contraseña",
   "auth.reset.done": "Contraseña cambiada. Inicia sesión de nuevo.",
-  "auth.reset.missing": "Enlace no válido. Solicita uno nuevo."
+  "auth.reset.missing": "Enlace no válido. Solicita uno nuevo.",
+  "doc.outputlang": "Idioma de salida",
+  "doc.k.title": "Corregir texto",
+  "doc.k.sub": "Se corrigen la ortografía y la gramática sin cambiar el contenido.",
+  "doc.k.ph": "Pega el texto que se debe corregir lingüísticamente …",
+  "doc.k.generate": "Corregir texto",
+  "doc.k.generate.loading": "Corrigiendo …",
+  "hist.type.dokumentation": "Documentación",
+  "hist.type.korrigierung": "Corrección"
 }

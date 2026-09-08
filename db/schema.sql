@@ -102,6 +102,16 @@ CREATE TABLE IF NOT EXISTS activities (
 CREATE INDEX IF NOT EXISTS activities_user_created_idx
     ON activities (user_id, created_at DESC, id DESC);
 
+-- Migrare 2026-09-08-02: tip 'korrigierung' + limba de ieșire (traducere în Dokumentation).
+-- Blocuri idempotente (DROP IF EXISTS + ADD) — se pot rula de câte ori.
+ALTER TABLE activities DROP CONSTRAINT IF EXISTS activities_type;
+ALTER TABLE activities ADD  CONSTRAINT activities_type
+    CHECK (type IN ('dokumentation','pflegeplanung','korrigierung'));
+ALTER TABLE activities ADD COLUMN IF NOT EXISTS output_language text;  -- cod UI ('tr','ru', …) sau NULL
+ALTER TABLE activities DROP CONSTRAINT IF EXISTS activities_output_lang_len;
+ALTER TABLE activities ADD  CONSTRAINT activities_output_lang_len
+    CHECK (output_language IS NULL OR char_length(output_language) <= 12);
+
 -- -----------------------------------------------------------------------------
 -- rate_limits — contoare fixed-window pentru endpoint-uri sensibile
 -- bucket ex: 'login:ip:203.0.113.7', 'register:ip:…', 'delete:user:<uuid>'

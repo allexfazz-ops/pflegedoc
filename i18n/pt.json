@@ -138,5 +138,13 @@
   "auth.reset.sub": "Escolhe uma nova palavra-passe.",
   "auth.reset.save": "Guardar palavra-passe",
   "auth.reset.done": "Palavra-passe alterada. Inicia sessão novamente.",
-  "auth.reset.missing": "Link inválido. Pede um novo."
+  "auth.reset.missing": "Link inválido. Pede um novo.",
+  "doc.outputlang": "Idioma de saída",
+  "doc.k.title": "Corrigir texto",
+  "doc.k.sub": "A ortografia e a gramática são corrigidas sem alterar o conteúdo.",
+  "doc.k.ph": "Cola o texto a corrigir linguisticamente …",
+  "doc.k.generate": "Corrigir texto",
+  "doc.k.generate.loading": "A corrigir …",
+  "hist.type.dokumentation": "Documentação",
+  "hist.type.korrigierung": "Correção"
 }

@@ -567,6 +567,7 @@
     }
     .histitem > summary::-webkit-details-marker { display: none; }
     .histitem__when { font-size: .78rem; color: var(--text-faint); font-weight: 600; }
+    .histitem__tag { font-size: .72rem; font-weight: 700; color: var(--accent-strong); text-transform: uppercase; letter-spacing: .02em; }
     .histitem__snip { font-size: .93rem; color: var(--text); }
     .histitem__body { padding: 0 14px 14px; }
     .histitem__text {
@@ -736,12 +737,6 @@
             <button class="tile" type="button" data-nav-go="korrigieren">
                 <svg class="ic"><use href="#ic-edit"/></svg>
                 <span class="tile__name" data-i18n="tile.korrigieren">Korrigieren</span>
-                <span class="tile__tag" data-i18n="tag.soon">In Vorbereitung</span>
-            </button>
-            <button class="tile" type="button" data-nav-go="uebersetzen">
-                <svg class="ic"><use href="#ic-globe"/></svg>
-                <span class="tile__name" data-i18n="tile.uebersetzen">Übersetzen</span>
-                <span class="tile__tag" data-i18n="tag.soon">In Vorbereitung</span>
             </button>
             <button class="tile" type="button" data-nav-go="verlauf">
                 <svg class="ic"><use href="#ic-history"/></svg>
@@ -775,6 +770,10 @@
                         <option value="ru-RU" data-i18n="lang.ru">Russisch</option>
                         <option value="tr-TR" data-i18n="lang.tr">Türkisch</option>
                     </select>
+                </div>
+                <div class="field" id="outputLangRow">
+                    <label class="field__label" for="outputLanguage" data-i18n="doc.outputlang">Ausgabesprache</label>
+                    <select id="outputLanguage" class="select"></select>
                 </div>
                 <button id="clearBtn" class="btn btn--subtle" type="button" onclick="clearInput()">
                     <svg class="ic"><use href="#ic-trash"/></svg> <span data-i18n="doc.clear">Leeren</span>
@@ -853,27 +852,7 @@
         </div>
     </section>
 
-    <!-- ===================== KORRIGIEREN (Platzhalter) ===================== -->
-    <section id="screen-korrigieren" class="screen" aria-labelledby="korr-h" hidden>
-        <div class="screen__head"><h1 id="korr-h" tabindex="-1" data-i18n="tile.korrigieren">Korrigieren</h1></div>
-        <div class="empty">
-            <svg class="ic ic--xl"><use href="#ic-edit"/></svg>
-            <p class="empty__title" data-i18n="soon.title">In Vorbereitung</p>
-            <p class="empty__text" data-i18n="korr.soon.text">Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
-        </div>
-    </section>
-
-    <!-- ===================== ÜBERSETZEN (Platzhalter) ===================== -->
-    <section id="screen-uebersetzen" class="screen" aria-labelledby="ueb-h" hidden>
-        <div class="screen__head"><h1 id="ueb-h" tabindex="-1" data-i18n="tile.uebersetzen">Übersetzen</h1></div>
-        <div class="empty">
-            <svg class="ic ic--xl"><use href="#ic-globe"/></svg>
-            <p class="empty__title" data-i18n="soon.title">In Vorbereitung</p>
-            <p class="empty__text" data-i18n="ueb.soon.text">Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
-        </div>
-    </section>
+    <!-- Korrigieren + Übersetzen refolosesc #screen-doc (moduri) — vezi applyDocMode(). -->
 
     <!-- ===================== VERLAUF ===================== -->
     <section id="screen-verlauf" class="screen" aria-labelledby="verlauf-h" hidden>
@@ -1359,7 +1338,9 @@ async function generateDoc() {
     setLoading(true);
 
     try {
-        const text = await callGemini(apiKey, userInput);
+        const outSel = document.getElementById('outputLanguage');
+        const targetLang = (currentDocMode === 'formulieren' && outSel) ? outSel.value : 'de';
+        const text = await callGemini(apiKey, userInput, { mode: currentDocMode, targetLang: targetLang });
         finishProcessingSteps();
 
         document.getElementById('originalText').textContent = userInput;
@@ -1388,14 +1369,21 @@ async function generateDoc() {
     A) BACKEND  (implicit): POST { input } -> /api/generate  => { text } / { error }
     B) DIRECT   (fallback): cheie proprie -> Gemini direct din browser
 */
-async function callGemini(apiKey, userInput) {
+async function callGemini(apiKey, userInput, opts) {
+    opts = opts || {};
     const useBackend = CONFIG.BACKEND_ENDPOINT && !apiKey;
     let url, payload;
 
     if (useBackend) {
         url = CONFIG.BACKEND_ENDPOINT;
         payload = { input: userInput };
+        if (opts.mode && opts.mode !== 'formulieren') payload.mode = opts.mode;
+        if ((!opts.mode || opts.mode === 'formulieren') && opts.targetLang && opts.targetLang !== 'de') {
+            payload.targetLang = opts.targetLang;
+        }
     } else {
+        // Mod DIRECT (cheie proprie): doar documentația clasică germană.
+        // Korrigieren / traducerea rulează exclusiv prin backend.
         url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
         payload = {
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
@@ -1604,8 +1592,9 @@ function finishProcessingSteps() {
 }
 
 function setLoading(loading) {
+    const k = currentDocMode === 'korrigieren' ? 'doc.k' : 'doc';
     generateBtn.disabled = loading;
-    generateBtn.textContent = loading ? t('doc.generate.loading') : t('doc.generate');
+    generateBtn.textContent = loading ? t(k + '.generate.loading') : t(k + '.generate');
     const proc = document.getElementById('processing');
     const form = document.getElementById('docForm');
     if (loading) {
@@ -1712,14 +1701,18 @@ async function acceptDoc() {
     if (typeof authState !== 'undefined' && authState.authenticated) {
         try {
             const langEl = document.getElementById('inputLanguage');
+            const outEl = document.getElementById('outputLanguage');
+            const isKorr = currentDocMode === 'korrigieren';
+            const outLang = (!isKorr && outEl && outEl.value && outEl.value !== 'de') ? outEl.value : null;
             await apiFetch('/api/history', {
                 method: 'POST',
                 body: {
-                    type: 'dokumentation',
+                    type: isKorr ? 'korrigierung' : 'dokumentation',
                     input_text: original || '(kein Text)',
                     result_text: improved,
                     input_language: langEl ? langEl.value : null,
-                    mode: 'formulieren'
+                    mode: currentDocMode,
+                    output_language: outLang
                 }
             });
             toast('success', t('toast.accepted'));
@@ -1857,8 +1850,7 @@ const ROUTES = {
     home:          { screen: 'screen-home',          title: 'Start',             nav: 'home' },
     doc:           { screen: 'screen-doc',           title: 'Neue Dokumentation', nav: 'doc' },
     plan:          { screen: 'screen-plan',          title: 'Pflegeplanung',     nav: 'plan' },
-    korrigieren:   { screen: 'screen-korrigieren',   title: 'Korrigieren',       nav: null },
-    uebersetzen:   { screen: 'screen-uebersetzen',   title: 'Übersetzen',        nav: null },
+    korrigieren:   { screen: 'screen-doc',           title: 'Text korrigieren',  nav: 'doc' },
     verlauf:       { screen: 'screen-verlauf',       title: 'Verlauf',           nav: 'verlauf' },
     einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
     login:         { screen: 'screen-login',         title: 'Anmelden',          nav: null },
@@ -1872,6 +1864,31 @@ function currentRouteKey() {
     const h = location.hash.replace(/^#\/?/, '').trim();
     return ROUTES[h] ? h : 'home';
 }
+
+/* ---- Modul ecranului Dokumentation: formulieren (implicit) | korrigieren ----
+   Übersetzen NU e mod separat: se face din selectorul „Ausgabesprache" în
+   modul formulieren. Korrigieren doar netezește limba, fără restructurare. */
+let currentDocMode = 'formulieren';
+const DOC_MODE_I18N = {
+    formulieren: { title: 'doc.title',   sub: 'doc.sub',   ph: 'doc.note.ph', gen: 'doc.generate' },
+    korrigieren: { title: 'doc.k.title', sub: 'doc.k.sub', ph: 'doc.k.ph',    gen: 'doc.k.generate' }
+};
+function applyDocMode(mode) {
+    currentDocMode = (mode === 'korrigieren') ? 'korrigieren' : 'formulieren';
+    const m = DOC_MODE_I18N[currentDocMode];
+    const h   = document.getElementById('doc-h');
+    const sub = document.querySelector('#screen-doc .screen__sub');
+    const ta  = document.getElementById('userInput');
+    const gb  = document.getElementById('generateBtn');
+    if (h)   h.dataset.i18n = m.title;
+    if (sub) sub.dataset.i18n = m.sub;
+    if (ta)  ta.dataset.i18nPh = m.ph;
+    if (gb)  gb.dataset.i18n = m.gen;
+    const row = document.getElementById('outputLangRow');
+    if (row) row.hidden = (currentDocMode !== 'formulieren');
+    applyI18n();
+}
+
 function route() {
     let key = currentRouteKey();
 
@@ -1910,6 +1927,7 @@ function route() {
     if (vbEl) vbEl.hidden = !(authed && !verified && key !== 'verify');
 
     const r = ROUTES[key];
+    if (r.screen === 'screen-doc') applyDocMode(key === 'korrigieren' ? 'korrigieren' : 'formulieren');
     document.querySelectorAll('.screen').forEach(s => { s.hidden = (s.id !== r.screen); });
     document.querySelectorAll('[data-nav]').forEach(a => {
         const on = a.dataset.nav === r.nav;
@@ -1991,7 +2009,11 @@ const I18N = {
         'doc.title': 'Neue Dokumentation', 'doc.sub': 'Beschreibe kurz, was passiert ist.',
         'doc.note.label': 'Deine Notiz',
         'doc.note.ph': 'Zum Beispiel:\nHerr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen.',
-        'doc.inputlang': 'Eingabesprache',
+        'doc.inputlang': 'Eingabesprache', 'doc.outputlang': 'Ausgabesprache',
+        'doc.k.title': 'Text korrigieren',
+        'doc.k.sub': 'Rechtschreibung und Grammatik werden korrigiert, ohne den Inhalt zu ändern.',
+        'doc.k.ph': 'Text einfügen, der sprachlich korrigiert werden soll …',
+        'doc.k.generate': 'Text korrigieren', 'doc.k.generate.loading': 'Wird korrigiert …',
         'lang.ro': 'Rumänisch', 'lang.de': 'Deutsch', 'lang.en': 'Englisch',
         'lang.es': 'Spanisch', 'lang.ru': 'Russisch', 'lang.tr': 'Türkisch',
         'doc.clear': 'Leeren', 'doc.voice': 'Spracheingabe',
@@ -2014,6 +2036,7 @@ const I18N = {
         'verlauf.sub.account': 'Übernommene Dokumentationen – in deinem Konto gespeichert.',
         'hist.more': 'Mehr laden', 'hist.copy': 'Kopieren', 'hist.delete': 'Löschen',
         'hist.confirmDelete': 'Diesen Eintrag löschen?',
+        'hist.type.dokumentation': 'Dokumentation', 'hist.type.korrigierung': 'Korrektur',
         'settings.title': 'Einstellungen', 'settings.uilang': 'Sprache der Oberfläche',
         'settings.name': 'Dein Name (für die Begrüßung)', 'settings.name.ph': 'z. B. Alexandru',
         'settings.theme': 'Darstellung', 'theme.system': 'System', 'theme.light': 'Hell', 'theme.dark': 'Dunkel',
@@ -2092,7 +2115,11 @@ const I18N = {
         'doc.title': 'New documentation', 'doc.sub': 'Briefly describe what happened.',
         'doc.note.label': 'Your note',
         'doc.note.ph': 'For example:\nMr Müller complained of pain in his right knee this morning. Blood pressure 150/95. Medication given and assisted with mobilisation.',
-        'doc.inputlang': 'Input language',
+        'doc.inputlang': 'Input language', 'doc.outputlang': 'Output language',
+        'doc.k.title': 'Correct text',
+        'doc.k.sub': 'Spelling and grammar are corrected without changing the content.',
+        'doc.k.ph': 'Paste the text to be corrected linguistically …',
+        'doc.k.generate': 'Correct text', 'doc.k.generate.loading': 'Correcting …',
         'lang.ro': 'Romanian', 'lang.de': 'German', 'lang.en': 'English',
         'lang.es': 'Spanish', 'lang.ru': 'Russian', 'lang.tr': 'Turkish',
         'doc.clear': 'Clear', 'doc.voice': 'Voice input',
@@ -2115,6 +2142,7 @@ const I18N = {
         'verlauf.sub.account': 'Accepted documentation – stored in your account.',
         'hist.more': 'Load more', 'hist.copy': 'Copy', 'hist.delete': 'Delete',
         'hist.confirmDelete': 'Delete this entry?',
+        'hist.type.dokumentation': 'Documentation', 'hist.type.korrigierung': 'Correction',
         'settings.title': 'Settings', 'settings.uilang': 'Interface language',
         'settings.name': 'Your name (for the greeting)', 'settings.name.ph': 'e.g. Alexandru',
         'settings.theme': 'Appearance', 'theme.system': 'System', 'theme.light': 'Light', 'theme.dark': 'Dark',
@@ -2193,7 +2221,11 @@ const I18N = {
         'doc.title': 'Documentație nouă', 'doc.sub': 'Descrie pe scurt ce s-a întâmplat.',
         'doc.note.label': 'Nota ta',
         'doc.note.ph': 'De exemplu:\nDomnul Müller a acuzat azi dimineață dureri la genunchiul drept. Tensiune 150/95. I s-au administrat medicamentele și a fost ajutat la mobilizare.',
-        'doc.inputlang': 'Limba de intrare',
+        'doc.inputlang': 'Limba de intrare', 'doc.outputlang': 'Limba de ieșire',
+        'doc.k.title': 'Corectează textul',
+        'doc.k.sub': 'Se corectează ortografia și gramatica, fără a schimba conținutul.',
+        'doc.k.ph': 'Lipește textul care trebuie corectat lingvistic …',
+        'doc.k.generate': 'Corectează textul', 'doc.k.generate.loading': 'Se corectează …',
         'lang.ro': 'Română', 'lang.de': 'Germană', 'lang.en': 'Engleză',
         'lang.es': 'Spaniolă', 'lang.ru': 'Rusă', 'lang.tr': 'Turcă',
         'doc.clear': 'Golește', 'doc.voice': 'Dictare',
@@ -2216,6 +2248,7 @@ const I18N = {
         'verlauf.sub.account': 'Documentații preluate – salvate în contul tău.',
         'hist.more': 'Încarcă mai multe', 'hist.copy': 'Copiază', 'hist.delete': 'Șterge',
         'hist.confirmDelete': 'Ștergi această intrare?',
+        'hist.type.dokumentation': 'Documentație', 'hist.type.korrigierung': 'Corectură',
         'settings.title': 'Setări', 'settings.uilang': 'Limba interfeței',
         'settings.name': 'Numele tău (pentru salut)', 'settings.name.ph': 'ex. Alexandru',
         'settings.theme': 'Aspect', 'theme.system': 'Sistem', 'theme.light': 'Luminos', 'theme.dark': 'Întunecat',
@@ -2322,11 +2355,19 @@ function applyI18n() {
         if (!sel.options.length) LOCALES.forEach(l => sel.add(new Option(l.name, l.code)));
         sel.value = loc;
     });
+    // Selectorul limbii de ieșire (traducere) — NU are data-lang-select: nu schimbă limba UI.
+    const outSel = document.getElementById('outputLanguage');
+    if (outSel && !outSel.options.length) {
+        LOCALES.forEach(l => outSel.add(new Option(l.name, l.code)));
+        let saved = 'de';
+        try { saved = getStore('pflegedoc_output_lang') || 'de'; } catch (e) {}
+        outSel.value = LOCALE_CODES.includes(saved) ? saved : 'de';
+    }
     updateGreeting();
     applyAuthUI();
     // reflectă butonul de generare / editare dacă sunt vizibile
     if (typeof generateBtn !== 'undefined' && generateBtn && !generateBtn.disabled) {
-        generateBtn.textContent = t('doc.generate');
+        generateBtn.textContent = t(currentDocMode === 'korrigieren' ? 'doc.k.generate' : 'doc.generate');
     }
 }
 function setLocale(code) {
@@ -2342,6 +2383,9 @@ function setLocale(code) {
 document.addEventListener('change', (e) => {
     const sel = e.target.closest('[data-lang-select]');
     if (sel) setLocale(sel.value);
+    if (e.target && e.target.id === 'outputLanguage') {
+        try { setStore('pflegedoc_output_lang', e.target.value); } catch (err) {}
+    }
 });
 
 /* ---- API client ---- */
@@ -2665,13 +2709,21 @@ function buildHistItemRemote(it) {
     try { when = new Date(it.created_at).toLocaleString(localeTag(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
     catch (e) { when = String(it.created_at).slice(0, 16).replace('T', ' '); }
     el.innerHTML =
-        '<summary><span class="histitem__when"></span><span class="histitem__snip"></span></summary>' +
+        '<summary><span class="histitem__when"></span><span class="histitem__tag" hidden></span><span class="histitem__snip"></span></summary>' +
         '<div class="histitem__body"><pre class="histitem__text">…</pre>' +
         '<div class="histitem__actions">' +
         '<button class="btn btn--subtle btn--sm" type="button" data-copy><svg class="ic"><use href="#ic-copy"/></svg> <span></span></button>' +
         '<button class="btn btn--subtle btn--sm" type="button" data-del><svg class="ic"><use href="#ic-trash"/></svg> <span></span></button>' +
         '</div></div>';
     el.querySelector('.histitem__when').textContent = when;
+    const tagEl = el.querySelector('.histitem__tag');
+    const typeKeys = { dokumentation: 'hist.type.dokumentation', korrigierung: 'hist.type.korrigierung', pflegeplanung: 'tile.plan' };
+    let label = typeKeys[it.type] ? t(typeKeys[it.type]) : '';
+    if (label && it.output_language && it.output_language !== 'de') {
+        const lo = LOCALES.find(l => l.code === it.output_language);
+        label += ' → ' + (lo ? lo.name : it.output_language);
+    }
+    if (label) { tagEl.textContent = label; tagEl.hidden = false; }
     el.querySelector('.histitem__snip').textContent = it.preview || '';
     el.querySelector('[data-copy] span').textContent = t('hist.copy');
     el.querySelector('[data-del] span').textContent = t('hist.delete');

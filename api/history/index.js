@@ -13,7 +13,7 @@ import { ensureSchema, sql } from "../../lib/db.mjs";
 import { json, fail, methodNotAllowed, readJson } from "../../lib/http.mjs";
 import { requireAuth, requireCsrf, requireVerified } from "../../lib/auth.mjs";
 import { enforceRateLimit } from "../../lib/ratelimit.mjs";
-import { ACTIVITY_TYPES, MODES, inEnum, requireText, optLangCode } from "../../lib/validate.mjs";
+import { ACTIVITY_TYPES, MODES, inEnum, requireText, optLangCode, outLang } from "../../lib/validate.mjs";
 
 const MAX_INPUT = 20000;
 const MAX_RESULT = 40000;
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
 
             const rows = cursor
                 ? await sql`
-                    SELECT id, type, created_at, result_text
+                    SELECT id, type, output_language, created_at, result_text
                     FROM activities
                     WHERE user_id = ${userId}
                       AND (created_at, id) < (${cursor.ts}::timestamptz, ${cursor.id}::uuid)
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
                     LIMIT ${limit + 1}
                   `
                 : await sql`
-                    SELECT id, type, created_at, result_text
+                    SELECT id, type, output_language, created_at, result_text
                     FROM activities
                     WHERE user_id = ${userId}
                     ORDER BY created_at DESC, id DESC
@@ -78,6 +78,7 @@ export default async function handler(req, res) {
                 items: page.map((r) => ({
                     id: r.id,
                     type: r.type,
+                    output_language: r.output_language,
                     created_at: r.created_at,
                     preview: preview(r.result_text),
                 })),
@@ -110,10 +111,12 @@ export default async function handler(req, res) {
         }
         const lang = optLangCode(body.input_language);
         if (!lang.ok) return fail(res, 400, lang.error);
+        const oLang = outLang(body.output_language);
+        if (!oLang.ok) return fail(res, 400, oLang.error);
 
         const rows = await sql`
-            INSERT INTO activities (user_id, type, input_text, input_language, mode, result_text)
-            VALUES (${userId}, ${body.type}, ${inp.value}, ${lang.value}, ${mode}, ${out.value})
+            INSERT INTO activities (user_id, type, input_text, input_language, mode, result_text, output_language)
+            VALUES (${userId}, ${body.type}, ${inp.value}, ${lang.value}, ${mode}, ${out.value}, ${oLang.value})
             RETURNING id, created_at
         `;
         return json(res, 201, { ok: true, id: rows[0].id, created_at: rows[0].created_at });

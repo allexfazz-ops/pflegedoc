@@ -138,5 +138,13 @@
   "auth.reset.sub": "اختر كلمة مرور جديدة لحسابك.",
   "auth.reset.save": "حفظ كلمة المرور",
   "auth.reset.done": "تم تغيير كلمة المرور. سجّل الدخول من جديد.",
-  "auth.reset.missing": "رابط غير صالح. اطلب رابطًا جديدًا."
+  "auth.reset.missing": "رابط غير صالح. اطلب رابطًا جديدًا.",
+  "doc.outputlang": "لغة الإخراج",
+  "doc.k.title": "تصحيح النص",
+  "doc.k.sub": "يتم تصحيح الإملاء والقواعد دون تغيير المحتوى.",
+  "doc.k.ph": "الصق النص المطلوب تصحيحه لغويًا …",
+  "doc.k.generate": "تصحيح النص",
+  "doc.k.generate.loading": "جارٍ التصحيح …",
+  "hist.type.dokumentation": "التوثيق",
+  "hist.type.korrigierung": "تصحيح"
 }

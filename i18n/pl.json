@@ -138,5 +138,13 @@
   "auth.reset.sub": "Wybierz nowe hasło do konta.",
   "auth.reset.save": "Zapisz hasło",
   "auth.reset.done": "Hasło zmienione. Zaloguj się ponownie.",
-  "auth.reset.missing": "Nieprawidłowy link. Poproś o nowy."
+  "auth.reset.missing": "Nieprawidłowy link. Poproś o nowy.",
+  "doc.outputlang": "Język wyjściowy",
+  "doc.k.title": "Popraw tekst",
+  "doc.k.sub": "Pisownia i gramatyka są poprawiane bez zmiany treści.",
+  "doc.k.ph": "Wklej tekst do poprawy językowej …",
+  "doc.k.generate": "Popraw tekst",
+  "doc.k.generate.loading": "Poprawianie …",
+  "hist.type.dokumentation": "Dokumentacja",
+  "hist.type.korrigierung": "Korekta"
 }

@@ -56,7 +56,7 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 
 | Endpoint | Metode | Auth | Note |
 |---|---|---|---|
-| `/api/generate` | POST | nu | proxy Gemini; rate limit 40/h/IP |
+| `/api/generate` | POST | da (sesiune + e-mail confirmat) | proxy Gemini; rate limit 40/h/IP; body `{ input, mode?, targetLang? }` — `mode`: `formulieren` (implicit) / `korrigieren`; `targetLang` (doar `formulieren`): cod UI ≠ `de` ⇒ documentația e redată în acea limbă |
 | `/api/health` | GET | nu | doar stare schemă, fără detalii sensibile |
 | `/api/auth/*` | — | — | toate rutele de mai jos merg prin **un singur** fișier `api/auth/[action].js` (limită Vercel Hobby: 12 funcții) |
 | `/api/auth/register` | POST | nu | rate limit IP; nu confirmă existența e-mailului; trimite e-mail de verificare |
@@ -79,7 +79,9 @@ users(id, email UNIQUE, password_hash, email_verified, email_verified_at,
 sessions(id, user_id →users ON DELETE CASCADE, token_hash UNIQUE, csrf_token,
          created_at, last_seen_at, expires_at, user_agent, ip)
 activities(id, user_id →users ON DELETE CASCADE, type, input_text, input_language,
-           mode, result_text, created_at)            -- index (user_id, created_at DESC)
+           mode, result_text, output_language, created_at)   -- index (user_id, created_at DESC)
+           -- type: 'dokumentation' | 'pflegeplanung' | 'korrigierung'
+           -- output_language: cod UI ('tr','ru',…) când documentația a fost tradusă, altfel NULL
 email_tokens(id, user_id →users ON DELETE CASCADE, token_hash UNIQUE, purpose,
              created_at, expires_at, used_at)          -- purpose: verify_email | reset_password
 rate_limits(bucket, window_start, count)              -- PK (bucket, window_start)
@@ -165,7 +167,8 @@ security review. **Nicio aplicație nu poate garanta securitate absolută.**
 
 - [ ] Verificare traduceri de către vorbitori nativi (9 limbi `_reviewed: false`)
 - [ ] Ștergere Dokumentation / cont / toate datele (schema deja pregătită)
-- [ ] Korrigieren / Übersetzen (backend acceptă deja `mode`)
+- [x] Korrigieren / Übersetzen — Korrigieren = mod pe ecranul Dokumentation;
+      Übersetzen = selectorul „Ausgabesprache" (limba de ieșire) pe același ecran
 - [ ] Stripe (abonament) + webhook
 - [ ] Export (PDF / text)
 - [ ] PWA (instalare pe telefon)

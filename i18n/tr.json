@@ -138,5 +138,13 @@
   "auth.reset.sub": "Hesabın için yeni bir şifre seç.",
   "auth.reset.save": "Şifreyi kaydet",
   "auth.reset.done": "Şifre değiştirildi. Lütfen yeniden giriş yap.",
-  "auth.reset.missing": "Geçersiz bağlantı. Yeni bir tane iste."
+  "auth.reset.missing": "Geçersiz bağlantı. Yeni bir tane iste.",
+  "doc.outputlang": "Çıkış dili",
+  "doc.k.title": "Metni düzelt",
+  "doc.k.sub": "Yazım ve dil bilgisi, içerik değiştirilmeden düzeltilir.",
+  "doc.k.ph": "Dil açısından düzeltilecek metni yapıştır …",
+  "doc.k.generate": "Metni düzelt",
+  "doc.k.generate.loading": "Düzeltiliyor …",
+  "hist.type.dokumentation": "Dokümantasyon",
+  "hist.type.korrigierung": "Düzeltme"
 }
