@@ -121,6 +121,22 @@ inițiale/Kürzel — DSGVO). Fluxul:
   `patient_id`; cea mai recentă pentru un pacient = planul curent.
 - `#/verlauf` rămâne DOAR pentru Dokumentation + Korrektur.
 
+## Instalare ca aplicație (PWA)
+
+`manifest.webmanifest` + `icon.svg` + meta-urile din `<head>` fac aplicația
+instalabilă, fără store și fără wrapper nativ:
+
+- **Telefon** (Android Chrome / iOS Safari): meniu → „Zum Startbildschirm hinzufügen".
+  Se deschide pe tot ecranul, cu iconiță proprie.
+- **PC** (Chrome / Edge): în bara de adrese apare „PflegeDoc installieren" → fereastră
+  proprie + iconiță în taskbar/Start.
+
+Fără service worker (deliberat): aplicația se redeployează des pe Vercel, iar un
+cache de `index.html` ar servi cod vechi. Instalabilitatea funcționează și fără SW.
+
+Iconiță: `icon.svg` (vectorial, merge pe Android/desktop/Chrome/Firefox și iOS ≥ 16.4).
+Pentru iOS mai vechi, adaugă opțional `apple-touch-icon.png` (180×180) în rădăcină.
+
 ## Temă
 
 Light / Dark / System. Preferința → `localStorage` (neautentificat) sau contul

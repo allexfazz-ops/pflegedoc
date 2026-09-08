@@ -1,0 +1,16 @@
+{
+  "name": "PflegeDoc",
+  "short_name": "PflegeDoc",
+  "description": "Notizen – getippt oder diktiert – in professionelle deutsche Pflegedokumentation und Pflegeplanung überführen.",
+  "lang": "de",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7f8",
+  "theme_color": "#0e7490",
+  "categories": ["medical", "productivity", "health"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
