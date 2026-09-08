@@ -256,6 +256,14 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Methode nicht erlaubt. Bitte POST verwenden." });
     }
 
+    // Respinge rapid corpurile evident supradimensionate ÎNAINTE de orice lucru
+    // (DB / auth / rate limit). Input-ul util e <= 8000 caractere (~<= 24 KB JSON);
+    // 64 KB e cu marjă generoasă. Nu incomodează utilizarea normală.
+    const contentLength = Number(req.headers["content-length"] || 0);
+    if (contentLength > 64 * 1024) {
+        return res.status(413).json({ error: "Anfrage zu groß." });
+    }
+
     // --- Guard: cont autentificat + e-mail confirmat + CSRF + rate limit (IP & cont).
     //     NU atinge logica engine-ului (prompt / Gemini / parsare).
     //

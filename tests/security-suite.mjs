@@ -242,6 +242,46 @@ section("FIX 8 — fără leakage de token / patient / AI în loguri");
 }
 
 /* ---------------------------------------------------------------------------
+   VERIFICARE FINALĂ (pass 2) — CORS footgun, limită body, log hygiene index.html
+   --------------------------------------------------------------------------- */
+section("Pass 2 — CORS dead code eliminat");
+{
+    const httpSrc = read("lib/http.mjs");
+    ok("`export function cors(` eliminat din lib/http.mjs", !/export function cors\(/.test(httpSrc));
+    ok("nicio reflectare Origin + Allow-Credentials rămasă", !/Access-Control-Allow-Origin.*headers\.origin/.test(httpSrc));
+    let allApi = "";
+    for (const f of ["api/generate.js", "api/health.js", "api/settings.js", "api/auth/[action].js",
+        "api/history/index.js", "api/history/[id].js", "api/patients/index.js", "api/patients/[id].js"]) allApi += read(f);
+    ok("niciun endpoint nu setează Access-Control-Allow-Origin dinamic/credentials",
+        !/Access-Control-Allow-Origin/.test(allApi.replace(/Access-Control-Allow-Methods/g, "")) || !/Allow-Credentials/.test(allApi));
+}
+
+section("Pass 2 — /api/generate: limită de body");
+{
+    const gen = read("api/generate.js");
+    ok("respinge rapid corpurile > 64 KB (content-length) înainte de DB/auth",
+        /content-length[\s\S]{0,120}64 \* 1024[\s\S]{0,80}413/.test(gen));
+    ok("guard-ul de body e ÎNAINTE de importul lib/db.mjs",
+        gen.indexOf('64 * 1024') > 0 && gen.indexOf('64 * 1024') < gen.indexOf('await import("../lib/db.mjs")'));
+}
+
+section("Pass 2 — index.html fără console.*");
+{
+    const html = read("index.html");
+    const cons = html.match(/console\.(log|error|warn|info|debug)\s*\(/g) || [];
+    ok("ZERO console.* în index.html (dev-token console eliminat)", cons.length === 0, cons.join(", "));
+    ok("toast-urile de dev rămân (verify.devlink / auth.forgot.devlink)",
+        /t\('verify\.devlink'\)/.test(html) && /t\('auth\.forgot\.devlink'\)/.test(html));
+}
+
+section("Pass 2 — health.js nu face dump al obiectului de eroare");
+{
+    const h = read("api/health.js");
+    ok("console.error din health loghează doar err.message scurtat, nu `err`",
+        /console\.error\("\[health\]", err && err\.message/.test(h) && !/console\.error\("\[health\]", err\)/.test(h));
+}
+
+/* ---------------------------------------------------------------------------
    PRIVACY BOUNDARY — /api/generate trimite doar req.body.input
    --------------------------------------------------------------------------- */
 section("Privacy boundary — contextul AI rămâne minimal");

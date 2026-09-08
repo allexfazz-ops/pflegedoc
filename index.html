@@ -2916,8 +2916,9 @@ if (registerForm) registerForm.addEventListener('submit', async (e) => {
             applyTheme(); applyI18n();
             await migrateLocalHistory();
             toast('success', t('toast.registered'));
+            // devVerifyUrl e trimis de server DOAR în afara producției (link în
+            // logul serverului dev). Aici nu-l mai afișăm în consola browserului.
             if (d.devVerifyUrl) {
-                console.log('[PflegeDoc] Bestätigungslink (dev):', d.devVerifyUrl);
                 toast('info', t('verify.devlink'));
             } else if (d.emailSent) {
                 toast('info', t('verify.sent'));
@@ -2984,7 +2985,6 @@ if (forgotForm) forgotForm.addEventListener('submit', async (e) => {
             body: { email: document.getElementById('forgotEmail').value.trim() }
         });
         if (d.devResetUrl) {
-            console.log('[PflegeDoc] Reset-Link (dev):', d.devResetUrl);
             toast('info', t('auth.forgot.devlink'));
         } else {
             toast('success', t('auth.forgot.done'));
@@ -3051,9 +3051,7 @@ document.addEventListener('click', async (e) => {
     btn.disabled = true;
     try {
         const d = await apiFetch('/api/auth/resend-verification', { method: 'POST' });
-        if (d.emailError) console.warn('[PflegeDoc] E-Mail-Fehler:', d.emailError);
         if (d.devVerifyUrl) {
-            console.log('[PflegeDoc] Bestätigungslink (dev):', d.devVerifyUrl);
             toast('info', t('verify.devlink'));
         } else if (d.emailSent) {
             toast('success', t('verify.resent'));

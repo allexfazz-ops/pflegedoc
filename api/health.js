@@ -43,7 +43,8 @@ export default async function handler(req, res) {
             tableCount: present.length,
         });
     } catch (err) {
-        console.error("[health]", err);
+        // Doar mesajul, scurtat — fără dump complet al obiectului de eroare.
+        console.error("[health]", err && err.message ? String(err.message).slice(0, 200) : "error");
         return res.status(500).json({ ok: false, ready: false, error: "Health-Check fehlgeschlagen." });
     }
 }
