@@ -170,22 +170,32 @@ Pflegemaßnahmen:
 Evaluation:
 <nur wenn ein Überprüfungsdatum oder ein Ergebnis genannt wurde>`
         : `DOKUMENTATIONSMODELL: STRUKTURMODELL – MASSNAHMENPLAN
-Struktur je Eintrag – Überschriften genau so:
+Die sechs SIS-Themenfelder: Kognition und Kommunikation; Mobilität und Bewegung; Krankheitsbezogene Anforderungen und Belastungen; Selbstversorgung; Leben in sozialen Beziehungen; Wohnen bzw. Haushaltsführung.
 
-Themenfeld:
-<eines der SIS-Themenfelder, wenn zuordenbar (Kognition und Kommunikation; Mobilität und Bewegung; Krankheitsbezogene Anforderungen und Belastungen; Selbstversorgung; Leben in sozialen Beziehungen; Wohnen bzw. Haushaltsführung); sonst weglassen>
+TEIL 1 – GEPLANTE EINTRÄGE
+Für jedes Themenfeld, zu dem die Pflegekraft Angaben gemacht hat, ein Block – Überschriften genau so:
 
+Themenfeld: <Name des Themenfelds>
 Fähigkeiten / Bedarf:
 <was die Person kann und wobei sie Unterstützung braucht – nur Genanntes>
-
 Maßnahmen:
 - <konkrete Maßnahme, je Zeile eine; Häufigkeit/Zeitpunkt nur wenn genannt>
-
 Angestrebtes Ergebnis:
 <nur wenn genannt; überprüfbar, ohne erfundene Werte oder Fristen>
-
 Evaluation:
-<nur wenn ein Termin oder Ergebnis genannt wurde>`;
+<nur wenn ein Termin oder Ergebnis genannt wurde>
+
+TEIL 2 – OFFENE THEMENFELDER
+Danach die Überschrift „Noch zu erheben:“ und darunter JEDES Themenfeld, zu dem KEINE Angaben vorliegen, als eigene Zeile im Format:
+- <Themenfeld>: keine Angaben – z. B. <ein bis zwei typische Informationen für dieses Themenfeld>
+Typische Informationen je Themenfeld (als Beispiel, NICHT als Behauptung übernehmen):
+Kognition und Kommunikation: Orientierung, Gedächtnis, Verständigung, Seh-/Hörhilfen.
+Mobilität und Bewegung: Gehstrecke, Transfer, Sturzrisiko, Hilfsmittel, Lagerung.
+Krankheitsbezogene Anforderungen und Belastungen: Erkrankungen, Medikamente, Schmerz, Wunden, Vitalzeichen, Prophylaxen, Arzttermine.
+Selbstversorgung: Körperpflege, Kleiden, Essen und Trinken, Ausscheidung/Kontinenz.
+Leben in sozialen Beziehungen: Kontakte, Besuche, Tagesstruktur, Stimmung, Beschäftigung.
+Wohnen bzw. Haushaltsführung: Wohn-/Zimmersituation, Hilfsmittel im Umfeld, Einkauf, Haushalt.
+Sind zu ALLEN sechs Themenfeldern Angaben vorhanden, entfällt Teil 2.`;
 
     return `${schreibRahmen()}
 

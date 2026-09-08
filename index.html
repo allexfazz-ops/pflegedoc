@@ -278,6 +278,39 @@
         padding: 2px 7px; border-radius: var(--r-pill);
     }
 
+    /* ---------- Start-Hero + Aktionen ---------- */
+    .hero {
+        position: relative; overflow: hidden;
+        border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+        padding: 28px 24px 26px; margin-bottom: 22px;
+        color: #fff;
+        background:
+          radial-gradient(90% 130% at 6% 4%, rgba(255,255,255,.18), transparent 60%),
+          radial-gradient(80% 100% at 96% 8%, rgba(255,255,255,.12), transparent 55%),
+          radial-gradient(140% 160% at 100% 100%, var(--accent-strong), transparent 62%),
+          linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+    }
+    .hero::after {
+        content: ""; position: absolute; right: -34px; bottom: -46px;
+        width: 230px; height: 230px; opacity: .16; pointer-events: none;
+        background: no-repeat center / contain
+          url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%20fill='none'%20stroke='%23ffffff'%20stroke-width='4'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M50%2084C10%2056%2016%2022%2040%2022c7%200%2010%205%2010%208%200-3%203-8%2010-8%2024%200%2030%2034-10%2062Z'/%3E%3Cpath%20d='M17%2052h15l6-13%208%2028%207-19%205%204h13'/%3E%3C/svg%3E");
+    }
+    .hero > * { position: relative; }
+    .hero h1 { margin: 0; font-size: 1.65rem; font-weight: 800; letter-spacing: -.02em; }
+    .hero__lead { margin: 8px 0 0; font-size: .97rem; line-height: 1.55; max-width: 48ch; color: rgba(255,255,255,.94); }
+    .hero__bullets { margin: 15px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+    .hero__bullets li { display: flex; align-items: flex-start; gap: 9px; font-size: .9rem; color: rgba(255,255,255,.92); }
+    .hero__bullets .ic { width: 17px; height: 17px; flex: none; margin-top: 1px; opacity: .9; }
+
+    .home__actions { display: grid; gap: 12px; }
+    .home__actions .tile { flex-direction: row; align-items: center; min-height: 0; padding: 16px 18px; gap: 14px; }
+    .home__actions .tile > .ic { width: 26px; height: 26px; flex: none; }
+    .tile__body { display: flex; flex-direction: column; gap: 3px; }
+    .tile__desc { font-size: .85rem; font-weight: 400; color: var(--text-muted); }
+
+    .home__secondary { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; padding-left: 4px; }
+
     /* ---------- Buttons ---------- */
     .btn {
         display: inline-flex; align-items: center; justify-content: center; gap: 9px;
@@ -671,8 +704,8 @@
         <span class="brand__name">Pflege<b>Doc</b></span>
     </a>
     <span class="topbar__spacer"></span>
-    <a class="topbar__acct" data-acct-link href="#/login">
-        <svg class="ic"><use href="#ic-settings"/></svg><span data-acct-label>Anmelden</span>
+    <a class="topbar__acct" data-acct-link href="#/einstellungen" aria-label="Konto und Einstellungen">
+        <svg class="ic"><use href="#ic-settings"/></svg><span data-acct-label>Konto</span>
     </a>
 </header>
 
@@ -689,9 +722,9 @@
         <a data-nav="verlauf" href="#/verlauf"><svg class="ic"><use href="#ic-history"/></svg> <span data-i18n="nav.verlauf">Verlauf</span></a>
         <a data-nav="einstellungen" href="#/einstellungen"><svg class="ic"><use href="#ic-settings"/></svg> <span data-i18n="nav.einstellungen">Einstellungen</span></a>
     </div>
-    <a class="rail__acct" data-acct-link href="#/login">
+    <a class="rail__acct" data-acct-link href="#/einstellungen" aria-label="Konto und Einstellungen">
         <svg class="ic"><use href="#ic-settings"/></svg>
-        <span data-acct-label>Anmelden</span>
+        <span data-acct-label>Konto</span>
     </a>
     <p class="rail__foot" data-i18n="rail.foot">Dokumentationshilfe – keine medizinische Entscheidung.</p>
 </nav>
@@ -711,42 +744,45 @@
             <button class="btn btn--subtle" type="button" data-theme-cycle title="Darstellung wechseln">
                 <svg class="ic"><use href="#ic-settings"/></svg> <span data-i18n="theme.cycle">Design</span>
             </button>
-            <span style="flex:1"></span>
-            <a class="btn btn--ghost" data-acct-link href="#/login"><span data-acct-label>Anmelden</span></a>
         </div>
 
-        <div class="screen__head">
+        <div class="hero">
             <h1 id="home-h" tabindex="-1"><span id="greeting">Willkommen</span></h1>
-            <p class="screen__sub" data-i18n="home.sub">Wobei möchtest du heute Hilfe?</p>
+            <p class="hero__lead" data-i18n="home.lead">PflegeDoc verwandelt deine Notizen – getippt oder diktiert, in jeder Sprache – in eine professionelle deutsche Pflegedokumentation und Pflegeplanung nach den Standards in Deutschland (NRW). Du prüfst und verantwortest jedes Ergebnis.</p>
+            <ul class="hero__bullets">
+                <li><svg class="ic"><use href="#ic-mic"/></svg> <span data-i18n="home.b1">Diktieren oder tippen – in jeder Sprache</span></li>
+                <li><svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="home.b2">Verlaufsdokumentation und Pflegeplanung pro Patient</span></li>
+                <li><svg class="ic"><use href="#ic-shield"/></svg> <span data-i18n="home.b3">Persönlicher Verlauf, sicher gespeichert</span></li>
+            </ul>
         </div>
 
-        <article class="card card--primary">
-            <h2 data-i18n="home.card.title">Neue Dokumentation</h2>
-            <p data-i18n="home.card.desc">Schreib oder sprich, was passiert ist – die professionelle Formulierung übernimmt PflegeDoc.</p>
-            <div class="card--primary__actions">
-                <button class="btn btn--primary btn--lg" type="button" data-go="doc-voice">
-                    <svg class="ic"><use href="#ic-mic"/></svg> <span data-i18n="home.voice">Spracheingabe</span>
-                </button>
-                <button class="btn btn--ghost btn--lg" type="button" data-go="doc-text">
-                    <svg class="ic"><use href="#ic-keyboard"/></svg> <span data-i18n="home.text">Text eingeben</span>
-                </button>
-            </div>
-        </article>
-
-        <h2 class="section-label" data-i18n="home.more">Weitere Hilfen</h2>
-        <div class="grid-2">
+        <div class="home__actions">
+            <button class="tile" type="button" data-nav-go="doc">
+                <svg class="ic"><use href="#ic-doc"/></svg>
+                <span class="tile__body">
+                    <span class="tile__name" data-i18n="nav.doc">Dokumentation</span>
+                    <span class="tile__desc" data-i18n="home.doc.desc">Was mit dem Patienten gemacht wurde – pro Schicht bzw. Uhrzeit.</span>
+                </span>
+            </button>
             <button class="tile" type="button" data-nav-go="plan">
                 <svg class="ic"><use href="#ic-plan"/></svg>
-                <span class="tile__name" data-i18n="tile.plan">Pflegeplanung</span>
+                <span class="tile__body">
+                    <span class="tile__name" data-i18n="tile.plan">Pflegeplanung</span>
+                    <span class="tile__desc" data-i18n="home.plan.desc">Pro Patient ein Projekt: Probleme, Ziele, Maßnahmen.</span>
+                </span>
             </button>
-            <button class="tile" type="button" data-nav-go="korrigieren">
-                <svg class="ic"><use href="#ic-edit"/></svg>
-                <span class="tile__name" data-i18n="tile.korrigieren">Korrigieren</span>
+            <button class="tile" type="button" data-nav-go="einstellungen">
+                <svg class="ic"><use href="#ic-settings"/></svg>
+                <span class="tile__body">
+                    <span class="tile__name" data-i18n="settings.title">Einstellungen</span>
+                    <span class="tile__desc" data-i18n="home.settings.desc">Konto, Sprache, Darstellung, Spracheingabe.</span>
+                </span>
             </button>
-            <button class="tile" type="button" data-nav-go="verlauf">
-                <svg class="ic"><use href="#ic-history"/></svg>
-                <span class="tile__name" data-i18n="tile.verlauf">Verlauf</span>
-            </button>
+        </div>
+
+        <div class="home__secondary">
+            <button class="btn btn--link" type="button" data-nav-go="korrigieren" data-i18n="tile.korrigieren">Text korrigieren</button>
+            <button class="btn btn--link" type="button" data-nav-go="verlauf" data-i18n="tile.verlauf">Verlauf</button>
         </div>
     </section>
 
@@ -957,12 +993,15 @@
 
         <div class="setting" id="settingsKonto">
             <span class="setting__label" data-i18n="konto.title">Konto</span>
-            <span class="setting__hint" id="settingsKontoHint" data-i18n="konto.loggedout.hint">Melde dich an, damit dein Verlauf und deine Einstellungen geräteübergreifend gespeichert werden.</span>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px">
-                <a class="btn btn--primary btn--sm" data-nav-go="login" id="settingsLoginBtn" data-i18n="auth.login.title">Anmelden</a>
-                <a class="btn btn--ghost btn--sm" data-nav-go="register" id="settingsRegisterBtn" data-i18n="auth.register.title">Registrieren</a>
-                <a class="btn btn--ghost btn--sm" data-nav-go="konto" id="settingsKontoBtn" hidden data-i18n="konto.manage">Konto verwalten</a>
+            <div class="konto__row">
+                <span class="setting__hint" data-i18n="auth.email">E-Mail</span>
+                <span class="konto__val" id="kontoEmail">–</span>
             </div>
+            <div class="konto__row">
+                <span class="setting__hint" data-i18n="konto.since">Mitglied seit</span>
+                <span class="konto__val" id="kontoSince">–</span>
+            </div>
+            <button class="btn btn--ghost btn--sm" type="button" id="logoutBtn" style="margin-top:12px" data-i18n="konto.logout">Abmelden</button>
         </div>
 
         <div class="setting">
@@ -1009,6 +1048,16 @@
             <svg class="ic"><use href="#ic-shield"/></svg>
             <span data-i18n="settings.disclaimer">PflegeDoc unterstützt bei der Formulierung der Pflegedokumentation. Fachliche Prüfung und Verantwortung bleiben bei der Pflegekraft.</span>
         </p>
+
+        <div class="danger" id="kontoDanger">
+            <h2 class="danger__title" data-i18n="konto.danger.title">Gefahrenzone</h2>
+            <p class="danger__text" data-i18n="konto.delete.desc">Dein Konto und alle Dokumentationen werden dauerhaft gelöscht. Das lässt sich nicht rückgängig machen.</p>
+            <form id="deleteAccountForm" autocomplete="off">
+                <label class="field__label" for="deleteAccountPw" data-i18n="konto.delete.pw">Passwort zur Bestätigung</label>
+                <input class="input" type="password" id="deleteAccountPw" autocomplete="current-password" required>
+                <button class="btn btn--danger btn--block" type="submit" id="deleteAccountBtn" style="margin-top:10px" data-i18n="konto.delete.btn">Konto endgültig löschen</button>
+            </form>
+        </div>
     </section>
 
     <!-- ===================== ANMELDEN ===================== -->
@@ -1115,35 +1164,6 @@
         </div>
     </section>
 
-    <!-- ===================== KONTO ===================== -->
-    <section id="screen-konto" class="screen" aria-labelledby="konto-h" hidden>
-        <div class="screen__head"><h1 id="konto-h" tabindex="-1" data-i18n="konto.title">Konto</h1></div>
-        <div class="card">
-            <div class="konto__row">
-                <span class="setting__label" data-i18n="auth.email">E-Mail</span>
-                <span class="konto__val" id="kontoEmail">–</span>
-            </div>
-            <div class="konto__row">
-                <span class="setting__label" data-i18n="konto.since">Mitglied seit</span>
-                <span class="konto__val" id="kontoSince">–</span>
-            </div>
-            <div class="konto__row">
-                <span class="setting__label" data-i18n="konto.sync">Einstellungen</span>
-                <span class="konto__val" data-i18n="konto.sync.note">Sprache und Design werden in deinem Konto gespeichert.</span>
-            </div>
-        </div>
-        <button class="btn btn--ghost btn--block" type="button" id="logoutBtn" style="margin-top:16px" data-i18n="konto.logout">Abmelden</button>
-
-        <div class="danger" id="kontoDanger">
-            <h2 class="danger__title" data-i18n="konto.danger.title">Gefahrenzone</h2>
-            <p class="danger__text" data-i18n="konto.delete.desc">Dein Konto und alle Dokumentationen werden dauerhaft gelöscht. Das lässt sich nicht rückgängig machen.</p>
-            <form id="deleteAccountForm" autocomplete="off">
-                <label class="field__label" for="deleteAccountPw" data-i18n="konto.delete.pw">Passwort zur Bestätigung</label>
-                <input class="input" type="password" id="deleteAccountPw" autocomplete="current-password" required>
-                <button class="btn btn--danger btn--block" type="submit" id="deleteAccountBtn" style="margin-top:10px" data-i18n="konto.delete.btn">Konto endgültig löschen</button>
-            </form>
-        </div>
-    </section>
 
 </main>
 
@@ -1226,6 +1246,7 @@ let recognition = null;
 let isRecording = false;
 let baseText = '';            // textul din <textarea> la pornirea dictării
 let finalizedInSession = '';  // frazele finalizate în sesiunea curentă
+let recognitionRestartTimer = null; // repornire amânată după onend (evită „already started")
 
 const micBtn = document.getElementById('micBtn');
 const micStatus = document.getElementById('micStatus');
@@ -1251,9 +1272,12 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const interimShown = voiceCommandsEnabled()
             ? interim.replace(/[.,;:!?]+/g, '')
             : interim;
-        userInputEl.value = joinSmart(baseText, joinSmart(finalizedInSession, interimShown.trim()));
-        const rp = document.getElementById('recorderPreview');
-        if (rp) rp.textContent = userInputEl.value;
+        const next = joinSmart(baseText, joinSmart(finalizedInSession, interimShown.trim()));
+        if (next !== userInputEl.value) {
+            userInputEl.value = next;
+            const rp = document.getElementById('recorderPreview');
+            if (rp) rp.textContent = next;
+        }
     };
 
     recognition.onerror = (event) => {
@@ -1268,10 +1292,22 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     recognition.onend = () => {
-        // Repornim dacă utilizatorul nu a apăsat Stop (pauză lungă).
-        if (isRecording) {
-            try { recognition.start(); } catch (e) { /* deja pornit */ }
-        }
+        // Chrome termină singur sesiunea la pauze / periodic. Repornim, dar cu o
+        // mică întârziere: `start()` sincron prinde des un „already started" care,
+        // înghițit, lăsa dictarea blocată după 2-3 fraze.
+        if (!isRecording) return;
+        clearTimeout(recognitionRestartTimer);
+        recognitionRestartTimer = setTimeout(function tryStart(attempt) {
+            if (!isRecording) return;
+            try {
+                recognition.start();
+            } catch (e) {
+                // instanța veche nu s-a oprit încă -> reîncercăm de câteva ori
+                if ((attempt || 0) < 5) {
+                    recognitionRestartTimer = setTimeout(() => tryStart((attempt || 0) + 1), 300);
+                }
+            }
+        }, 120);
     };
 } else {
     micBtn.disabled = true;
@@ -1282,6 +1318,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 function toggleRecording() {
     if (!recognition) return;
     if (!isRecording) {
+        clearTimeout(recognitionRestartTimer);
         baseText = userInputEl.value.trim();
         finalizedInSession = '';
         recognition.lang = document.getElementById('inputLanguage').value;
@@ -1305,6 +1342,7 @@ function toggleRecording() {
 
 function stopRecording() {
     isRecording = false;
+    clearTimeout(recognitionRestartTimer);
     if (recognition) {
         try { recognition.stop(); } catch (e) { /* ignorăm */ }
     }
@@ -1964,7 +2002,7 @@ const ROUTES = {
     register:      { screen: 'screen-register',      title: 'Registrieren',      nav: null },
     forgot:        { screen: 'screen-forgot',        title: 'Passwort zurücksetzen', nav: null },
     reset:         { screen: 'screen-reset',         title: 'Neues Passwort',    nav: null },
-    konto:         { screen: 'screen-konto',         title: 'Konto',             nav: null },
+    konto:         { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
     verify:        { screen: 'screen-verify',        title: 'E-Mail bestätigen', nav: null }
 };
 function parseHash() {
@@ -2086,7 +2124,7 @@ function route() {
     if (key === 'verlauf') renderHistory();
     if (key === 'plan') renderPatients();
     if (key === 'patient') loadPatient(routeId);
-    if (key === 'konto') fillKonto();
+    if (key === 'einstellungen' || key === 'konto') fillKonto();
     const screen = document.getElementById(r.screen);
     const head = screen && screen.querySelector('h1');
     if (head) { try { head.focus({ preventScroll: true }); } catch (e) {} }
@@ -2152,6 +2190,13 @@ const I18N = {
         'home.card.title': 'Neue Dokumentation',
         'home.card.desc': 'Schreib oder sprich, was passiert ist – die professionelle Formulierung übernimmt PflegeDoc.',
         'home.voice': 'Spracheingabe', 'home.text': 'Text eingeben', 'home.more': 'Weitere Hilfen',
+        'home.lead': 'PflegeDoc verwandelt deine Notizen – getippt oder diktiert, in jeder Sprache – in eine professionelle deutsche Pflegedokumentation und Pflegeplanung nach den Standards in Deutschland (NRW). Du prüfst und verantwortest jedes Ergebnis.',
+        'home.b1': 'Diktieren oder tippen – in jeder Sprache',
+        'home.b2': 'Verlaufsdokumentation und Pflegeplanung pro Patient',
+        'home.b3': 'Persönlicher Verlauf, sicher gespeichert',
+        'home.doc.desc': 'Was mit dem Patienten gemacht wurde – pro Schicht bzw. Uhrzeit.',
+        'home.plan.desc': 'Pro Patient ein Projekt: Probleme, Ziele, Maßnahmen.',
+        'home.settings.desc': 'Konto, Sprache, Darstellung, Spracheingabe.',
         'tile.plan': 'Pflegeplanung', 'tile.korrigieren': 'Korrigieren', 'tile.uebersetzen': 'Übersetzen',
         'tile.verlauf': 'Verlauf', 'tag.soon': 'In Vorbereitung', 'soon.title': 'In Vorbereitung',
         'common.newDoc': 'Neue Dokumentation',
@@ -2284,6 +2329,13 @@ const I18N = {
         'home.card.title': 'New documentation',
         'home.card.desc': 'Write or speak what happened – PflegeDoc handles the professional wording.',
         'home.voice': 'Voice input', 'home.text': 'Type text', 'home.more': 'More tools',
+        'home.lead': 'PflegeDoc turns your notes – typed or dictated, in any language – into professional German nursing documentation and care planning to the standards used in Germany (NRW). You review and take responsibility for every result.',
+        'home.b1': 'Dictate or type – in any language',
+        'home.b2': 'Progress documentation and care planning per patient',
+        'home.b3': 'Personal history, stored securely',
+        'home.doc.desc': 'What was done with the patient – per shift or time of day.',
+        'home.plan.desc': 'One project per patient: problems, goals, interventions.',
+        'home.settings.desc': 'Account, language, appearance, voice input.',
         'tile.plan': 'Care planning', 'tile.korrigieren': 'Proofread', 'tile.uebersetzen': 'Translate',
         'tile.verlauf': 'History', 'tag.soon': 'Coming soon', 'soon.title': 'Coming soon',
         'common.newDoc': 'New documentation',
@@ -2416,6 +2468,13 @@ const I18N = {
         'home.card.title': 'Documentație nouă',
         'home.card.desc': 'Scrie sau vorbește ce s-a întâmplat – formularea profesională o face PflegeDoc.',
         'home.voice': 'Dictare', 'home.text': 'Scrie text', 'home.more': 'Alte funcții',
+        'home.lead': 'PflegeDoc îți transformă notițele – scrise sau dictate, în orice limbă – într-o documentație de îngrijire germană profesională și o planificare a îngrijirii, conform standardelor din Germania (NRW). Tu verifici și răspunzi pentru fiecare rezultat.',
+        'home.b1': 'Dictezi sau scrii – în orice limbă',
+        'home.b2': 'Documentație de tură și planificare a îngrijirii per pacient',
+        'home.b3': 'Istoric personal, păstrat în siguranță',
+        'home.doc.desc': 'Ce s-a făcut cu pacientul – pe tură sau pe oră.',
+        'home.plan.desc': 'Câte un proiect per pacient: probleme, obiective, măsuri.',
+        'home.settings.desc': 'Cont, limbă, aspect, dictare.',
         'tile.plan': 'Planificarea îngrijirii', 'tile.korrigieren': 'Corectare', 'tile.uebersetzen': 'Traducere',
         'tile.verlauf': 'Istoric', 'tag.soon': 'În pregătire', 'soon.title': 'În pregătire',
         'common.newDoc': 'Documentație nouă',
@@ -2667,18 +2726,13 @@ async function refreshAuth() {
 }
 
 function applyAuthUI() {
+    // Aplicația e gated: Einstellungen se vede doar autentificat. Contul e o
+    // secțiune în #screen-einstellungen (populată de fillKonto).
     const authed = authState.authenticated;
-    const label = authed ? t('konto.title') : t('auth.acct.login');
-    document.querySelectorAll('[data-acct-label]').forEach(el => { el.textContent = label; });
-    document.querySelectorAll('[data-acct-link]').forEach(a => a.setAttribute('href', authed ? '#/konto' : '#/login'));
-    const li = document.getElementById('settingsLoginBtn');
-    const ri = document.getElementById('settingsRegisterBtn');
-    const ki = document.getElementById('settingsKontoBtn');
-    if (li) li.hidden = authed;
-    if (ri) ri.hidden = authed;
-    if (ki) ki.hidden = !authed;
-    const hint = document.getElementById('settingsKontoHint');
-    if (hint) hint.textContent = authed ? authState.user.email : t('konto.loggedout.hint');
+    // Scurtătura din bară deschide Einstellungen (unde e acum și contul).
+    document.querySelectorAll('[data-acct-label]').forEach(el => {
+        el.textContent = (authed && authState.user) ? authState.user.email : t('konto.title');
+    });
     const vs = document.querySelector('#screen-verlauf .screen__sub');
     if (vs) vs.textContent = authed ? t('verlauf.sub.account') : t('verlauf.sub.local');
     // Banner-ul de verificare e gestionat în route() (depinde de ecranul curent).

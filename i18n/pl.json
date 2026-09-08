@@ -191,5 +191,12 @@
   "patient.delete.confirm": "Usunąć tego pacjenta i wszystkie jego plany?",
   "patient.deleted": "Pacjent usunięty.",
   "patient.versions": "Poprzednie wersje",
-  "toast.planSaved": "Plan zapisany."
+  "toast.planSaved": "Plan zapisany.",
+  "home.lead": "PflegeDoc zamienia Twoje notatki – wpisane lub podyktowane, w dowolnym języku – w profesjonalną niemiecką dokumentację opieki i plan opieki zgodny ze standardami obowiązującymi w Niemczech (NRW). Ty sprawdzasz i odpowiadasz za każdy wynik.",
+  "home.b1": "Dyktuj lub pisz – w dowolnym języku",
+  "home.b2": "Dokumentacja przebiegu i planowanie opieki dla każdego pacjenta",
+  "home.b3": "Osobista historia, bezpiecznie przechowywana",
+  "home.doc.desc": "Co zrobiono z pacjentem – na zmianę lub o danej godzinie.",
+  "home.plan.desc": "Jeden projekt na pacjenta: problemy, cele, działania.",
+  "home.settings.desc": "Konto, język, wygląd, wprowadzanie głosowe."
 }

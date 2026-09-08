@@ -191,5 +191,12 @@
   "patient.delete.confirm": "Eliminar este paciente e todos os seus planos?",
   "patient.deleted": "Paciente eliminado.",
   "patient.versions": "Versões anteriores",
-  "toast.planSaved": "Plano guardado."
+  "toast.planSaved": "Plano guardado.",
+  "home.lead": "O PflegeDoc transforma as tuas notas – escritas ou ditadas, em qualquer idioma – numa documentação de cuidados alemã profissional e num planeamento de cuidados segundo os padrões usados na Alemanha (NRW). Tu verificas e assumes cada resultado.",
+  "home.b1": "Ditar ou escrever – em qualquer idioma",
+  "home.b2": "Documentação de evolução e planeamento de cuidados por paciente",
+  "home.b3": "Histórico pessoal, guardado em segurança",
+  "home.doc.desc": "O que foi feito com o paciente – por turno ou hora.",
+  "home.plan.desc": "Um projeto por paciente: problemas, objetivos, medidas.",
+  "home.settings.desc": "Conta, idioma, aparência, entrada de voz."
 }

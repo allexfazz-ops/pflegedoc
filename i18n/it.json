@@ -191,5 +191,12 @@
   "patient.delete.confirm": "Eliminare questo paziente e tutti i suoi piani?",
   "patient.deleted": "Paziente eliminato.",
   "patient.versions": "Versioni precedenti",
-  "toast.planSaved": "Piano salvato."
+  "toast.planSaved": "Piano salvato.",
+  "home.lead": "PflegeDoc trasforma i tuoi appunti – digitati o dettati, in qualsiasi lingua – in una documentazione infermieristica tedesca professionale e in una pianificazione assistenziale secondo gli standard in vigore in Germania (NRW). Tu verifichi e ti assumi la responsabilità di ogni risultato.",
+  "home.b1": "Dettare o digitare – in qualsiasi lingua",
+  "home.b2": "Documentazione di decorso e pianificazione assistenziale per paziente",
+  "home.b3": "Cronologia personale, archiviata in sicurezza",
+  "home.doc.desc": "Cosa è stato fatto con il paziente – per turno o orario.",
+  "home.plan.desc": "Un progetto per paziente: problemi, obiettivi, interventi.",
+  "home.settings.desc": "Account, lingua, aspetto, input vocale."
 }

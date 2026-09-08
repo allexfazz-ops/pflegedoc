@@ -191,5 +191,12 @@
   "patient.delete.confirm": "Supprimer ce patient et tous ses plans ?",
   "patient.deleted": "Patient supprimé.",
   "patient.versions": "Versions précédentes",
-  "toast.planSaved": "Plan enregistré."
+  "toast.planSaved": "Plan enregistré.",
+  "home.lead": "PflegeDoc transforme vos notes – saisies ou dictées, dans n'importe quelle langue – en une documentation de soins allemande professionnelle et une planification des soins selon les standards en vigueur en Allemagne (NRW). Vous vérifiez et assumez chaque résultat.",
+  "home.b1": "Dicter ou taper – dans n'importe quelle langue",
+  "home.b2": "Documentation de suivi et planification des soins par patient",
+  "home.b3": "Historique personnel, stocké en sécurité",
+  "home.doc.desc": "Ce qui a été fait avec le patient – par service ou par heure.",
+  "home.plan.desc": "Un projet par patient : problèmes, objectifs, interventions.",
+  "home.settings.desc": "Compte, langue, apparence, saisie vocale."
 }

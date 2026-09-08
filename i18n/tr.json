@@ -191,5 +191,12 @@
   "patient.delete.confirm": "Bu hasta ve tüm planları silinsin mi?",
   "patient.deleted": "Hasta silindi.",
   "patient.versions": "Önceki sürümler",
-  "toast.planSaved": "Plan kaydedildi."
+  "toast.planSaved": "Plan kaydedildi.",
+  "home.lead": "PflegeDoc, notlarını – yazılı ya da dikte, herhangi bir dilde – Almanya'da (NRW) geçerli standartlara uygun profesyonel Almanca bakım dokümantasyonuna ve bakım planlamasına dönüştürür. Her sonucu sen kontrol eder ve sorumluluğunu üstlenirsin.",
+  "home.b1": "Dikte et veya yaz – herhangi bir dilde",
+  "home.b2": "Hasta bazında seyir dokümantasyonu ve bakım planlaması",
+  "home.b3": "Kişisel geçmiş, güvenle saklanır",
+  "home.doc.desc": "Hastayla ne yapıldığı – vardiyaya veya saate göre.",
+  "home.plan.desc": "Hasta başına bir proje: sorunlar, hedefler, önlemler.",
+  "home.settings.desc": "Hesap, dil, görünüm, sesli giriş."
 }
