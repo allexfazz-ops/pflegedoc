@@ -206,7 +206,5 @@
   "settings.group.appearance": "Apariencia",
   "settings.group.voice": "Entrada de voz",
   "settings.group.advanced": "Avanzado",
-  "export.txt": "Como texto",
-  "export.pdf": "Como PDF",
-  "export.saved": "Archivo guardado."
+  "export.pdf": "Imprimir"
 }

@@ -897,11 +897,8 @@
                 <button class="btn btn--subtle" type="button" onclick="copyOutput()">
                     <svg class="ic"><use href="#ic-copy"/></svg> <span data-i18n="result.copy">Kopieren</span>
                 </button>
-                <button class="btn btn--subtle" type="button" id="exportTxtBtn">
-                    <svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="export.txt">Als Text</span>
-                </button>
                 <button class="btn btn--subtle" type="button" id="exportPdfBtn">
-                    <svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="export.pdf">Als PDF</span>
+                    <svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="export.pdf">Drucken</span>
                 </button>
             </div>
         </section>
@@ -971,11 +968,8 @@
             <button class="btn btn--subtle" type="button" id="patientCopyBtn">
                 <svg class="ic"><use href="#ic-copy"/></svg> <span data-i18n="result.copy">Kopieren</span>
             </button>
-            <button class="btn btn--subtle" type="button" id="patientTxtBtn">
-                <svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="export.txt">Als Text</span>
-            </button>
             <button class="btn btn--subtle" type="button" id="patientPdfBtn">
-                <svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="export.pdf">Als PDF</span>
+                <svg class="ic"><use href="#ic-doc"/></svg> <span data-i18n="export.pdf">Drucken</span>
             </button>
             <button class="btn btn--ghost" type="button" id="patientRenameBtn">
                 <svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="patient.rename">Umbenennen</span>
@@ -1856,33 +1850,7 @@ async function copyText(text) {
 }
 function copyOutput() { copyText(currentResultText()); }
 
-/* ---- Export: .txt + PDF (prin window.print) ---- */
-function exportSlug(s) {
-    return (String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'text').slice(0, 48);
-}
-function exportStamp() {
-    const d = new Date(), p = n => String(n).padStart(2, '0');
-    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
-}
-function downloadText(baseName, text) {
-    text = (text || '').trim();
-    if (!text) { toast('warning', t('toast.noCopy')); return; }
-    try {
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'pflegedoc-' + exportSlug(baseName) + '-' + exportStamp() + '.txt';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
-        toast('success', t('export.saved'));
-    } catch (e) {
-        toast('error', t('toast.copyFail'));
-    }
-}
+/* ---- Drucken (pentru copiator / PDF prin window.print) ---- */
 function printText(headline, text) {
     text = (text || '').trim();
     if (!text) { toast('warning', t('toast.noCopy')); return; }
@@ -1913,17 +1881,9 @@ function docExportHeadline() {
     }
     return base;
 }
-(function wireExport() {
-    const et = document.getElementById('exportTxtBtn');
-    if (et) et.addEventListener('click', () => downloadText(docExportHeadline(), currentResultText()));
+(function wirePrint() {
     const ep = document.getElementById('exportPdfBtn');
     if (ep) ep.addEventListener('click', () => printText(docExportHeadline(), currentResultText()));
-    const pt = document.getElementById('patientTxtBtn');
-    if (pt) pt.addEventListener('click', () => {
-        const el = document.getElementById('patientPlan');
-        const name = (typeof currentPatient !== 'undefined' && currentPatient) ? currentPatient.name : 'plan';
-        downloadText(name + ' ' + t('doc.p.title'), el ? el.textContent : '');
-    });
     const pp = document.getElementById('patientPdfBtn');
     if (pp) pp.addEventListener('click', () => {
         const el = document.getElementById('patientPlan');
@@ -2350,7 +2310,7 @@ const I18N = {
         'result.original': 'Deine ursprüngliche Notiz anzeigen',
         'result.improved': 'Verbesserte Dokumentation', 'result.diff': 'Unterschiede zur Notiz',
         'result.accept': 'Übernehmen', 'result.edit': 'Bearbeiten', 'result.editDone': 'Fertig', 'result.copy': 'Kopieren',
-        'export.txt': 'Als Text', 'export.pdf': 'Als PDF', 'export.saved': 'Datei gespeichert.',
+        'export.pdf': 'Drucken',
         'plan.soon.text': 'Die Pflegeplanung wird an dieselbe Dokumentationsengine angebunden. Die Oberfläche ist hier bereits vorgesehen.',
         'korr.soon.text': 'Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.',
         'ueb.soon.text': 'Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.',
@@ -2495,7 +2455,7 @@ const I18N = {
         'result.original': 'Show your original note',
         'result.improved': 'Improved documentation', 'result.diff': 'Differences from the note',
         'result.accept': 'Accept', 'result.edit': 'Edit', 'result.editDone': 'Done', 'result.copy': 'Copy',
-        'export.txt': 'As text', 'export.pdf': 'As PDF', 'export.saved': 'File saved.',
+        'export.pdf': 'Print',
         'plan.soon.text': 'Care planning will use the same documentation engine. The interface is already prepared here.',
         'korr.soon.text': 'Smooth existing texts linguistically and professionally – without changing the content. Integration to follow.',
         'ueb.soon.text': 'Transfer documentation into another language – for handovers and relatives. Integration to follow.',
@@ -2640,7 +2600,7 @@ const I18N = {
         'result.original': 'Arată nota inițială',
         'result.improved': 'Documentație îmbunătățită', 'result.diff': 'Diferențe față de notă',
         'result.accept': 'Preia', 'result.edit': 'Editează', 'result.editDone': 'Gata', 'result.copy': 'Copiază',
-        'export.txt': 'Ca text', 'export.pdf': 'Ca PDF', 'export.saved': 'Fișier salvat.',
+        'export.pdf': 'Printează',
         'plan.soon.text': 'Planificarea îngrijirii va folosi același motor de documentare. Interfața este deja pregătită aici.',
         'korr.soon.text': 'Netezește texte existente lingvistic și profesional – fără a schimba conținutul. Integrarea urmează.',
         'ueb.soon.text': 'Transferă documentația în altă limbă – pentru predări și aparținători. Integrarea urmează.',

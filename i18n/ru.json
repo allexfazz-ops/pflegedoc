@@ -206,7 +206,5 @@
   "settings.group.appearance": "Оформление",
   "settings.group.voice": "Голосовой ввод",
   "settings.group.advanced": "Дополнительно",
-  "export.txt": "Как текст",
-  "export.pdf": "Как PDF",
-  "export.saved": "Файл сохранён."
+  "export.pdf": "Печать"
 }

@@ -206,7 +206,5 @@
   "settings.group.appearance": "المظهر",
   "settings.group.voice": "الإدخال الصوتي",
   "settings.group.advanced": "متقدم",
-  "export.txt": "كنص",
-  "export.pdf": "كملف PDF",
-  "export.saved": "تم حفظ الملف."
+  "export.pdf": "طباعة"
 }

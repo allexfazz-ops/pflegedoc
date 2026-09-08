@@ -206,7 +206,5 @@
   "settings.group.appearance": "Görünüm",
   "settings.group.voice": "Sesli giriş",
   "settings.group.advanced": "Gelişmiş",
-  "export.txt": "Metin olarak",
-  "export.pdf": "PDF olarak",
-  "export.saved": "Dosya kaydedildi."
+  "export.pdf": "Yazdır"
 }
