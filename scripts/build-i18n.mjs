@@ -648,6 +648,19 @@ const PATIENTS = {
     ar: { "plan.title": "تخطيط الرعاية", "plan.sub": "مشروع واحد لكل مريض – أنشئ جديدًا أو تابع.", "plan.newPatient": "مريض جديد", "plan.name": "الاسم / الأحرف الأولى", "plan.name.ph": "مثال: M. K. (غرفة 12)", "plan.note": "ملاحظة (اختياري)", "plan.note.ph": "درجة الرعاية، الغرفة، التشخيص …", "plan.create": "إنشاء", "plan.cancel": "إلغاء", "plan.privacy": "استخدم الأحرف الأولى أو رموزًا قصيرة بدل الأسماء الكاملة.", "plan.empty.title": "لا يوجد مرضى بعد", "plan.empty.text": "أضف مريضًا لإنشاء خطة الرعاية الخاصة به.", "plan.planOne": "خطة", "plan.planMany": "خطط", "plan.needName": "من فضلك أدخل اسمًا.", "plan.created": "تم إنشاء المريض.", "plan.noPatient": "لم يتم اختيار مريض.", "patient.back": "← كل المرضى", "patient.current": "الخطة الحالية", "patient.currentTag": "الحالية", "patient.noPlan": "لا توجد خطة بعد – استخدم «تحديث الخطة» لإنشاء الأولى.", "patient.update": "تحديث الخطة", "patient.rename": "إعادة تسمية", "patient.rename.prompt": "اسم / أحرف أولى جديدة:", "patient.renamed": "تمت إعادة التسمية.", "patient.delete": "حذف", "patient.delete.confirm": "حذف هذا المريض وكل خططه؟", "patient.deleted": "تم حذف المريض.", "patient.versions": "الإصدارات السابقة", "toast.planSaved": "تم حفظ الخطة." }
 };
 
+// Export (.txt / PDF) — adăugat ulterior.
+const EXPORT = {
+    fr: { "export.txt": "En texte", "export.pdf": "En PDF", "export.saved": "Fichier enregistré." },
+    es: { "export.txt": "Como texto", "export.pdf": "Como PDF", "export.saved": "Archivo guardado." },
+    it: { "export.txt": "Come testo", "export.pdf": "Come PDF", "export.saved": "File salvato." },
+    pt: { "export.txt": "Como texto", "export.pdf": "Como PDF", "export.saved": "Ficheiro guardado." },
+    pl: { "export.txt": "Jako tekst", "export.pdf": "Jako PDF", "export.saved": "Zapisano plik." },
+    tr: { "export.txt": "Metin olarak", "export.pdf": "PDF olarak", "export.saved": "Dosya kaydedildi." },
+    ru: { "export.txt": "Как текст", "export.pdf": "Как PDF", "export.saved": "Файл сохранён." },
+    uk: { "export.txt": "Як текст", "export.pdf": "Як PDF", "export.saved": "Файл збережено." },
+    ar: { "export.txt": "كنص", "export.pdf": "كملف PDF", "export.saved": "تم حفظ الملف." }
+};
+
 // Grupuri de setări + nume afișat (redesign 2026-09-08).
 const SETTINGS = {
     fr: { "settings.name": "Nom affiché", "settings.name.ph": "p. ex. Alex", "settings.name.hint": "Affiché dans le message d'accueil. Modifiable à tout moment.", "settings.name.saved": "Nom affiché enregistré.", "settings.group.konto": "Compte", "settings.group.lang": "Langue", "settings.group.appearance": "Apparence", "settings.group.voice": "Saisie vocale", "settings.group.advanced": "Avancé" },
@@ -675,7 +688,7 @@ const HOME = {
 };
 
 for (const [code, dict] of Object.entries(T)) {
-    const merged = { ...dict, ...(VERIFY[code] || {}), ...(RESET[code] || {}), ...(DOCMODE[code] || {}), ...(DELETEACCT[code] || {}), ...(DOCMODEL[code] || {}), ...(PATIENTS[code] || {}), ...(HOME[code] || {}), ...(SETTINGS[code] || {}) };
+    const merged = { ...dict, ...(VERIFY[code] || {}), ...(RESET[code] || {}), ...(DOCMODE[code] || {}), ...(DELETEACCT[code] || {}), ...(DOCMODEL[code] || {}), ...(PATIENTS[code] || {}), ...(HOME[code] || {}), ...(SETTINGS[code] || {}), ...(EXPORT[code] || {}) };
     const out = { "_reviewed": false, ...merged };
     writeFileSync(path.join(OUT, code + ".json"), JSON.stringify(out, null, 2) + "\n", "utf8");
     console.log("scris i18n/" + code + ".json  (" + Object.keys(merged).length + " chei)");

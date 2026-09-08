@@ -205,5 +205,8 @@
   "settings.group.lang": "Język",
   "settings.group.appearance": "Wygląd",
   "settings.group.voice": "Wprowadzanie głosowe",
-  "settings.group.advanced": "Zaawansowane"
+  "settings.group.advanced": "Zaawansowane",
+  "export.txt": "Jako tekst",
+  "export.pdf": "Jako PDF",
+  "export.saved": "Zapisano plik."
 }
