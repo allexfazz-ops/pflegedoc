@@ -69,14 +69,17 @@ export default async function handler(req, res) {
         // Trimite e-mailul de verificare (nu blocăm dacă eșuează).
         let emailSent = false;
         let devVerifyUrl;
+        let emailError;
         try {
             const r = await sendVerificationEmail(req, user);
             emailSent = !!r.delivered;
-            // Doar cât timp e-mailul e dezactivat pe server: returnăm link-ul
-            // ca să poți testa fluxul fără provider.
-            if (!emailEnabled()) devVerifyUrl = r.url;
+            // Plasă de siguranță: dacă e-mailul e dezactivat SAU eșuează,
+            // returnăm link-ul ca să nu rămâi blocat (dispare când e-mailul merge).
+            if (!emailEnabled() || !r.delivered) devVerifyUrl = r.url;
+            if (!r.delivered && r.detail) emailError = r.detail;
         } catch (e) {
             console.error("[register] verification email:", e.message);
+            emailError = e.message;
         }
 
         return json(res, 201, {
@@ -90,6 +93,7 @@ export default async function handler(req, res) {
             csrfToken: csrf,
             emailSent,
             ...(devVerifyUrl ? { devVerifyUrl } : {}),
+            ...(emailError ? { emailError } : {}),
         });
     } catch (err) {
         return fail(res, 500, "Registrierung derzeit nicht möglich.", err);

@@ -125,5 +125,7 @@
   "verify.resent": "Doğrulama e-postası yeniden gönderildi.",
   "verify.sent": "Sana bir doğrulama e-postası gönderdik.",
   "verify.devlink": "E-posta sağlayıcısı yapılandırılmadı – bağlantı konsolda (F12).",
-  "verify.missing": "Doğrulama belirteci yok. Lütfen e-postadaki bağlantıyı kullan."
+  "verify.missing": "Doğrulama belirteci yok. Lütfen e-postadaki bağlantıyı kullan.",
+  "verify.wall": "Sana bir e-posta gönderdik. PflegeDoc’u kullanmak için doğrula.",
+  "verify.sendfail": "E-posta gönderilemedi. Lütfen daha sonra tekrar dene."
 }

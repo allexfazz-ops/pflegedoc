@@ -355,12 +355,19 @@ function evaluate(test, text) {
     return reasons;
 }
 
+// /api/generate cere sesiune + e-mail confirmat. Pentru teste, setează
+// ENGINE_TEST_SECRET pe server ȘI ca variabilă la rulare:
+//   ENGINE_TEST_SECRET=... node tests/engine-suite.mjs
+const ENGINE_TEST_SECRET = process.env.ENGINE_TEST_SECRET || "";
+
 async function callApi(input, mode) {
     for (let attempt = 0; attempt <= RETRIES; attempt++) {
         try {
+            const headers = { "Content-Type": "application/json" };
+            if (ENGINE_TEST_SECRET) headers["X-Engine-Test"] = ENGINE_TEST_SECRET;
             const r = await fetch(API, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify(mode ? { input, mode } : { input }),
             });
             const data = await r.json().catch(() => ({}));

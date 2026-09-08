@@ -125,5 +125,7 @@
   "verify.resent": "E-mail de confirmation renvoyé.",
   "verify.sent": "Nous vous avons envoyé un e-mail de confirmation.",
   "verify.devlink": "Aucun fournisseur d’e-mail configuré – lien de confirmation dans la console (F12).",
-  "verify.missing": "Aucun jeton de confirmation. Utilisez le lien de l’e-mail."
+  "verify.missing": "Aucun jeton de confirmation. Utilisez le lien de l’e-mail.",
+  "verify.wall": "Nous vous avons envoyé un e-mail. Confirmez-le pour utiliser PflegeDoc.",
+  "verify.sendfail": "L’e-mail n’a pas pu être envoyé. Réessayez plus tard."
 }

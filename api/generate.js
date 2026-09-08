@@ -139,8 +139,12 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Methode nicht erlaubt. Bitte POST verwenden." });
     }
 
-    // --- Rate limiting (spec. pct. 12) — guard la începutul handler-ului.
-    //     NU atinge logica engine-ului. Fail-open dacă baza de date nu răspunde.
+    // --- Guard: cont autentificat + e-mail confirmat + rate limit.
+    //     NU atinge logica engine-ului (prompt / Gemini / parsare).
+    //     Bypass doar pentru test suite: header X-Engine-Test = ENGINE_TEST_SECRET.
+    const testSecret = process.env.ENGINE_TEST_SECRET;
+    const isTestCall = testSecret && req.headers["x-engine-test"] === testSecret;
+
     try {
         const { hasDatabase, ensureSchema } = await import("../lib/db.mjs");
         if (hasDatabase()) {
@@ -154,9 +158,27 @@ export default async function handler(req, res) {
                     error: "Zu viele Anfragen. Bitte in einer Stunde erneut versuchen."
                 });
             }
+
+            if (!isTestCall) {
+                const { getAuth } = await import("../lib/auth.mjs");
+                const auth = await getAuth(req);
+                if (!auth) {
+                    return res.status(401).json({ error: "Anmeldung erforderlich." });
+                }
+                if (auth.user.email_verified !== true) {
+                    return res.status(403).json({
+                        error: "Bitte bestätige zuerst deine E-Mail-Adresse.",
+                        code: "email_unverified",
+                    });
+                }
+            }
+        } else if (!isTestCall) {
+            // Fără bază de date nu putem verifica sesiunea -> blocăm (fail-closed).
+            return res.status(503).json({ error: "Dienst vorübergehend nicht verfügbar." });
         }
     } catch (e) {
-        console.error("[generate] rate-limit skipped:", e.message);
+        console.error("[generate] guard error:", e.message);
+        return res.status(503).json({ error: "Dienst vorübergehend nicht verfügbar." });
     }
 
     // --- Cheia API din mediu ---

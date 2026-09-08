@@ -35,7 +35,9 @@ export default async function handler(req, res) {
         try {
             const r = await sendVerificationEmail(req, u);
             emailSent = !!r.delivered;
-            if (!emailEnabled()) devVerifyUrl = r.url;
+            // Plasă de siguranță: link-ul e disponibil dacă e-mailul e dezactivat
+            // SAU dacă trimiterea a eșuat.
+            if (!emailEnabled() || !r.delivered) devVerifyUrl = r.url;
             // Diagnostic: motivul de la Resend (textul lor de eroare, fără secrete).
             if (!r.delivered && r.detail) emailError = r.detail;
         } catch (e) {

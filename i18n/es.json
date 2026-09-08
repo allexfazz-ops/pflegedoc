@@ -125,5 +125,7 @@
   "verify.resent": "Correo de confirmación reenviado.",
   "verify.sent": "Te hemos enviado un correo de confirmación.",
   "verify.devlink": "Sin proveedor de correo configurado: el enlace está en la consola (F12).",
-  "verify.missing": "No hay token de confirmación. Usa el enlace del correo."
+  "verify.missing": "No hay token de confirmación. Usa el enlace del correo.",
+  "verify.wall": "Te hemos enviado un correo. Confírmalo para usar PflegeDoc.",
+  "verify.sendfail": "No se pudo enviar el correo. Inténtalo más tarde."
 }

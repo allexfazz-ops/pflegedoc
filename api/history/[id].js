@@ -11,7 +11,7 @@
 
 import { ensureSchema, sql } from "../../lib/db.mjs";
 import { json, fail, methodNotAllowed } from "../../lib/http.mjs";
-import { requireAuth, requireCsrf } from "../../lib/auth.mjs";
+import { requireAuth, requireCsrf, requireVerified } from "../../lib/auth.mjs";
 import { enforceRateLimit } from "../../lib/ratelimit.mjs";
 import { isUuid } from "../../lib/validate.mjs";
 
@@ -43,6 +43,7 @@ export default async function handler(req, res) {
         }
 
         /* ----------------------------- DELETE ---------------------------- */
+        if (!requireVerified(auth, res)) return;
         if (!requireCsrf(req, res, auth.session)) return;
         if (await enforceRateLimit(res, `history_delete:user:${userId}`, 120, 3600)) return;
 

@@ -8,7 +8,7 @@
 
 import { ensureSchema, sql } from "../lib/db.mjs";
 import { json, fail, methodNotAllowed, readJson } from "../lib/http.mjs";
-import { requireAuth, requireCsrf } from "../lib/auth.mjs";
+import { requireAuth, requireCsrf, requireVerified } from "../lib/auth.mjs";
 import { enforceRateLimit } from "../lib/ratelimit.mjs";
 import { UI_LANGUAGES, THEMES, inEnum } from "../lib/validate.mjs";
 
@@ -27,6 +27,7 @@ export default async function handler(req, res) {
         }
 
         // PATCH
+        if (!requireVerified(auth, res)) return;
         if (!requireCsrf(req, res, auth.session)) return;
         if (await enforceRateLimit(res, `settings:user:${userId}`, 60, 3600)) return;
 
