@@ -26,10 +26,11 @@ export const maxDuration = 60;
 const DEFAULT_MODEL = "gemini-3.6-flash";
 
 // Reîncercări pe erori tranzitorii de capacitate Gemini (429 / 503 / „overloaded").
+// Buget calibrat sub maxDuration (60s): 2 încercări de 22s + backoff ≈ 46s max.
 const MAX_ATTEMPTS = 3;
 const RETRY_BACKOFF_MS = [1200, 2600];
-const PER_ATTEMPT_TIMEOUT_MS = 30000;
-const TOTAL_BUDGET_MS = 52000;
+const PER_ATTEMPT_TIMEOUT_MS = 22000;
+const TOTAL_BUDGET_MS = 44000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function isTransientUpstream(status, msg) {
     if (status === 429 || status === 503 || status === 500) return true;
