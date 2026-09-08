@@ -91,9 +91,9 @@ CREATE TABLE IF NOT EXISTS activities (
     mode            text,                       -- 'formulieren' | 'korrigieren' | 'uebersetzen' | NULL
     result_text     text        NOT NULL,
     created_at      timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT activities_type CHECK (type IN ('dokumentation','pflegeplanung')),
+    CONSTRAINT activities_type CHECK (type IN ('dokumentation','pflegeplanung','korrigierung')),
     CONSTRAINT activities_mode CHECK (mode IS NULL OR mode IN
-        ('formulieren','korrigieren','uebersetzen')),
+        ('formulieren','korrigieren','uebersetzen','pflegeplanung')),
     CONSTRAINT activities_input_len  CHECK (char_length(input_text)  BETWEEN 1 AND 20000),
     CONSTRAINT activities_result_len CHECK (char_length(result_text) BETWEEN 1 AND 40000),
     CONSTRAINT activities_lang_len   CHECK (input_language IS NULL OR char_length(input_language) <= 12)
@@ -111,6 +111,11 @@ ALTER TABLE activities ADD COLUMN IF NOT EXISTS output_language text;  -- cod UI
 ALTER TABLE activities DROP CONSTRAINT IF EXISTS activities_output_lang_len;
 ALTER TABLE activities ADD  CONSTRAINT activities_output_lang_len
     CHECK (output_language IS NULL OR char_length(output_language) <= 12);
+
+-- Migrare 2026-09-08-03: modul 'pflegeplanung' (al doilea motor pe ecranul Dokumentation).
+ALTER TABLE activities DROP CONSTRAINT IF EXISTS activities_mode;
+ALTER TABLE activities ADD  CONSTRAINT activities_mode
+    CHECK (mode IS NULL OR mode IN ('formulieren','korrigieren','uebersetzen','pflegeplanung'));
 
 -- -----------------------------------------------------------------------------
 -- rate_limits — contoare fixed-window pentru endpoint-uri sensibile

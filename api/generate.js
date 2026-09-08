@@ -130,10 +130,39 @@ Korrigiere NUR Rechtschreibung, Grammatik, Zeichensetzung und offensichtliche sp
 AUSGABEFORMAT
 Gib NUR den korrigierten Text zurück – ohne Einleitung, ohne Kommentar.`;
 
+// MODE: pflegeplanung — structurează descrierea liberă într-o Pflegeplanung.
+const PROMPT_PFLEGEPLANUNG = `${TREUE_REGELN}
+
+MODUS: PFLEGEPLANUNG STRUKTURIEREN
+Wandle die Angaben der Pflegekraft in eine strukturierte Pflegeplanung um. Verwende AUSSCHLIESSLICH genannte Informationen. Erfinde KEINE Probleme, Ressourcen, Ziele, Maßnahmen, Fristen oder Messwerte. Ist ein Abschnitt nicht belegt, lasse ihn ersatzlos weg (kein Platzhaltertext).
+
+Struktur je Pflegeproblem – Überschriften genau so:
+
+Pflegeproblem:
+<Kurz und konkret. Wenn die Angaben es hergeben, im Format „Problem – beeinflussende Faktoren – Zeichen/Symptome“ (PES), sonst nur das Genannte.>
+
+Ressourcen:
+<Was die Person selbst kann oder was sie unterstützt – nur wenn genannt.>
+
+Pflegeziel:
+<Was erreicht oder erhalten werden soll. Nah- und Fernziel trennen, wenn die Angaben das zulassen. Überprüfbar formulieren, aber ohne erfundene Werte oder Zeitangaben.>
+
+Pflegemaßnahmen:
+- <Konkrete Maßnahmen, je Zeile eine. Häufigkeit/Zeitpunkt nur, wenn genannt.>
+
+Evaluation:
+<Nur wenn ein Überprüfungsdatum oder ein Ergebnis genannt wurde. Sonst weglassen.>
+
+Bei mehreren Pflegeproblemen jeden Block wiederholen, getrennt durch eine Leerzeile, in der von der Pflegekraft genannten Reihenfolge.
+
+AUSGABEFORMAT
+Gib NUR die Pflegeplanung zurück. Keine Einleitung, keine Erklärung, kein Disclaimer im Text.`;
+
 const PROMPTS = {
     formulieren: PROMPT_FORMULIEREN,
     uebersetzen: PROMPT_FORMULIEREN,
-    korrigieren: PROMPT_KORRIGIEREN
+    korrigieren: PROMPT_KORRIGIEREN,
+    pflegeplanung: PROMPT_PFLEGEPLANUNG
 };
 const VALID_MODES = Object.keys(PROMPTS);
 
@@ -223,7 +252,8 @@ export default async function handler(req, res) {
     // Limbă țintă: doar pentru "formulieren". Cod valid și ≠ "de" -> instrucțiune
     // adăugată DUPĂ regulile de fidelitate (le are prioritate doar pe cea de limbă).
     const targetLang =
-        mode === "formulieren" && body && typeof body.targetLang === "string"
+        (mode === "formulieren" || mode === "pflegeplanung") &&
+        body && typeof body.targetLang === "string"
             ? body.targetLang
             : "";
     if (targetLang && targetLang !== "de" && LANG_NAMES[targetLang]) {

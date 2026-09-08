@@ -738,7 +738,6 @@
             <button class="tile" type="button" data-nav-go="plan">
                 <svg class="ic"><use href="#ic-plan"/></svg>
                 <span class="tile__name" data-i18n="tile.plan">Pflegeplanung</span>
-                <span class="tile__tag" data-i18n="tag.soon">In Vorbereitung</span>
             </button>
             <button class="tile" type="button" data-nav-go="korrigieren">
                 <svg class="ic"><use href="#ic-edit"/></svg>
@@ -847,16 +846,7 @@
         </section>
     </section>
 
-    <!-- ===================== PFLEGEPLANUNG (Platzhalter) ===================== -->
-    <section id="screen-plan" class="screen" aria-labelledby="plan-h" hidden>
-        <div class="screen__head"><h1 id="plan-h" tabindex="-1" data-i18n="tile.plan">Pflegeplanung</h1></div>
-        <div class="empty">
-            <svg class="ic ic--xl"><use href="#ic-plan"/></svg>
-            <p class="empty__title" data-i18n="soon.title">In Vorbereitung</p>
-            <p class="empty__text" data-i18n="plan.soon.text">Die Pflegeplanung wird an dieselbe Dokumentationsengine angebunden. Die Oberfläche ist hier bereits vorgesehen.</p>
-            <button class="btn btn--primary" type="button" data-nav-go="doc" data-i18n="common.newDoc">Neue Dokumentation</button>
-        </div>
-    </section>
+    <!-- Pflegeplanung refolosește #screen-doc în modul 'pflegeplanung' — vezi applyDocMode(). -->
 
     <!-- Korrigieren + Übersetzen refolosesc #screen-doc (moduri) — vezi applyDocMode(). -->
 
@@ -1355,7 +1345,7 @@ async function generateDoc() {
 
     try {
         const outSel = document.getElementById('outputLanguage');
-        const targetLang = (currentDocMode === 'formulieren' && outSel) ? outSel.value : 'de';
+        const targetLang = (currentDocMode !== 'korrigieren' && outSel) ? outSel.value : 'de';
         const text = await callGemini(apiKey, userInput, { mode: currentDocMode, targetLang: targetLang });
         finishProcessingSteps();
 
@@ -1394,7 +1384,7 @@ async function callGemini(apiKey, userInput, opts) {
         url = CONFIG.BACKEND_ENDPOINT;
         payload = { input: userInput };
         if (opts.mode && opts.mode !== 'formulieren') payload.mode = opts.mode;
-        if ((!opts.mode || opts.mode === 'formulieren') && opts.targetLang && opts.targetLang !== 'de') {
+        if (opts.mode !== 'korrigieren' && opts.targetLang && opts.targetLang !== 'de') {
             payload.targetLang = opts.targetLang;
         }
     } else {
@@ -1608,7 +1598,7 @@ function finishProcessingSteps() {
 }
 
 function setLoading(loading) {
-    const k = currentDocMode === 'korrigieren' ? 'doc.k' : 'doc';
+    const k = { korrigieren: 'doc.k', pflegeplanung: 'doc.p' }[currentDocMode] || 'doc';
     generateBtn.disabled = loading;
     generateBtn.textContent = loading ? t(k + '.generate.loading') : t(k + '.generate');
     const proc = document.getElementById('processing');
@@ -1719,11 +1709,13 @@ async function acceptDoc() {
             const langEl = document.getElementById('inputLanguage');
             const outEl = document.getElementById('outputLanguage');
             const isKorr = currentDocMode === 'korrigieren';
+            const histType = isKorr ? 'korrigierung'
+                : (currentDocMode === 'pflegeplanung' ? 'pflegeplanung' : 'dokumentation');
             const outLang = (!isKorr && outEl && outEl.value && outEl.value !== 'de') ? outEl.value : null;
             await apiFetch('/api/history', {
                 method: 'POST',
                 body: {
-                    type: isKorr ? 'korrigierung' : 'dokumentation',
+                    type: histType,
                     input_text: original || '(kein Text)',
                     result_text: improved,
                     input_language: langEl ? langEl.value : null,
@@ -1865,7 +1857,7 @@ function updateGreeting() {
 const ROUTES = {
     home:          { screen: 'screen-home',          title: 'Start',             nav: 'home' },
     doc:           { screen: 'screen-doc',           title: 'Neue Dokumentation', nav: 'doc' },
-    plan:          { screen: 'screen-plan',          title: 'Pflegeplanung',     nav: 'plan' },
+    plan:          { screen: 'screen-doc',           title: 'Pflegeplanung',     nav: 'plan' },
     korrigieren:   { screen: 'screen-doc',           title: 'Text korrigieren',  nav: 'doc' },
     verlauf:       { screen: 'screen-verlauf',       title: 'Verlauf',           nav: 'verlauf' },
     einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
@@ -1881,16 +1873,21 @@ function currentRouteKey() {
     return ROUTES[h] ? h : 'home';
 }
 
-/* ---- Modul ecranului Dokumentation: formulieren (implicit) | korrigieren ----
-   Übersetzen NU e mod separat: se face din selectorul „Ausgabesprache" în
-   modul formulieren. Korrigieren doar netezește limba, fără restructurare. */
+/* ---- Moduri pe ecranul Dokumentation ----
+   formulieren (implicit) : notiță -> documentație (SIS); traducerea = selectorul
+                            „Ausgabesprache" (nu e mod separat).
+   korrigieren            : doar netezește limba, fără restructurare.
+   pflegeplanung          : descriere liberă -> Pflegeplanung structurată
+                            (Pflegeproblem / Ressourcen / Ziel / Maßnahmen / Evaluation). */
+const DOC_MODES = ['formulieren', 'korrigieren', 'pflegeplanung'];
 let currentDocMode = 'formulieren';
 const DOC_MODE_I18N = {
-    formulieren: { title: 'doc.title',   sub: 'doc.sub',   ph: 'doc.note.ph', gen: 'doc.generate' },
-    korrigieren: { title: 'doc.k.title', sub: 'doc.k.sub', ph: 'doc.k.ph',    gen: 'doc.k.generate' }
+    formulieren:   { title: 'doc.title',   sub: 'doc.sub',   ph: 'doc.note.ph', gen: 'doc.generate' },
+    korrigieren:   { title: 'doc.k.title', sub: 'doc.k.sub', ph: 'doc.k.ph',    gen: 'doc.k.generate' },
+    pflegeplanung: { title: 'doc.p.title', sub: 'doc.p.sub', ph: 'doc.p.ph',    gen: 'doc.p.generate' }
 };
 function applyDocMode(mode) {
-    currentDocMode = (mode === 'korrigieren') ? 'korrigieren' : 'formulieren';
+    currentDocMode = DOC_MODES.includes(mode) ? mode : 'formulieren';
     const m = DOC_MODE_I18N[currentDocMode];
     const h   = document.getElementById('doc-h');
     const sub = document.querySelector('#screen-doc .screen__sub');
@@ -1900,8 +1897,9 @@ function applyDocMode(mode) {
     if (sub) sub.dataset.i18n = m.sub;
     if (ta)  ta.dataset.i18nPh = m.ph;
     if (gb)  gb.dataset.i18n = m.gen;
+    // „Ausgabesprache" are sens pentru formulieren + pflegeplanung, nu pentru korrigieren.
     const row = document.getElementById('outputLangRow');
-    if (row) row.hidden = (currentDocMode !== 'formulieren');
+    if (row) row.hidden = (currentDocMode === 'korrigieren');
     applyI18n();
 }
 
@@ -1943,7 +1941,9 @@ function route() {
     if (vbEl) vbEl.hidden = !(authed && !verified && key !== 'verify');
 
     const r = ROUTES[key];
-    if (r.screen === 'screen-doc') applyDocMode(key === 'korrigieren' ? 'korrigieren' : 'formulieren');
+    if (r.screen === 'screen-doc') {
+        applyDocMode(key === 'korrigieren' ? 'korrigieren' : (key === 'plan' ? 'pflegeplanung' : 'formulieren'));
+    }
     document.querySelectorAll('.screen').forEach(s => { s.hidden = (s.id !== r.screen); });
     document.querySelectorAll('[data-nav]').forEach(a => {
         const on = a.dataset.nav === r.nav;
@@ -2030,6 +2030,10 @@ const I18N = {
         'doc.k.sub': 'Rechtschreibung und Grammatik werden korrigiert, ohne den Inhalt zu ändern.',
         'doc.k.ph': 'Text einfügen, der sprachlich korrigiert werden soll …',
         'doc.k.generate': 'Text korrigieren', 'doc.k.generate.loading': 'Wird korrigiert …',
+        'doc.p.title': 'Pflegeplanung erstellen',
+        'doc.p.sub': 'Beschreibe das Pflegeproblem in eigenen Worten – PflegeDoc gliedert es in eine Pflegeplanung.',
+        'doc.p.ph': 'Zum Beispiel:\nFrau Keller kann sich seit dem Sturz nicht allein waschen und hat Angst vor dem Wasser. Sie möchte wieder selbstständiger werden. Ich unterstütze beim Waschen von Rücken und Beinen und leite sie täglich an.',
+        'doc.p.generate': 'Pflegeplanung erstellen', 'doc.p.generate.loading': 'Wird erstellt …',
         'lang.ro': 'Rumänisch', 'lang.de': 'Deutsch', 'lang.en': 'Englisch',
         'lang.es': 'Spanisch', 'lang.ru': 'Russisch', 'lang.tr': 'Türkisch',
         'doc.clear': 'Leeren', 'doc.voice': 'Spracheingabe',
@@ -2142,6 +2146,10 @@ const I18N = {
         'doc.k.sub': 'Spelling and grammar are corrected without changing the content.',
         'doc.k.ph': 'Paste the text to be corrected linguistically …',
         'doc.k.generate': 'Correct text', 'doc.k.generate.loading': 'Correcting …',
+        'doc.p.title': 'Create care plan',
+        'doc.p.sub': 'Describe the nursing problem in your own words – PflegeDoc structures it into a care plan.',
+        'doc.p.ph': 'For example:\nSince her fall, Mrs Keller cannot wash herself and is afraid of the water. She wants to become more independent again. I help wash her back and legs and guide her daily.',
+        'doc.p.generate': 'Create care plan', 'doc.p.generate.loading': 'Creating …',
         'lang.ro': 'Romanian', 'lang.de': 'German', 'lang.en': 'English',
         'lang.es': 'Spanish', 'lang.ru': 'Russian', 'lang.tr': 'Turkish',
         'doc.clear': 'Clear', 'doc.voice': 'Voice input',
@@ -2254,6 +2262,10 @@ const I18N = {
         'doc.k.sub': 'Se corectează ortografia și gramatica, fără a schimba conținutul.',
         'doc.k.ph': 'Lipește textul care trebuie corectat lingvistic …',
         'doc.k.generate': 'Corectează textul', 'doc.k.generate.loading': 'Se corectează …',
+        'doc.p.title': 'Creează planul de îngrijire',
+        'doc.p.sub': 'Descrie problema de îngrijire în cuvintele tale – PflegeDoc o structurează într-un plan de îngrijire.',
+        'doc.p.ph': 'De exemplu:\nDe la cădere, doamna Keller nu se mai poate spăla singură și îi e frică de apă. Vrea să redevină mai independentă. O ajut la spălatul spatelui și al picioarelor și o îndrum zilnic.',
+        'doc.p.generate': 'Creează planul de îngrijire', 'doc.p.generate.loading': 'Se creează …',
         'lang.ro': 'Română', 'lang.de': 'Germană', 'lang.en': 'Engleză',
         'lang.es': 'Spaniolă', 'lang.ru': 'Rusă', 'lang.tr': 'Turcă',
         'doc.clear': 'Golește', 'doc.voice': 'Dictare',
@@ -2401,7 +2413,8 @@ function applyI18n() {
     applyAuthUI();
     // reflectă butonul de generare / editare dacă sunt vizibile
     if (typeof generateBtn !== 'undefined' && generateBtn && !generateBtn.disabled) {
-        generateBtn.textContent = t(currentDocMode === 'korrigieren' ? 'doc.k.generate' : 'doc.generate');
+        const gk = { korrigieren: 'doc.k.generate', pflegeplanung: 'doc.p.generate' }[currentDocMode] || 'doc.generate';
+        generateBtn.textContent = t(gk);
     }
 }
 function setLocale(code) {
