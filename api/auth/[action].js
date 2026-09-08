@@ -314,6 +314,41 @@ async function resetPassword(req, res) {
     }
 }
 
+/* --------------------------- delete-account -------------------------- */
+async function deleteAccount(req, res) {
+    if (methodNotAllowed(req, res, ["POST"])) return;
+    try {
+        await ensureSchema();
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+        if (!requireCsrf(req, res, auth.session)) return;
+        if (await enforceRateLimit(res, `deleteacct:ip:${clientIp(req)}`, 5, 3600)) return;
+        if (await enforceRateLimit(res, `deleteacct:user:${auth.user.id}`, 5, 3600)) return;
+
+        let body;
+        try { body = await readJson(req, { maxBytes: 4 * 1024 }); }
+        catch (e) { return fail(res, e.status || 400, e.message || "Ungültige Anfrage."); }
+
+        const password = typeof body.password === "string" ? body.password : "";
+        if (!password) return fail(res, 400, "Bitte gib dein Passwort zur Bestätigung ein.");
+
+        const rows = await sql`SELECT password_hash FROM users WHERE id = ${auth.user.id} LIMIT 1`;
+        if (!rows.length) {
+            appendCookie(res, clearSessionCookie(req));
+            return json(res, 200, { ok: true });
+        }
+        const ok = await verifyPassword(password, rows[0].password_hash);
+        if (!ok) return fail(res, 403, "Passwort ist falsch.");
+
+        // ON DELETE CASCADE șterge automat sessions, activities, email_tokens.
+        await sql`DELETE FROM users WHERE id = ${auth.user.id}`;
+        appendCookie(res, clearSessionCookie(req));
+        return json(res, 200, { ok: true });
+    } catch (err) {
+        return fail(res, 500, "Konto konnte nicht gelöscht werden.", err);
+    }
+}
+
 /* -------------------------------- dispatch ------------------------------- */
 const ACTIONS = {
     "register": register,
@@ -324,6 +359,7 @@ const ACTIONS = {
     "resend-verification": resendVerification,
     "forgot-password": forgotPassword,
     "reset-password": resetPassword,
+    "delete-account": deleteAccount,
 };
 
 export default async function handler(req, res) {

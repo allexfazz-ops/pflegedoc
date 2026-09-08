@@ -146,5 +146,12 @@
   "doc.k.generate": "Metni düzelt",
   "doc.k.generate.loading": "Düzeltiliyor …",
   "hist.type.dokumentation": "Dokümantasyon",
-  "hist.type.korrigierung": "Düzeltme"
+  "hist.type.korrigierung": "Düzeltme",
+  "konto.danger.title": "Tehlikeli bölge",
+  "konto.delete.desc": "Hesabın ve tüm dokümantasyon kalıcı olarak silinir. Geri alınamaz.",
+  "konto.delete.pw": "Onay için parola",
+  "konto.delete.btn": "Hesabı kalıcı olarak sil",
+  "konto.delete.needpw": "Lütfen parolanı gir.",
+  "konto.delete.confirm": "Hesabın ve tüm veriler geri alınamaz şekilde silinsin mi?",
+  "konto.delete.done": "Hesabın silindi."
 }

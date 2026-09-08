@@ -146,5 +146,12 @@
   "doc.k.generate": "Popraw tekst",
   "doc.k.generate.loading": "Poprawianie …",
   "hist.type.dokumentation": "Dokumentacja",
-  "hist.type.korrigierung": "Korekta"
+  "hist.type.korrigierung": "Korekta",
+  "konto.danger.title": "Strefa niebezpieczna",
+  "konto.delete.desc": "Twoje konto i cała dokumentacja zostaną trwale usunięte. Tej operacji nie można cofnąć.",
+  "konto.delete.pw": "Hasło do potwierdzenia",
+  "konto.delete.btn": "Trwale usuń konto",
+  "konto.delete.needpw": "Wpisz swoje hasło.",
+  "konto.delete.confirm": "Na pewno nieodwracalnie usunąć konto i wszystkie dane?",
+  "konto.delete.done": "Twoje konto zostało usunięte."
 }

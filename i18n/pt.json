@@ -146,5 +146,12 @@
   "doc.k.generate": "Corrigir texto",
   "doc.k.generate.loading": "A corrigir …",
   "hist.type.dokumentation": "Documentação",
-  "hist.type.korrigierung": "Correção"
+  "hist.type.korrigierung": "Correção",
+  "konto.danger.title": "Zona de perigo",
+  "konto.delete.desc": "A tua conta e toda a documentação serão eliminadas permanentemente. Não é possível anular.",
+  "konto.delete.pw": "Palavra-passe para confirmar",
+  "konto.delete.btn": "Eliminar a conta permanentemente",
+  "konto.delete.needpw": "Introduz a tua palavra-passe.",
+  "konto.delete.confirm": "Eliminar de forma irreversível a tua conta e todos os dados?",
+  "konto.delete.done": "A tua conta foi eliminada."
 }

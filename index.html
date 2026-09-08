@@ -302,6 +302,12 @@
     .btn--danger { background: var(--danger); color: #fff; }
     :root[data-theme="dark"] .btn--danger,
     :root:not([data-theme="light"]) .btn--danger { color: #2a0d0d; }
+    .danger {
+        margin-top: 28px; padding: 16px; border-radius: var(--r-md);
+        border: 1px solid var(--danger); background: color-mix(in srgb, var(--danger) 7%, transparent);
+    }
+    .danger__title { margin: 0 0 6px; font-size: 1rem; color: var(--danger); }
+    .danger__text { margin: 0 0 12px; font-size: .9rem; color: var(--text-muted); }
     .btn--link {
         min-height: auto; padding: 4px 2px; background: none; color: var(--accent-strong);
         font-weight: 650; font-size: .88rem; border-radius: var(--r-sm);
@@ -1056,6 +1062,16 @@
             </div>
         </div>
         <button class="btn btn--ghost btn--block" type="button" id="logoutBtn" style="margin-top:16px" data-i18n="konto.logout">Abmelden</button>
+
+        <div class="danger" id="kontoDanger">
+            <h2 class="danger__title" data-i18n="konto.danger.title">Gefahrenzone</h2>
+            <p class="danger__text" data-i18n="konto.delete.desc">Dein Konto und alle Dokumentationen werden dauerhaft gelöscht. Das lässt sich nicht rückgängig machen.</p>
+            <form id="deleteAccountForm" autocomplete="off">
+                <label class="field__label" for="deleteAccountPw" data-i18n="konto.delete.pw">Passwort zur Bestätigung</label>
+                <input class="input" type="password" id="deleteAccountPw" autocomplete="current-password" required>
+                <button class="btn btn--danger btn--block" type="submit" id="deleteAccountBtn" style="margin-top:10px" data-i18n="konto.delete.btn">Konto endgültig löschen</button>
+            </form>
+        </div>
     </section>
 
 </main>
@@ -2057,6 +2073,12 @@ const I18N = {
         'konto.title': 'Konto', 'konto.since': 'Mitglied seit', 'konto.sync': 'Einstellungen',
         'konto.sync.note': 'Sprache und Design werden in deinem Konto gespeichert.',
         'konto.logout': 'Abmelden', 'konto.manage': 'Konto verwalten',
+        'konto.danger.title': 'Gefahrenzone',
+        'konto.delete.desc': 'Dein Konto und alle Dokumentationen werden dauerhaft gelöscht. Das lässt sich nicht rückgängig machen.',
+        'konto.delete.pw': 'Passwort zur Bestätigung', 'konto.delete.btn': 'Konto endgültig löschen',
+        'konto.delete.needpw': 'Bitte gib dein Passwort ein.',
+        'konto.delete.confirm': 'Konto und alle Daten wirklich unwiderruflich löschen?',
+        'konto.delete.done': 'Dein Konto wurde gelöscht.',
         'konto.loggedout.hint': 'Melde dich an, damit dein Verlauf und deine Einstellungen geräteübergreifend gespeichert werden.',
         'verify.title': 'E-Mail bestätigen', 'verify.sub': 'Bestätige deine E-Mail-Adresse, um dein Konto abzuschließen.',
         'verify.btn': 'Jetzt bestätigen', 'verify.later': 'Später',
@@ -2163,6 +2185,12 @@ const I18N = {
         'konto.title': 'Account', 'konto.since': 'Member since', 'konto.sync': 'Settings',
         'konto.sync.note': 'Language and theme are stored in your account.',
         'konto.logout': 'Sign out', 'konto.manage': 'Manage account',
+        'konto.danger.title': 'Danger zone',
+        'konto.delete.desc': 'Your account and all documentation will be permanently deleted. This cannot be undone.',
+        'konto.delete.pw': 'Password to confirm', 'konto.delete.btn': 'Delete account permanently',
+        'konto.delete.needpw': 'Please enter your password.',
+        'konto.delete.confirm': 'Really delete your account and all data irreversibly?',
+        'konto.delete.done': 'Your account has been deleted.',
         'konto.loggedout.hint': 'Sign in so your history and settings are stored across devices.',
         'verify.title': 'Confirm your email', 'verify.sub': 'Confirm your email address to finish setting up your account.',
         'verify.btn': 'Confirm now', 'verify.later': 'Later',
@@ -2269,6 +2297,12 @@ const I18N = {
         'konto.title': 'Cont', 'konto.since': 'Membru din', 'konto.sync': 'Setări',
         'konto.sync.note': 'Limba și tema se salvează în contul tău.',
         'konto.logout': 'Deconectare', 'konto.manage': 'Gestionează contul',
+        'konto.danger.title': 'Zonă periculoasă',
+        'konto.delete.desc': 'Contul tău și toate documentațiile se șterg definitiv. Acțiunea nu poate fi anulată.',
+        'konto.delete.pw': 'Parola pentru confirmare', 'konto.delete.btn': 'Șterge contul definitiv',
+        'konto.delete.needpw': 'Introdu parola.',
+        'konto.delete.confirm': 'Chiar ștergi definitiv contul și toate datele?',
+        'konto.delete.done': 'Contul tău a fost șters.',
         'konto.loggedout.hint': 'Autentifică-te ca istoricul și setările să fie salvate pe toate dispozitivele.',
         'verify.title': 'Confirmă emailul', 'verify.sub': 'Confirmă adresa de email ca să finalizezi contul.',
         'verify.btn': 'Confirmă acum', 'verify.later': 'Mai târziu',
@@ -2535,6 +2569,30 @@ if (logoutBtn) logoutBtn.addEventListener('click', async () => {
     toast('info', t('toast.loggedout'));
     location.hash = '#/home';
     logoutBtn.disabled = false;
+});
+
+const deleteAccountForm = document.getElementById('deleteAccountForm');
+if (deleteAccountForm) deleteAccountForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pwEl = document.getElementById('deleteAccountPw');
+    const btn = document.getElementById('deleteAccountBtn');
+    const password = pwEl ? pwEl.value : '';
+    if (!password) { toast('warning', t('konto.delete.needpw')); return; }
+    if (!window.confirm(t('konto.delete.confirm'))) return;
+    btn.disabled = true;
+    try {
+        await apiFetch('/api/auth/delete-account', { method: 'POST', body: { password } });
+        authState.authenticated = false; authState.user = null; authState.csrfToken = null;
+        if (pwEl) pwEl.value = '';
+        try { writeHistory([]); } catch (err) {}
+        applyI18n();
+        toast('success', t('konto.delete.done'));
+        location.hash = '#/login';
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        btn.disabled = false;
+    }
 });
 
 /* ---- Verificare e-mail / resetare parolă ---- */

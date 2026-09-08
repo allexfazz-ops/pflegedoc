@@ -146,5 +146,12 @@
   "doc.k.generate": "Correggi il testo",
   "doc.k.generate.loading": "Correzione …",
   "hist.type.dokumentation": "Documentazione",
-  "hist.type.korrigierung": "Correzione"
+  "hist.type.korrigierung": "Correzione",
+  "konto.danger.title": "Zona pericolosa",
+  "konto.delete.desc": "Il tuo account e tutta la documentazione verranno eliminati definitivamente. Operazione irreversibile.",
+  "konto.delete.pw": "Password per confermare",
+  "konto.delete.btn": "Elimina definitivamente l’account",
+  "konto.delete.needpw": "Inserisci la tua password.",
+  "konto.delete.confirm": "Eliminare in modo irreversibile l’account e tutti i dati?",
+  "konto.delete.done": "Il tuo account è stato eliminato."
 }

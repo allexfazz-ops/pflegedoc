@@ -146,5 +146,12 @@
   "doc.k.generate": "Виправити текст",
   "doc.k.generate.loading": "Виправлення …",
   "hist.type.dokumentation": "Документація",
-  "hist.type.korrigierung": "Правка"
+  "hist.type.korrigierung": "Правка",
+  "konto.danger.title": "Небезпечна зона",
+  "konto.delete.desc": "Ваш обліковий запис і вся документація будуть видалені назавжди. Скасувати неможливо.",
+  "konto.delete.pw": "Пароль для підтвердження",
+  "konto.delete.btn": "Видалити обліковий запис назавжди",
+  "konto.delete.needpw": "Введіть пароль.",
+  "konto.delete.confirm": "Дійсно безповоротно видалити обліковий запис і всі дані?",
+  "konto.delete.done": "Ваш обліковий запис видалено."
 }

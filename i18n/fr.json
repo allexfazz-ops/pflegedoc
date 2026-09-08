@@ -146,5 +146,12 @@
   "doc.k.generate": "Corriger le texte",
   "doc.k.generate.loading": "Correction …",
   "hist.type.dokumentation": "Documentation",
-  "hist.type.korrigierung": "Correction"
+  "hist.type.korrigierung": "Correction",
+  "konto.danger.title": "Zone sensible",
+  "konto.delete.desc": "Votre compte et toute la documentation seront définitivement supprimés. Action irréversible.",
+  "konto.delete.pw": "Mot de passe pour confirmer",
+  "konto.delete.btn": "Supprimer définitivement le compte",
+  "konto.delete.needpw": "Veuillez saisir votre mot de passe.",
+  "konto.delete.confirm": "Supprimer définitivement votre compte et toutes les données ?",
+  "konto.delete.done": "Votre compte a été supprimé."
 }

@@ -67,6 +67,7 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 | `/api/auth/resend-verification` | POST | da | CSRF; 3/oră/user |
 | `/api/auth/forgot-password` | POST | nu | `{ email }` — răspuns mereu generic; rate limit IP+e-mail |
 | `/api/auth/reset-password` | POST | nu | `{ token, password }` — single-use 1h; scrypt nou; invalidează toate sesiunile; setează `email_verified` |
+| `/api/auth/delete-account` | POST | da (cookie) | CSRF + reintroducerea parolei; `DELETE FROM users` → `ON DELETE CASCADE` șterge sesiuni, activități, token-uri; rate limit IP+user 5/h; ireversibil |
 | `/api/history` | GET / POST | da | GET paginat (preview); POST creează (CSRF) |
 | `/api/history/:id` | GET / DELETE | da | ownership; 404 (nu 403) la miss; CSRF la DELETE |
 | `/api/settings` | GET / PATCH | da | `ui_language`, `theme` (enum-uri validate; CSRF) |
@@ -166,7 +167,7 @@ security review. **Nicio aplicație nu poate garanta securitate absolută.**
 ## Roadmap
 
 - [ ] Verificare traduceri de către vorbitori nativi (9 limbi `_reviewed: false`)
-- [ ] Ștergere Dokumentation / cont / toate datele (schema deja pregătită)
+- [x] Ștergere cont + toate datele (`/api/auth/delete-account`, cascadă; imediată, definitivă)
 - [x] Korrigieren / Übersetzen — Korrigieren = mod pe ecranul Dokumentation;
       Übersetzen = selectorul „Ausgabesprache" (limba de ieșire) pe același ecran
 - [ ] Stripe (abonament) + webhook

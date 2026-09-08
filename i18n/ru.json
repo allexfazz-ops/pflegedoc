@@ -146,5 +146,12 @@
   "doc.k.generate": "Исправить текст",
   "doc.k.generate.loading": "Исправление …",
   "hist.type.dokumentation": "Документация",
-  "hist.type.korrigierung": "Правка"
+  "hist.type.korrigierung": "Правка",
+  "konto.danger.title": "Опасная зона",
+  "konto.delete.desc": "Ваш аккаунт и вся документация будут удалены навсегда. Отменить нельзя.",
+  "konto.delete.pw": "Пароль для подтверждения",
+  "konto.delete.btn": "Удалить аккаунт навсегда",
+  "konto.delete.needpw": "Введите пароль.",
+  "konto.delete.confirm": "Действительно безвозвратно удалить аккаунт и все данные?",
+  "konto.delete.done": "Ваш аккаунт удалён."
 }
