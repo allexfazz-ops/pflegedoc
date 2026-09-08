@@ -158,5 +158,8 @@
   "konto.delete.btn": "Elimina definitivamente l’account",
   "konto.delete.needpw": "Inserisci la tua password.",
   "konto.delete.confirm": "Eliminare in modo irreversibile l’account e tutti i dati?",
-  "konto.delete.done": "Il tuo account è stato eliminato."
+  "konto.delete.done": "Il tuo account è stato eliminato.",
+  "doc.model": "Modello di documentazione",
+  "doc.model.sis": "Modello strutturale (SIS)",
+  "doc.model.klassisch": "Classico"
 }

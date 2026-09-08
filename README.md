@@ -56,7 +56,7 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 
 | Endpoint | Metode | Auth | Note |
 |---|---|---|---|
-| `/api/generate` | POST | da (sesiune + e-mail confirmat) | proxy Gemini; rate limit 40/h/IP; body `{ input, mode?, targetLang? }` — `mode`: `formulieren` (implicit) / `korrigieren` / `pflegeplanung`; `targetLang` (pentru `formulieren` și `pflegeplanung`): cod UI ≠ `de` ⇒ rezultatul e redat în acea limbă |
+| `/api/generate` | POST | da (sesiune + e-mail confirmat) | proxy Gemini; rate limit 40/h/IP; body `{ input, mode?, targetLang?, docModel? }` — `mode`: `formulieren` (implicit) / `korrigieren` / `pflegeplanung`; `docModel`: `sis` (implicit) / `klassisch` (pentru `formulieren` + `pflegeplanung`); `targetLang`: cod UI ≠ `de` ⇒ rezultatul e redat în acea limbă |
 | `/api/health` | GET | nu | doar stare schemă, fără detalii sensibile |
 | `/api/auth/*` | — | — | toate rutele de mai jos merg prin **un singur** fișier `api/auth/[action].js` (limită Vercel Hobby: 12 funcții) |
 | `/api/auth/register` | POST | nu | rate limit IP; nu confirmă existența e-mailului; trimite e-mail de verificare |
@@ -152,6 +152,25 @@ PFLEGEDOC_API=<url>/api/generate node tests/engine-suite.mjs
 Verifică automat „Meaning > Style" și „Never invent information": cifre,
 medicamente, lateralitate, cronologie, observație vs. afirmația pacientului,
 incertitudine, absența filler-ului clinic.
+
+## Standarde de documentație (DE / NRW)
+
+Prompturile de scriere (`formulieren`, `pflegeplanung`) includ, pe lângă regulile
+de fidelitate (`TREUE_REGELN`):
+
+- **`PFLEGEFACHSPRACHE`** — obiectiv, wertfrei, fără etichete („unkooperativ" etc.),
+  formulări active, nachvollziehbar für Dritte, Ist- vs. Fremdaussage, fără diagnostice.
+- **`STANDARDS['de-nrw']`** — cadru Deutschland / Nordrhein-Westfalen: nachvollziehbar
+  pentru Heimaufsicht (WTG NRW, staționar) / Landesrahmenvertrag § 75 SGB XI (ambulant)
+  și MD-Qualitätsprüfung; terminologia Expertenstandards DNQP și scalele (Braden/Norton,
+  EPUAP-Kategorien, NRS/VAS/BESD, BMI/MNA/PEMU, Kontinenzprofile) folosite corect **doar
+  dacă sunt menționate**, niciodată inventate.
+- **Model selectabil** (`docModel`): `sis` (Strukturmodell / Ein-STEP — Berichteblatt,
+  Themenfelder SIS, Maßnahmenplan) sau `klassisch` (Situation/Vitalwerte/Maßnahmen;
+  Pflegeplanung PES + Ressourcen/Ziel/Maßnahmen/Evaluation nach AEDL). Ales din UI,
+  reținut local (`pflegedoc_doc_model`), implicit `sis`.
+
+Regionalizare viitoare = o intrare nouă în `STANDARDS` + un selector; restul e neschimbat.
 
 ## Securitate — status
 

@@ -158,5 +158,8 @@
   "konto.delete.btn": "Видалити обліковий запис назавжди",
   "konto.delete.needpw": "Введіть пароль.",
   "konto.delete.confirm": "Дійсно безповоротно видалити обліковий запис і всі дані?",
-  "konto.delete.done": "Ваш обліковий запис видалено."
+  "konto.delete.done": "Ваш обліковий запис видалено.",
+  "doc.model": "Модель документації",
+  "doc.model.sis": "Структурна модель (SIS)",
+  "doc.model.klassisch": "Класична"
 }

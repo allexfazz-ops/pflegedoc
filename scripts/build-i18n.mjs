@@ -622,8 +622,21 @@ const DELETEACCT = {
     ar: { "konto.danger.title": "منطقة خطرة", "konto.delete.desc": "سيتم حذف حسابك وكل التوثيق نهائيًا. لا يمكن التراجع عن ذلك.", "konto.delete.pw": "كلمة المرور للتأكيد", "konto.delete.btn": "حذف الحساب نهائيًا", "konto.delete.needpw": "من فضلك أدخل كلمة المرور.", "konto.delete.confirm": "هل تريد فعلاً حذف حسابك وكل البيانات بلا رجعة؟", "konto.delete.done": "تم حذف حسابك." }
 };
 
+// Selectorul de model de documentație (SIS / clasic) — adăugat ulterior.
+const DOCMODEL = {
+    fr: { "doc.model": "Modèle de documentation", "doc.model.sis": "Modèle structurel (SIS)", "doc.model.klassisch": "Classique" },
+    es: { "doc.model": "Modelo de documentación", "doc.model.sis": "Modelo estructural (SIS)", "doc.model.klassisch": "Clásico" },
+    it: { "doc.model": "Modello di documentazione", "doc.model.sis": "Modello strutturale (SIS)", "doc.model.klassisch": "Classico" },
+    pt: { "doc.model": "Modelo de documentação", "doc.model.sis": "Modelo estrutural (SIS)", "doc.model.klassisch": "Clássico" },
+    pl: { "doc.model": "Model dokumentacji", "doc.model.sis": "Model strukturalny (SIS)", "doc.model.klassisch": "Klasyczny" },
+    tr: { "doc.model": "Dokümantasyon modeli", "doc.model.sis": "Yapısal model (SIS)", "doc.model.klassisch": "Klasik" },
+    ru: { "doc.model": "Модель документации", "doc.model.sis": "Структурная модель (SIS)", "doc.model.klassisch": "Классическая" },
+    uk: { "doc.model": "Модель документації", "doc.model.sis": "Структурна модель (SIS)", "doc.model.klassisch": "Класична" },
+    ar: { "doc.model": "نموذج التوثيق", "doc.model.sis": "النموذج البنيوي (SIS)", "doc.model.klassisch": "كلاسيكي" }
+};
+
 for (const [code, dict] of Object.entries(T)) {
-    const merged = { ...dict, ...(VERIFY[code] || {}), ...(RESET[code] || {}), ...(DOCMODE[code] || {}), ...(DELETEACCT[code] || {}) };
+    const merged = { ...dict, ...(VERIFY[code] || {}), ...(RESET[code] || {}), ...(DOCMODE[code] || {}), ...(DELETEACCT[code] || {}), ...(DOCMODEL[code] || {}) };
     const out = { "_reviewed": false, ...merged };
     writeFileSync(path.join(OUT, code + ".json"), JSON.stringify(out, null, 2) + "\n", "utf8");
     console.log("scris i18n/" + code + ".json  (" + Object.keys(merged).length + " chei)");

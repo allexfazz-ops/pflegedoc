@@ -158,5 +158,8 @@
   "konto.delete.btn": "Trwale usuń konto",
   "konto.delete.needpw": "Wpisz swoje hasło.",
   "konto.delete.confirm": "Na pewno nieodwracalnie usunąć konto i wszystkie dane?",
-  "konto.delete.done": "Twoje konto zostało usunięte."
+  "konto.delete.done": "Twoje konto zostało usunięte.",
+  "doc.model": "Model dokumentacji",
+  "doc.model.sis": "Model strukturalny (SIS)",
+  "doc.model.klassisch": "Klasyczny"
 }

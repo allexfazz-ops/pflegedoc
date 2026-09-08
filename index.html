@@ -776,6 +776,13 @@
                         <option value="tr-TR" data-i18n="lang.tr">Türkisch</option>
                     </select>
                 </div>
+                <div class="field" id="docModelRow">
+                    <label class="field__label" for="docModel" data-i18n="doc.model">Dokumentationsmodell</label>
+                    <select id="docModel" class="select">
+                        <option value="sis" data-i18n="doc.model.sis">Strukturmodell (SIS)</option>
+                        <option value="klassisch" data-i18n="doc.model.klassisch">Klassisch</option>
+                    </select>
+                </div>
                 <div class="field" id="outputLangRow">
                     <label class="field__label" for="outputLanguage" data-i18n="doc.outputlang">Ausgabesprache</label>
                     <select id="outputLanguage" class="select"></select>
@@ -1345,8 +1352,12 @@ async function generateDoc() {
 
     try {
         const outSel = document.getElementById('outputLanguage');
+        const modelSel = document.getElementById('docModel');
         const targetLang = (currentDocMode !== 'korrigieren' && outSel) ? outSel.value : 'de';
-        const text = await callGemini(apiKey, userInput, { mode: currentDocMode, targetLang: targetLang });
+        const docModel = (currentDocMode !== 'korrigieren' && modelSel) ? modelSel.value : 'sis';
+        const text = await callGemini(apiKey, userInput, {
+            mode: currentDocMode, targetLang: targetLang, docModel: docModel
+        });
         finishProcessingSteps();
 
         document.getElementById('originalText').textContent = userInput;
@@ -1386,6 +1397,9 @@ async function callGemini(apiKey, userInput, opts) {
         if (opts.mode && opts.mode !== 'formulieren') payload.mode = opts.mode;
         if (opts.mode !== 'korrigieren' && opts.targetLang && opts.targetLang !== 'de') {
             payload.targetLang = opts.targetLang;
+        }
+        if (opts.mode !== 'korrigieren' && opts.docModel && opts.docModel !== 'sis') {
+            payload.docModel = opts.docModel;
         }
     } else {
         // Mod DIRECT (cheie proprie): doar documentația clasică germană.
@@ -1897,9 +1911,13 @@ function applyDocMode(mode) {
     if (sub) sub.dataset.i18n = m.sub;
     if (ta)  ta.dataset.i18nPh = m.ph;
     if (gb)  gb.dataset.i18n = m.gen;
-    // „Ausgabesprache" are sens pentru formulieren + pflegeplanung, nu pentru korrigieren.
+    // „Ausgabesprache" + „Dokumentationsmodell" au sens pentru formulieren +
+    // pflegeplanung, nu pentru korrigieren.
+    const hideExtras = (currentDocMode === 'korrigieren');
     const row = document.getElementById('outputLangRow');
-    if (row) row.hidden = (currentDocMode === 'korrigieren');
+    if (row) row.hidden = hideExtras;
+    const mrow = document.getElementById('docModelRow');
+    if (mrow) mrow.hidden = hideExtras;
     applyI18n();
 }
 
@@ -2026,6 +2044,7 @@ const I18N = {
         'doc.note.label': 'Deine Notiz',
         'doc.note.ph': 'Zum Beispiel:\nHerr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen.',
         'doc.inputlang': 'Eingabesprache', 'doc.outputlang': 'Ausgabesprache',
+        'doc.model': 'Dokumentationsmodell', 'doc.model.sis': 'Strukturmodell (SIS)', 'doc.model.klassisch': 'Klassisch',
         'doc.k.title': 'Text korrigieren',
         'doc.k.sub': 'Rechtschreibung und Grammatik werden korrigiert, ohne den Inhalt zu ändern.',
         'doc.k.ph': 'Text einfügen, der sprachlich korrigiert werden soll …',
@@ -2142,6 +2161,7 @@ const I18N = {
         'doc.note.label': 'Your note',
         'doc.note.ph': 'For example:\nMr Müller complained of pain in his right knee this morning. Blood pressure 150/95. Medication given and assisted with mobilisation.',
         'doc.inputlang': 'Input language', 'doc.outputlang': 'Output language',
+        'doc.model': 'Documentation model', 'doc.model.sis': 'Structural model (SIS)', 'doc.model.klassisch': 'Classic',
         'doc.k.title': 'Correct text',
         'doc.k.sub': 'Spelling and grammar are corrected without changing the content.',
         'doc.k.ph': 'Paste the text to be corrected linguistically …',
@@ -2258,6 +2278,7 @@ const I18N = {
         'doc.note.label': 'Nota ta',
         'doc.note.ph': 'De exemplu:\nDomnul Müller a acuzat azi dimineață dureri la genunchiul drept. Tensiune 150/95. I s-au administrat medicamentele și a fost ajutat la mobilizare.',
         'doc.inputlang': 'Limba de intrare', 'doc.outputlang': 'Limba de ieșire',
+        'doc.model': 'Model de documentație', 'doc.model.sis': 'Model structural (SIS)', 'doc.model.klassisch': 'Clasic',
         'doc.k.title': 'Corectează textul',
         'doc.k.sub': 'Se corectează ortografia și gramatica, fără a schimba conținutul.',
         'doc.k.ph': 'Lipește textul care trebuie corectat lingvistic …',
@@ -2409,6 +2430,14 @@ function applyI18n() {
         try { saved = getStore('pflegedoc_output_lang') || 'de'; } catch (e) {}
         outSel.value = LOCALE_CODES.includes(saved) ? saved : 'de';
     }
+    // Model de documentație (SIS / clasic) — reținut local, implicit SIS.
+    const modelSel = document.getElementById('docModel');
+    if (modelSel && !modelSel.dataset.init) {
+        modelSel.dataset.init = '1';
+        let sm = 'sis';
+        try { sm = getStore('pflegedoc_doc_model') || 'sis'; } catch (e) {}
+        modelSel.value = (sm === 'klassisch') ? 'klassisch' : 'sis';
+    }
     updateGreeting();
     applyAuthUI();
     // reflectă butonul de generare / editare dacă sunt vizibile
@@ -2432,6 +2461,9 @@ document.addEventListener('change', (e) => {
     if (sel) setLocale(sel.value);
     if (e.target && e.target.id === 'outputLanguage') {
         try { setStore('pflegedoc_output_lang', e.target.value); } catch (err) {}
+    }
+    if (e.target && e.target.id === 'docModel') {
+        try { setStore('pflegedoc_doc_model', e.target.value); } catch (err) {}
     }
 });
 

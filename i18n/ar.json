@@ -158,5 +158,8 @@
   "konto.delete.btn": "حذف الحساب نهائيًا",
   "konto.delete.needpw": "من فضلك أدخل كلمة المرور.",
   "konto.delete.confirm": "هل تريد فعلاً حذف حسابك وكل البيانات بلا رجعة؟",
-  "konto.delete.done": "تم حذف حسابك."
+  "konto.delete.done": "تم حذف حسابك.",
+  "doc.model": "نموذج التوثيق",
+  "doc.model.sis": "النموذج البنيوي (SIS)",
+  "doc.model.klassisch": "كلاسيكي"
 }

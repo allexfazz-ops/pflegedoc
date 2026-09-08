@@ -101,27 +101,118 @@ Nichts erfunden? Nichts Wichtiges entfernt? Bedeutung unverändert? Zahl / Medik
 ABSOLUTE REGEL
 Zwischen einer beeindruckender klingenden und einer einfacheren, vollständig treuen Dokumentation IMMER die einfachere, treue wählen. Aufgabe: „Aus den Informationen der Pflegekraft eine klare, korrekte und professionelle Dokumentation machen.“ NICHT: „Eine möglichst vollständige Dokumentation erfinden.“`;
 
-// MODE: formulieren / uebersetzen (implicit) — traducere + formulare profesională.
-const PROMPT_FORMULIEREN = `${TREUE_REGELN}
+/* ----------------------------------------------------------------------------
+   Pflegefachsprache + cadru regional. Injectate în modurile de SCRIERE
+   (formulieren / pflegeplanung), NU în korrigieren.
+   Regionalizare viitoare: adaugă o intrare în STANDARDS și expune un selector;
+   momentan un singur set — Deutschland / Nordrhein-Westfalen.
+   ---------------------------------------------------------------------------- */
+const PFLEGEFACHSPRACHE = `PFLEGEFACHSPRACHE UND DOKUMENTATIONSGRUNDSÄTZE
+Objektiv, sachlich, wertfrei. Beschreibe beobachtbares Verhalten statt Bewertungen oder Etiketten: nicht „unkooperativ“, „aggressiv“, „verwirrt“, „schwierig“, sondern das konkrete Verhalten (was war zu sehen bzw. zu hören).
+Aktiv und konkret formulieren, nachvollziehbar für Dritte, die die Situation nicht miterlebt haben. Die handelnde Person benennen (Pflegekraft, Bewohner/in, Angehörige, Arzt/Ärztin).
+Keine Diagnosen stellen; von der Pflegekraft genannte ärztliche Diagnosen dürfen wörtlich übernommen werden. Ist-Zustand und Fremdaussage strikt trennen.`;
 
-MODUS: ÜBERSETZEN & PROFESSIONELL FORMULIEREN
-Überführe die Angaben in eine professionelle deutsche Pflegedokumentation. Wenn die Eingabe mehrere Aspekte umfasst, gliedere nach dem Strukturmodell (SIS) – Überschriften genau so:
+const STANDARDS = {
+    "de-nrw": `REGIONALER RAHMEN: DEUTSCHLAND / NORDRHEIN-WESTFALEN
+Die Dokumentation muss den in Deutschland üblichen pflegefachlichen Anforderungen genügen und für die Heimaufsicht (WTG NRW, stationär) bzw. den Landesrahmenvertrag nach § 75 SGB XI (ambulant) sowie die Qualitätsprüfung des Medizinischen Dienstes nachvollziehbar sein: vollständig, sachlich, zeitnah und widerspruchsfrei.
+Fachbegriffe der Nationalen Expertenstandards (DNQP) korrekt verwenden – NUR wenn die Pflegekraft den Sachverhalt genannt hat, niemals ergänzend: Dekubitusprophylaxe, Sturzprophylaxe, Schmerzmanagement, Förderung der Harnkontinenz, Ernährungsmanagement, Erhaltung und Förderung der Mobilität, Pflege von Menschen mit chronischen Wunden, Beziehungsgestaltung bei Demenz, Entlassungsmanagement.
+Assessment-Instrumente und Skalen nur mit genannten Werten und korrekter Benennung: Braden- bzw. Norton-Skala; Dekubitus-Kategorie I–IV (EPUAP/NPIAP); Schmerz per NRS, VAS oder VRS bzw. BESD/ZOPA bei Demenz; BMI, Mini Nutritional Assessment oder PEMU; Miktionsprotokoll und Kontinenzprofile; Pflegegrad und Module des Begutachtungsinstruments. Werte, Kategorien oder Skalenwerte NIEMALS erfinden oder schätzen.
+Keine nicht standardisierten Abkürzungen. Datum, Uhrzeit und Handzeichen nur übernehmen, wenn genannt. Keine zusätzlichen personenbezogenen Daten ergänzen (Schweigepflicht, DSGVO).`,
+};
+const DEFAULT_REGION = "de-nrw";
+
+// Modele de documentație selectabile din UI.
+const DOC_MODELS = ["sis", "klassisch"];
+const DEFAULT_DOC_MODEL = "sis";
+
+// Cadru comun pentru modurile de scriere.
+function schreibRahmen() {
+    return `${TREUE_REGELN}\n\n${PFLEGEFACHSPRACHE}\n\n${STANDARDS[DEFAULT_REGION]}`;
+}
+
+// MODE: formulieren / uebersetzen — notiță -> Verlaufs-/Berichteintrag.
+function promptFormulieren(docModel) {
+    const modell = docModel === "klassisch"
+        ? `DOKUMENTATIONSMODELL: KLASSISCHE PFLEGEDOKUMENTATION
+Bei mehreren Aspekten nach folgenden Überschriften gliedern (genau so); nicht belegte Abschnitte entfallen vollständig, kein Platzhaltertext:
 
 Situation / Beobachtung:
 <Zustand, Verhalten, Beobachtungen; berichtete Aussagen als solche kennzeichnen>
 
 Vitalwerte:
-<NUR wenn Vitalwerte genannt wurden. Format je Wert: RR: <Wert> mmHg | Puls: <Wert>/min | SpO2: <Wert> % | BZ: <Wert> mg/dl | Temp: <Wert> °C. Nicht genannte Werte weglassen. Wurden GAR KEINE Vitalwerte genannt, entfällt dieser Abschnitt vollständig – KEIN Platzhaltertext.>
+<NUR genannte Werte. Format je Wert: RR <Wert> mmHg | Puls <Wert>/min | SpO2 <Wert> % | BZ <Wert> mg/dl | Temp <Wert> °C.>
 
 Durchgeführte Maßnahmen:
-<NUR wenn Maßnahmen genannt wurden. Je Zeile mit "- ". Sonst entfällt der Abschnitt.>
+<NUR wenn genannt. Je Zeile mit "- ".>`
+        : `DOKUMENTATIONSMODELL: STRUKTURMODELL (SIS / Ein-STEP)
+Schreibe einen Eintrag im Sinne des Berichteblatts: dokumentiert werden AUSSCHLIESSLICH Abweichungen von der vereinbarten Regelversorgung sowie besondere Vorkommnisse, Beobachtungen und durchgeführte Maßnahmen. Die Regelversorgung selbst wird NICHT wiederholt. Sachlich, chronologisch, in ganzen Sätzen.
+Wenn der Inhalt eindeutig zu einem SIS-Themenfeld gehört, stelle dieses dem Absatz voran (z. B. „Mobilität und Bewegung:“). Themenfelder: Kognition und Kommunikation; Mobilität und Bewegung; Krankheitsbezogene Anforderungen und Belastungen; Selbstversorgung; Leben in sozialen Beziehungen; Wohnen bzw. Haushaltsführung. Passt nichts eindeutig, ohne Zuordnung schreiben.`;
 
-Bei einer einzelnen kurzen Beobachtung ist EIN sachlicher Satz OHNE Überschriften vorzuziehen.
+    return `${schreibRahmen()}
+
+MODUS: ÜBERSETZEN & PROFESSIONELL FORMULIEREN
+Überführe die Angaben in einen professionellen deutschen Pflege-Verlaufseintrag.
+
+${modell}
+
+Bei einer einzelnen kurzen Beobachtung ist EIN sachlicher Satz ohne Überschriften vorzuziehen.
 
 AUSGABEFORMAT
 Gib NUR den fertigen Dokumentationstext zurück. Keine Einleitung („Hier ist …“), keine Erklärung, kein medizinischer Rat, kein Disclaimer im Text.`;
+}
 
-// MODE: korrigieren — doar corectură lingvistică, păstrează formularea.
+// MODE: pflegeplanung — descriere liberă -> plan structurat.
+function promptPflegeplanung(docModel) {
+    const koerper = docModel === "klassisch"
+        ? `DOKUMENTATIONSMODELL: KLASSISCHE PFLEGEPLANUNG (nach AEDL/ABEDL)
+Struktur je Pflegeproblem – Überschriften genau so:
+
+Pflegeproblem:
+<kurz und konkret; wenn die Angaben es hergeben im Format „Problem – beeinflussende Faktoren – Zeichen/Symptome“ (PES), sonst nur das Genannte>
+
+Ressourcen:
+<was die Person selbst kann oder was sie unterstützt – nur wenn genannt>
+
+Pflegeziel:
+<Nah- und Fernziel trennen, wenn möglich; überprüfbar, ohne erfundene Werte oder Fristen>
+
+Pflegemaßnahmen:
+- <konkrete Maßnahme, je Zeile eine; Häufigkeit/Zeitpunkt nur wenn genannt>
+
+Evaluation:
+<nur wenn ein Überprüfungsdatum oder ein Ergebnis genannt wurde>`
+        : `DOKUMENTATIONSMODELL: STRUKTURMODELL – MASSNAHMENPLAN
+Struktur je Eintrag – Überschriften genau so:
+
+Themenfeld:
+<eines der SIS-Themenfelder, wenn zuordenbar (Kognition und Kommunikation; Mobilität und Bewegung; Krankheitsbezogene Anforderungen und Belastungen; Selbstversorgung; Leben in sozialen Beziehungen; Wohnen bzw. Haushaltsführung); sonst weglassen>
+
+Fähigkeiten / Bedarf:
+<was die Person kann und wobei sie Unterstützung braucht – nur Genanntes>
+
+Maßnahmen:
+- <konkrete Maßnahme, je Zeile eine; Häufigkeit/Zeitpunkt nur wenn genannt>
+
+Angestrebtes Ergebnis:
+<nur wenn genannt; überprüfbar, ohne erfundene Werte oder Fristen>
+
+Evaluation:
+<nur wenn ein Termin oder Ergebnis genannt wurde>`;
+
+    return `${schreibRahmen()}
+
+MODUS: PFLEGEPLANUNG STRUKTURIEREN
+Wandle die Angaben der Pflegekraft in eine strukturierte Planung um. Verwende AUSSCHLIESSLICH genannte Informationen. Erfinde KEINE Probleme, Ressourcen, Ziele, Maßnahmen, Fristen oder Messwerte. Nicht belegte Abschnitte ersatzlos weglassen (kein Platzhaltertext).
+
+${koerper}
+
+Mehrere Einträge bzw. Pflegeprobleme durch eine Leerzeile trennen, in der von der Pflegekraft genannten Reihenfolge.
+
+AUSGABEFORMAT
+Gib NUR die Planung zurück. Keine Einleitung, keine Erklärung, kein Disclaimer im Text.`;
+}
+
+// MODE: korrigieren — doar corectură lingvistică (fără cadru regional / structură).
 const PROMPT_KORRIGIEREN = `${TREUE_REGELN}
 
 MODUS: KORRIGIEREN
@@ -130,41 +221,14 @@ Korrigiere NUR Rechtschreibung, Grammatik, Zeichensetzung und offensichtliche sp
 AUSGABEFORMAT
 Gib NUR den korrigierten Text zurück – ohne Einleitung, ohne Kommentar.`;
 
-// MODE: pflegeplanung — structurează descrierea liberă într-o Pflegeplanung.
-const PROMPT_PFLEGEPLANUNG = `${TREUE_REGELN}
+const VALID_MODES = ["formulieren", "uebersetzen", "korrigieren", "pflegeplanung"];
 
-MODUS: PFLEGEPLANUNG STRUKTURIEREN
-Wandle die Angaben der Pflegekraft in eine strukturierte Pflegeplanung um. Verwende AUSSCHLIESSLICH genannte Informationen. Erfinde KEINE Probleme, Ressourcen, Ziele, Maßnahmen, Fristen oder Messwerte. Ist ein Abschnitt nicht belegt, lasse ihn ersatzlos weg (kein Platzhaltertext).
-
-Struktur je Pflegeproblem – Überschriften genau so:
-
-Pflegeproblem:
-<Kurz und konkret. Wenn die Angaben es hergeben, im Format „Problem – beeinflussende Faktoren – Zeichen/Symptome“ (PES), sonst nur das Genannte.>
-
-Ressourcen:
-<Was die Person selbst kann oder was sie unterstützt – nur wenn genannt.>
-
-Pflegeziel:
-<Was erreicht oder erhalten werden soll. Nah- und Fernziel trennen, wenn die Angaben das zulassen. Überprüfbar formulieren, aber ohne erfundene Werte oder Zeitangaben.>
-
-Pflegemaßnahmen:
-- <Konkrete Maßnahmen, je Zeile eine. Häufigkeit/Zeitpunkt nur, wenn genannt.>
-
-Evaluation:
-<Nur wenn ein Überprüfungsdatum oder ein Ergebnis genannt wurde. Sonst weglassen.>
-
-Bei mehreren Pflegeproblemen jeden Block wiederholen, getrennt durch eine Leerzeile, in der von der Pflegekraft genannten Reihenfolge.
-
-AUSGABEFORMAT
-Gib NUR die Pflegeplanung zurück. Keine Einleitung, keine Erklärung, kein Disclaimer im Text.`;
-
-const PROMPTS = {
-    formulieren: PROMPT_FORMULIEREN,
-    uebersetzen: PROMPT_FORMULIEREN,
-    korrigieren: PROMPT_KORRIGIEREN,
-    pflegeplanung: PROMPT_PFLEGEPLANUNG
-};
-const VALID_MODES = Object.keys(PROMPTS);
+// Asamblează promptul de sistem pentru mod + model de documentație.
+function buildSystemPrompt(mode, docModel) {
+    if (mode === "korrigieren") return PROMPT_KORRIGIEREN;
+    if (mode === "pflegeplanung") return promptPflegeplanung(docModel);
+    return promptFormulieren(docModel); // formulieren + uebersetzen
+}
 
 export default async function handler(req, res) {
     // Same-origin: frontend-ul apelează /api/generate de pe același domeniu,
@@ -245,9 +309,11 @@ export default async function handler(req, res) {
         });
     }
 
-    // Mod de lucru: formulieren (implicit) | korrigieren | uebersetzen
+    // Mod de lucru: formulieren (implicit) | korrigieren | uebersetzen | pflegeplanung
     const mode = VALID_MODES.includes(body && body.mode) ? body.mode : "formulieren";
-    let systemPrompt = PROMPTS[mode];
+    // Model de documentație: sis (implicit) | klassisch — relevant pt formulieren + pflegeplanung.
+    const docModel = DOC_MODELS.includes(body && body.docModel) ? body.docModel : DEFAULT_DOC_MODEL;
+    let systemPrompt = buildSystemPrompt(mode, docModel);
 
     // Limbă țintă: doar pentru "formulieren". Cod valid și ≠ "de" -> instrucțiune
     // adăugată DUPĂ regulile de fidelitate (le are prioritate doar pe cea de limbă).
