@@ -351,9 +351,14 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
             // Fidelitate maximă: temperatură foarte joasă, fără „creativitate".
             temperature: 0.1,
             topP: 0.85,
-            maxOutputTokens: 8192
+            maxOutputTokens: 8192,
+            // Task de transformare fidelă, nu de raționament -> dezactivăm faza de
+            // „thinking" (latență mare, beneficiu mic aici). Dacă modelul nu o
+            // suportă, o scoatem și reîncercăm (vezi mai jos).
+            thinkingConfig: { thinkingBudget: 0 }
         }
     };
+    let thinkingStripped = false;
 
     // --- Apel Gemini: până la MAX_ATTEMPTS încercări, cu backoff pe erori tranzitorii ---
     const OVERLOAD_MSG = "Gemini ist zurzeit überlastet (hohe Nachfrage). Bitte in einigen Sekunden erneut versuchen.";
@@ -397,6 +402,14 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
         if (upstream.ok) break;
 
         const apiMsg = data && data.error && data.error.message ? data.error.message : `HTTP ${upstream.status}`;
+
+        // Modelul nu cunoaște thinkingConfig -> îl scoatem și reîncercăm o dată.
+        if (upstream.status === 400 && !thinkingStripped && /thinking|thinkingconfig|thinking_config|unknown name/i.test(apiMsg)) {
+            thinkingStripped = true;
+            delete payload.generationConfig.thinkingConfig;
+            data = null;
+            continue;
+        }
 
         // Erori permanente -> fără reîncercare.
         if (upstream.status === 400 && /API key not valid/i.test(apiMsg)) {
