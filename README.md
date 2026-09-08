@@ -58,12 +58,15 @@ personal server-side, i18n (12 limbi) și temă light/dark.
 |---|---|---|---|
 | `/api/generate` | POST | nu | proxy Gemini; rate limit 40/h/IP |
 | `/api/health` | GET | nu | doar stare schemă, fără detalii sensibile |
+| `/api/auth/*` | — | — | toate rutele de mai jos merg prin **un singur** fișier `api/auth/[action].js` (limită Vercel Hobby: 12 funcții) |
 | `/api/auth/register` | POST | nu | rate limit IP; nu confirmă existența e-mailului; trimite e-mail de verificare |
 | `/api/auth/login` | POST | nu | rate limit IP+e-mail; mesaj generic |
 | `/api/auth/logout` | POST | da (cookie) | CSRF obligatoriu; șterge rândul sesiunii |
 | `/api/auth/me` | GET | opțional | `{ authenticated, user (+email_verified), csrfToken }` |
 | `/api/auth/verify` | POST | nu | `{ token }` — single-use, rate limit IP |
 | `/api/auth/resend-verification` | POST | da | CSRF; 3/oră/user |
+| `/api/auth/forgot-password` | POST | nu | `{ email }` — răspuns mereu generic; rate limit IP+e-mail |
+| `/api/auth/reset-password` | POST | nu | `{ token, password }` — single-use 1h; scrypt nou; invalidează toate sesiunile; setează `email_verified` |
 | `/api/history` | GET / POST | da | GET paginat (preview); POST creează (CSRF) |
 | `/api/history/:id` | GET / DELETE | da | ownership; 404 (nu 403) la miss; CSRF la DELETE |
 | `/api/settings` | GET / PATCH | da | `ui_language`, `theme` (enum-uri validate; CSRF) |
