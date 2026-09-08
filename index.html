@@ -1900,8 +1900,24 @@ const DOC_MODE_I18N = {
     korrigieren:   { title: 'doc.k.title', sub: 'doc.k.sub', ph: 'doc.k.ph',    gen: 'doc.k.generate' },
     pflegeplanung: { title: 'doc.p.title', sub: 'doc.p.sub', ph: 'doc.p.ph',    gen: 'doc.p.generate' }
 };
+function resetDocWorkspace() {
+    // Ecranul #screen-doc e partajat de toate modurile: la schimbarea modului
+    // golim notița + rezultatul, ca să nu apară conținut de la alt mod.
+    if (isRecording) stopRecording();
+    if (typeof userInputEl !== 'undefined' && userInputEl) userInputEl.value = '';
+    baseText = ''; finalizedInSession = '';
+    const ids = ['resultSection', 'processing', 'diffView', 'outputEdit'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+    const form = document.getElementById('docForm'); if (form) form.hidden = false;
+    ['output', 'originalText'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+    const oe = document.getElementById('outputEdit'); if (oe) oe.value = '';
+    const db = document.getElementById('diffBtn'); if (db) db.hidden = true;
+    const rp = document.getElementById('recorderPreview'); if (rp) rp.textContent = '';
+}
 function applyDocMode(mode) {
-    currentDocMode = DOC_MODES.includes(mode) ? mode : 'formulieren';
+    const next = DOC_MODES.includes(mode) ? mode : 'formulieren';
+    if (next !== currentDocMode) resetDocWorkspace();
+    currentDocMode = next;
     const m = DOC_MODE_I18N[currentDocMode];
     const h   = document.getElementById('doc-h');
     const sub = document.querySelector('#screen-doc .screen__sub');
