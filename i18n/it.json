@@ -127,5 +127,16 @@
   "verify.devlink": "Nessun provider e-mail configurato: il link è nella console (F12).",
   "verify.missing": "Nessun token di conferma. Usa il link dell’e-mail.",
   "verify.wall": "Ti abbiamo inviato un’e-mail. Confermala per usare PflegeDoc.",
-  "verify.sendfail": "Impossibile inviare l’e-mail. Riprova più tardi."
+  "verify.sendfail": "Impossibile inviare l’e-mail. Riprova più tardi.",
+  "auth.forgot.link": "Password dimenticata?",
+  "auth.forgot.title": "Reimposta la password",
+  "auth.forgot.sub": "Inserisci la tua e-mail. Ti invieremo un link.",
+  "auth.forgot.send": "Invia link",
+  "auth.forgot.done": "Se l’indirizzo esiste, ti abbiamo inviato un link.",
+  "auth.forgot.devlink": "Nessun provider e-mail attivo: il link è nella console (F12).",
+  "auth.reset.title": "Nuova password",
+  "auth.reset.sub": "Scegli una nuova password.",
+  "auth.reset.save": "Salva la password",
+  "auth.reset.done": "Password modificata. Accedi di nuovo.",
+  "auth.reset.missing": "Link non valido. Richiedine uno nuovo."
 }

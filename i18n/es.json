@@ -127,5 +127,16 @@
   "verify.devlink": "Sin proveedor de correo configurado: el enlace está en la consola (F12).",
   "verify.missing": "No hay token de confirmación. Usa el enlace del correo.",
   "verify.wall": "Te hemos enviado un correo. Confírmalo para usar PflegeDoc.",
-  "verify.sendfail": "No se pudo enviar el correo. Inténtalo más tarde."
+  "verify.sendfail": "No se pudo enviar el correo. Inténtalo más tarde.",
+  "auth.forgot.link": "¿Olvidaste tu contraseña?",
+  "auth.forgot.title": "Restablecer contraseña",
+  "auth.forgot.sub": "Introduce tu correo. Te enviaremos un enlace.",
+  "auth.forgot.send": "Enviar enlace",
+  "auth.forgot.done": "Si la dirección existe, te hemos enviado un enlace.",
+  "auth.forgot.devlink": "Sin proveedor de correo activo: el enlace está en la consola (F12).",
+  "auth.reset.title": "Nueva contraseña",
+  "auth.reset.sub": "Elige una nueva contraseña.",
+  "auth.reset.save": "Guardar contraseña",
+  "auth.reset.done": "Contraseña cambiada. Inicia sesión de nuevo.",
+  "auth.reset.missing": "Enlace no válido. Solicita uno nuevo."
 }

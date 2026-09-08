@@ -127,5 +127,16 @@
   "verify.devlink": "Sem fornecedor de e-mail configurado – o link está na consola (F12).",
   "verify.missing": "Sem token de confirmação. Usa o link do e-mail.",
   "verify.wall": "Enviámos-te um e-mail. Confirma-o para usar o PflegeDoc.",
-  "verify.sendfail": "Não foi possível enviar o e-mail. Tenta mais tarde."
+  "verify.sendfail": "Não foi possível enviar o e-mail. Tenta mais tarde.",
+  "auth.forgot.link": "Esqueceste a palavra-passe?",
+  "auth.forgot.title": "Repor palavra-passe",
+  "auth.forgot.sub": "Introduz o teu e-mail. Enviamos-te um link.",
+  "auth.forgot.send": "Enviar link",
+  "auth.forgot.done": "Se o endereço existir, enviámos-te um link.",
+  "auth.forgot.devlink": "Sem fornecedor de e-mail ativo – o link está na consola (F12).",
+  "auth.reset.title": "Nova palavra-passe",
+  "auth.reset.sub": "Escolhe uma nova palavra-passe.",
+  "auth.reset.save": "Guardar palavra-passe",
+  "auth.reset.done": "Palavra-passe alterada. Inicia sessão novamente.",
+  "auth.reset.missing": "Link inválido. Pede um novo."
 }

@@ -127,5 +127,16 @@
   "verify.devlink": "E-posta sağlayıcısı yapılandırılmadı – bağlantı konsolda (F12).",
   "verify.missing": "Doğrulama belirteci yok. Lütfen e-postadaki bağlantıyı kullan.",
   "verify.wall": "Sana bir e-posta gönderdik. PflegeDoc’u kullanmak için doğrula.",
-  "verify.sendfail": "E-posta gönderilemedi. Lütfen daha sonra tekrar dene."
+  "verify.sendfail": "E-posta gönderilemedi. Lütfen daha sonra tekrar dene.",
+  "auth.forgot.link": "Şifreni mi unuttun?",
+  "auth.forgot.title": "Şifreyi sıfırla",
+  "auth.forgot.sub": "E-postanı gir. Sana bir sıfırlama bağlantısı göndereceğiz.",
+  "auth.forgot.send": "Bağlantı gönder",
+  "auth.forgot.done": "Adres varsa sana bir bağlantı gönderdik.",
+  "auth.forgot.devlink": "Aktif e-posta sağlayıcısı yok – bağlantı konsolda (F12).",
+  "auth.reset.title": "Yeni şifre",
+  "auth.reset.sub": "Hesabın için yeni bir şifre seç.",
+  "auth.reset.save": "Şifreyi kaydet",
+  "auth.reset.done": "Şifre değiştirildi. Lütfen yeniden giriş yap.",
+  "auth.reset.missing": "Geçersiz bağlantı. Yeni bir tane iste."
 }

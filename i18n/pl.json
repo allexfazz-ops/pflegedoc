@@ -127,5 +127,16 @@
   "verify.devlink": "Brak skonfigurowanego dostawcy e-mail – link jest w konsoli (F12).",
   "verify.missing": "Brak tokena potwierdzenia. Użyj linku z e-maila.",
   "verify.wall": "Wysłaliśmy Ci e-mail. Potwierdź go, aby korzystać z PflegeDoc.",
-  "verify.sendfail": "Nie udało się wysłać e-maila. Spróbuj później."
+  "verify.sendfail": "Nie udało się wysłać e-maila. Spróbuj później.",
+  "auth.forgot.link": "Nie pamiętasz hasła?",
+  "auth.forgot.title": "Zresetuj hasło",
+  "auth.forgot.sub": "Podaj swój e-mail. Wyślemy link do zresetowania.",
+  "auth.forgot.send": "Wyślij link",
+  "auth.forgot.done": "Jeśli adres istnieje, wysłaliśmy link.",
+  "auth.forgot.devlink": "Brak aktywnego dostawcy e-mail – link jest w konsoli (F12).",
+  "auth.reset.title": "Nowe hasło",
+  "auth.reset.sub": "Wybierz nowe hasło do konta.",
+  "auth.reset.save": "Zapisz hasło",
+  "auth.reset.done": "Hasło zmienione. Zaloguj się ponownie.",
+  "auth.reset.missing": "Nieprawidłowy link. Poproś o nowy."
 }

@@ -972,9 +972,45 @@
                 <button class="btn btn--primary btn--block btn--lg" type="submit" id="loginSubmit" data-i18n="auth.login.title">Anmelden</button>
             </form>
             <p class="auth__switch">
+                <a data-nav-go="forgot" data-i18n="auth.forgot.link">Passwort vergessen?</a>
+            </p>
+            <p class="auth__switch">
                 <span data-i18n="auth.login.switch">Noch kein Konto?</span>
                 <a data-nav-go="register" data-i18n="auth.register.title">Registrieren</a>
             </p>
+        </div>
+    </section>
+
+    <!-- ===================== PASSWORT VERGESSEN ===================== -->
+    <section id="screen-forgot" class="screen" aria-labelledby="forgot-h" hidden>
+        <div class="authcard">
+            <h1 id="forgot-h" tabindex="-1" data-i18n="auth.forgot.title">Passwort zurücksetzen</h1>
+            <p class="screen__sub" data-i18n="auth.forgot.sub">Gib deine E-Mail ein. Wir senden dir einen Link zum Zurücksetzen.</p>
+            <form id="forgotForm" novalidate>
+                <div class="field">
+                    <label class="field__label" for="forgotEmail" data-i18n="auth.email">E-Mail</label>
+                    <input id="forgotEmail" class="input" type="email" autocomplete="username" required>
+                </div>
+                <button class="btn btn--primary btn--block btn--lg" type="submit" id="forgotSubmit" data-i18n="auth.forgot.send">Link senden</button>
+            </form>
+            <p class="auth__switch"><a data-nav-go="login" data-i18n="auth.login.title">Anmelden</a></p>
+        </div>
+    </section>
+
+    <!-- ===================== NEUES PASSWORT ===================== -->
+    <section id="screen-reset" class="screen" aria-labelledby="reset-h" hidden>
+        <div class="authcard">
+            <h1 id="reset-h" tabindex="-1" data-i18n="auth.reset.title">Neues Passwort</h1>
+            <p class="screen__sub" data-i18n="auth.reset.sub">Wähle ein neues Passwort für dein Konto.</p>
+            <form id="resetForm" novalidate>
+                <div class="field">
+                    <label class="field__label" for="resetPassword" data-i18n="auth.password">Passwort</label>
+                    <input id="resetPassword" class="input" type="password" autocomplete="new-password" minlength="8" required>
+                    <p class="hint" data-i18n="auth.password.hint">Mindestens 8 Zeichen.</p>
+                </div>
+                <button class="btn btn--primary btn--block btn--lg" type="submit" id="resetSubmit" data-i18n="auth.reset.save">Passwort speichern</button>
+            </form>
+            <p class="auth__switch"><a data-nav-go="login" data-i18n="auth.login.title">Anmelden</a></p>
         </div>
     </section>
 
@@ -1827,6 +1863,8 @@ const ROUTES = {
     einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
     login:         { screen: 'screen-login',         title: 'Anmelden',          nav: null },
     register:      { screen: 'screen-register',      title: 'Registrieren',      nav: null },
+    forgot:        { screen: 'screen-forgot',        title: 'Passwort zurücksetzen', nav: null },
+    reset:         { screen: 'screen-reset',         title: 'Neues Passwort',    nav: null },
     konto:         { screen: 'screen-konto',         title: 'Konto',             nav: null },
     verify:        { screen: 'screen-verify',        title: 'E-Mail bestätigen', nav: null }
 };
@@ -1840,11 +1878,13 @@ function route() {
     // === Gate: aplicația se folosește DOAR cu cont + e-mail confirmat. ===
     const authed = authState.authenticated;
     const verified = authed && authState.user && authState.user.email_verified === true;
-    const publicKeys = ['login', 'register', 'verify'];
+    const publicKeys = ['login', 'register', 'verify', 'forgot', 'reset'];
 
     if (!authed) {
         // Neautentificat -> doar ecranele publice; restul -> login.
         if (!publicKeys.includes(key)) key = 'login';
+    } else if (key === 'reset' && pendingResetToken) {
+        // Un utilizator logat care deschide un link de resetare -> lasă-l pe ecranul de resetare.
     } else if (!verified) {
         // Autentificat dar neconfirmat -> perete de verificare (excepție: link cu token).
         key = 'verify';
@@ -1852,6 +1892,9 @@ function route() {
         // Confirmat -> ecranele auth/verify nu mai au rost.
         if (publicKeys.includes(key)) key = 'home';
     }
+
+    // #/reset fără token -> trimite la #/forgot.
+    if (key === 'reset' && !pendingResetToken) key = 'forgot';
 
     // Comută starea ecranului #/verify: confirmare cu token vs. perete.
     if (key === 'verify') {
@@ -2001,6 +2044,15 @@ const I18N = {
         'verify.missing': 'Kein Bestätigungs-Token. Bitte den Link aus der E-Mail verwenden.',
         'verify.wall': 'Wir haben dir eine E-Mail geschickt. Bitte bestätige sie, um PflegeDoc zu nutzen.',
         'verify.sendfail': 'E-Mail konnte nicht gesendet werden. Bitte später erneut versuchen.',
+        'auth.forgot.link': 'Passwort vergessen?', 'auth.forgot.title': 'Passwort zurücksetzen',
+        'auth.forgot.sub': 'Gib deine E-Mail ein. Wir senden dir einen Link zum Zurücksetzen.',
+        'auth.forgot.send': 'Link senden',
+        'auth.forgot.done': 'Falls die Adresse existiert, haben wir dir einen Link geschickt.',
+        'auth.forgot.devlink': 'Kein E-Mail-Anbieter aktiv – Reset-Link in der Konsole (F12).',
+        'auth.reset.title': 'Neues Passwort', 'auth.reset.sub': 'Wähle ein neues Passwort für dein Konto.',
+        'auth.reset.save': 'Passwort speichern',
+        'auth.reset.done': 'Passwort geändert. Bitte melde dich neu an.',
+        'auth.reset.missing': 'Kein gültiger Link. Bitte fordere einen neuen an.',
         'rec.status': 'Aufnahme läuft', 'rec.hint': 'Sprich ruhig und deutlich. Der Text wird laufend ergänzt.',
         'rec.stop': 'Aufnahme beenden',
         'toast.loggedin': 'Angemeldet.', 'toast.loggedout': 'Abgemeldet.', 'toast.registered': 'Konto erstellt.',
@@ -2093,6 +2145,15 @@ const I18N = {
         'verify.missing': 'No confirmation token. Please use the link from the email.',
         'verify.wall': 'We have sent you an email. Please confirm it to use PflegeDoc.',
         'verify.sendfail': 'The email could not be sent. Please try again later.',
+        'auth.forgot.link': 'Forgot password?', 'auth.forgot.title': 'Reset password',
+        'auth.forgot.sub': 'Enter your email. We will send you a reset link.',
+        'auth.forgot.send': 'Send link',
+        'auth.forgot.done': 'If the address exists, we have sent you a link.',
+        'auth.forgot.devlink': 'No email provider active – reset link is in the console (F12).',
+        'auth.reset.title': 'New password', 'auth.reset.sub': 'Choose a new password for your account.',
+        'auth.reset.save': 'Save password',
+        'auth.reset.done': 'Password changed. Please sign in again.',
+        'auth.reset.missing': 'No valid link. Please request a new one.',
         'rec.status': 'Recording', 'rec.hint': 'Speak calmly and clearly. The text is added continuously.',
         'rec.stop': 'Stop recording',
         'toast.loggedin': 'Signed in.', 'toast.loggedout': 'Signed out.', 'toast.registered': 'Account created.',
@@ -2185,6 +2246,15 @@ const I18N = {
         'verify.missing': 'Lipsește tokenul de confirmare. Folosește link-ul din email.',
         'verify.wall': 'Ți-am trimis un email. Confirmă-l ca să folosești PflegeDoc.',
         'verify.sendfail': 'Emailul nu a putut fi trimis. Încearcă din nou mai târziu.',
+        'auth.forgot.link': 'Ai uitat parola?', 'auth.forgot.title': 'Resetare parolă',
+        'auth.forgot.sub': 'Introdu emailul. Îți trimitem un link de resetare.',
+        'auth.forgot.send': 'Trimite link',
+        'auth.forgot.done': 'Dacă adresa există, ți-am trimis un link.',
+        'auth.forgot.devlink': 'Fără provider de email activ – link-ul de resetare e în consolă (F12).',
+        'auth.reset.title': 'Parolă nouă', 'auth.reset.sub': 'Alege o parolă nouă pentru contul tău.',
+        'auth.reset.save': 'Salvează parola',
+        'auth.reset.done': 'Parola a fost schimbată. Autentifică-te din nou.',
+        'auth.reset.missing': 'Link invalid. Cere unul nou.',
         'rec.status': 'Înregistrare în curs', 'rec.hint': 'Vorbește calm și clar. Textul se adaugă continuu.',
         'rec.stop': 'Oprește înregistrarea',
         'toast.loggedin': 'Autentificat.', 'toast.loggedout': 'Deconectat.', 'toast.registered': 'Cont creat.',
@@ -2423,8 +2493,61 @@ if (logoutBtn) logoutBtn.addEventListener('click', async () => {
     logoutBtn.disabled = false;
 });
 
-/* ---- Verificare e-mail ---- */
+/* ---- Verificare e-mail / resetare parolă ---- */
 let pendingVerifyToken = null;
+let pendingResetToken = null;
+
+const forgotForm = document.getElementById('forgotForm');
+if (forgotForm) forgotForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('forgotSubmit');
+    btn.disabled = true;
+    try {
+        const d = await apiFetch('/api/auth/forgot-password', {
+            method: 'POST',
+            body: { email: document.getElementById('forgotEmail').value.trim() }
+        });
+        if (d.devResetUrl) {
+            console.log('[PflegeDoc] Reset-Link (dev):', d.devResetUrl);
+            toast('info', t('auth.forgot.devlink'));
+        } else {
+            toast('success', t('auth.forgot.done'));
+        }
+        location.hash = '#/login';
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+const resetForm = document.getElementById('resetForm');
+if (resetForm) resetForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!pendingResetToken) { toast('warning', t('auth.reset.missing')); return; }
+    const btn = document.getElementById('resetSubmit');
+    btn.disabled = true;
+    try {
+        await apiFetch('/api/auth/reset-password', {
+            method: 'POST',
+            body: {
+                token: pendingResetToken,
+                password: document.getElementById('resetPassword').value
+            }
+        });
+        document.getElementById('resetPassword').value = '';
+        pendingResetToken = null;
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        // Sesiunile vechi au fost invalidate server-side.
+        authState.authenticated = false; authState.user = null; authState.csrfToken = null;
+        toast('success', t('auth.reset.done'));
+        location.hash = '#/login';
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        btn.disabled = false;
+    }
+});
 
 const verifyBtn = document.getElementById('verifyBtn');
 if (verifyBtn) verifyBtn.addEventListener('click', async () => {
@@ -2585,8 +2708,11 @@ function buildHistItemRemote(it) {
 applyTheme();
 // Link de verificare e-mail: /?verify=<token> -> ecranul de confirmare
 try {
-    const vp = new URLSearchParams(location.search).get('verify');
+    const qs = new URLSearchParams(location.search);
+    const vp = qs.get('verify');
     if (vp) { pendingVerifyToken = vp; location.hash = '#/verify'; }
+    const rp = qs.get('reset');
+    if (rp) { pendingResetToken = rp; location.hash = '#/reset'; }
 } catch (e) { /* ignorăm */ }
 // dacă limba salvată e una „externă" (fr/es/…), o încărcăm înainte de primul render
 loadLocale(getLocale()).then(() => {
