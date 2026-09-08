@@ -34,6 +34,28 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT users_theme       CHECK (theme IN ('system','light','dark'))
 );
 
+-- Verificare e-mail (adăugate ulterior — ADD COLUMN IF NOT EXISTS e idempotent).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified    boolean     NOT NULL DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
+
+-- -----------------------------------------------------------------------------
+-- email_tokens — token-uri single-use pentru acțiuni pe e-mail.
+-- purpose: 'verify_email' acum; 'reset_password' pregătit pentru viitor.
+-- Se stochează DOAR sha256(token brut).
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS email_tokens (
+    id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     uuid        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash  text        NOT NULL UNIQUE,
+    purpose     text        NOT NULL DEFAULT 'verify_email',
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    expires_at  timestamptz NOT NULL,
+    used_at     timestamptz,
+    CONSTRAINT email_tokens_purpose CHECK (purpose IN ('verify_email', 'reset_password'))
+);
+CREATE INDEX IF NOT EXISTS email_tokens_user_idx    ON email_tokens (user_id);
+CREATE INDEX IF NOT EXISTS email_tokens_expires_idx ON email_tokens (expires_at);
+
 -- -----------------------------------------------------------------------------
 -- sessions — sesiuni server-side (stateful), invalidabile la logout
 -- -----------------------------------------------------------------------------

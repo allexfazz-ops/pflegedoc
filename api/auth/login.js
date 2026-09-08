@@ -55,13 +55,15 @@ export default async function handler(req, res) {
         appendCookie(res, sessionCookie(token, req));
 
         const u = await sql`
-            SELECT id, email, ui_language, theme, created_at FROM users WHERE id = ${rows[0].id}
+            SELECT id, email, ui_language, theme, created_at, email_verified
+            FROM users WHERE id = ${rows[0].id}
         `;
         return json(res, 200, {
             ok: true,
             user: {
                 id: u[0].id, email: u[0].email,
                 ui_language: u[0].ui_language, theme: u[0].theme, created_at: u[0].created_at,
+                email_verified: u[0].email_verified === true,
             },
             csrfToken: csrf,
         });

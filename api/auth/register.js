@@ -13,6 +13,8 @@ import { json, fail, methodNotAllowed, readJson, clientIp, appendCookie } from "
 import { enforceRateLimit } from "../../lib/ratelimit.mjs";
 import { isEmail, normEmail, checkPassword } from "../../lib/validate.mjs";
 import { hashPassword, createSession, sessionCookie } from "../../lib/auth.mjs";
+import { sendVerificationEmail } from "../../lib/tokens.mjs";
+import { emailEnabled } from "../../lib/email.mjs";
 
 export default async function handler(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
@@ -64,11 +66,30 @@ export default async function handler(req, res) {
         const { token, csrf } = await createSession(user.id, req);
         appendCookie(res, sessionCookie(token, req));
 
+        // Trimite e-mailul de verificare (nu blocăm dacă eșuează).
+        let emailSent = false;
+        let devVerifyUrl;
+        try {
+            const r = await sendVerificationEmail(req, user);
+            emailSent = !!r.delivered;
+            // Doar cât timp e-mailul e dezactivat pe server: returnăm link-ul
+            // ca să poți testa fluxul fără provider.
+            if (!emailEnabled()) devVerifyUrl = r.url;
+        } catch (e) {
+            console.error("[register] verification email:", e.message);
+        }
+
         return json(res, 201, {
             ok: true,
             created: true,
-            user: { id: user.id, email: user.email, ui_language: user.ui_language, theme: user.theme },
+            user: {
+                id: user.id, email: user.email,
+                ui_language: user.ui_language, theme: user.theme,
+                email_verified: false,
+            },
             csrfToken: csrf,
+            emailSent,
+            ...(devVerifyUrl ? { devVerifyUrl } : {}),
         });
     } catch (err) {
         return fail(res, 500, "Registrierung derzeit nicht möglich.", err);

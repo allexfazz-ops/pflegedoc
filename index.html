@@ -622,6 +622,16 @@
     }
     .konto__row:last-of-type { border-bottom: none; }
     .konto__val { color: var(--text-muted); font-size: .92rem; word-break: break-all; }
+
+    .verifybanner {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        margin-bottom: 16px; padding: 11px 14px;
+        background: var(--warning-weak); color: var(--warning);
+        border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+        border-radius: var(--r-md); font-size: .88rem;
+    }
+    .verifybanner .ic { flex: none; width: 1.15em; height: 1.15em; }
+    .verifybanner .btn--link { color: var(--warning); font-weight: 700; margin-left: auto; }
     </style>
 </head>
 <body>
@@ -680,6 +690,12 @@
 </nav>
 
 <main class="content">
+
+    <div id="verifyBanner" class="verifybanner" hidden>
+        <svg class="ic"><use href="#ic-info"/></svg>
+        <span data-i18n="verify.banner">Bitte bestätige deine E-Mail-Adresse.</span>
+        <button class="btn btn--link" type="button" id="verifyResendBtn" data-i18n="verify.resend">E-Mail erneut senden</button>
+    </div>
 
     <!-- ===================== START ===================== -->
     <section id="screen-home" class="screen" aria-labelledby="home-h">
@@ -983,6 +999,16 @@
                 <span data-i18n="auth.register.switch">Schon ein Konto?</span>
                 <a data-nav-go="login" data-i18n="auth.login.title">Anmelden</a>
             </p>
+        </div>
+    </section>
+
+    <!-- ===================== E-MAIL BESTÄTIGEN ===================== -->
+    <section id="screen-verify" class="screen" aria-labelledby="verify-h" hidden>
+        <div class="authcard">
+            <h1 id="verify-h" tabindex="-1" data-i18n="verify.title">E-Mail bestätigen</h1>
+            <p class="screen__sub" data-i18n="verify.sub">Bestätige deine E-Mail-Adresse, um dein Konto abzuschließen.</p>
+            <button class="btn btn--primary btn--block btn--lg" type="button" id="verifyBtn" data-i18n="verify.btn">Jetzt bestätigen</button>
+            <p class="auth__switch"><a data-nav-go="home" data-i18n="verify.later">Später</a></p>
         </div>
     </section>
 
@@ -1790,7 +1816,8 @@ const ROUTES = {
     einstellungen: { screen: 'screen-einstellungen', title: 'Einstellungen',     nav: 'einstellungen' },
     login:         { screen: 'screen-login',         title: 'Anmelden',          nav: null },
     register:      { screen: 'screen-register',      title: 'Registrieren',      nav: null },
-    konto:         { screen: 'screen-konto',         title: 'Konto',             nav: null }
+    konto:         { screen: 'screen-konto',         title: 'Konto',             nav: null },
+    verify:        { screen: 'screen-verify',        title: 'E-Mail bestätigen', nav: null }
 };
 function currentRouteKey() {
     const h = location.hash.replace(/^#\/?/, '').trim();
@@ -1927,6 +1954,13 @@ const I18N = {
         'konto.sync.note': 'Sprache und Design werden in deinem Konto gespeichert.',
         'konto.logout': 'Abmelden', 'konto.manage': 'Konto verwalten',
         'konto.loggedout.hint': 'Melde dich an, damit dein Verlauf und deine Einstellungen geräteübergreifend gespeichert werden.',
+        'verify.title': 'E-Mail bestätigen', 'verify.sub': 'Bestätige deine E-Mail-Adresse, um dein Konto abzuschließen.',
+        'verify.btn': 'Jetzt bestätigen', 'verify.later': 'Später',
+        'verify.banner': 'Bitte bestätige deine E-Mail-Adresse.', 'verify.resend': 'E-Mail erneut senden',
+        'verify.ok': 'E-Mail bestätigt. Danke!', 'verify.resent': 'Bestätigungs-E-Mail erneut gesendet.',
+        'verify.sent': 'Wir haben dir eine Bestätigungs-E-Mail geschickt.',
+        'verify.devlink': 'Kein E-Mail-Anbieter konfiguriert – Bestätigungslink in der Konsole (F12).',
+        'verify.missing': 'Kein Bestätigungs-Token. Bitte den Link aus der E-Mail verwenden.',
         'rec.status': 'Aufnahme läuft', 'rec.hint': 'Sprich ruhig und deutlich. Der Text wird laufend ergänzt.',
         'rec.stop': 'Aufnahme beenden',
         'toast.loggedin': 'Angemeldet.', 'toast.loggedout': 'Abgemeldet.', 'toast.registered': 'Konto erstellt.',
@@ -2010,6 +2044,13 @@ const I18N = {
         'konto.sync.note': 'Language and theme are stored in your account.',
         'konto.logout': 'Sign out', 'konto.manage': 'Manage account',
         'konto.loggedout.hint': 'Sign in so your history and settings are stored across devices.',
+        'verify.title': 'Confirm your email', 'verify.sub': 'Confirm your email address to finish setting up your account.',
+        'verify.btn': 'Confirm now', 'verify.later': 'Later',
+        'verify.banner': 'Please confirm your email address.', 'verify.resend': 'Resend email',
+        'verify.ok': 'Email confirmed. Thank you!', 'verify.resent': 'Confirmation email sent again.',
+        'verify.sent': 'We have sent you a confirmation email.',
+        'verify.devlink': 'No email provider configured – confirmation link is in the console (F12).',
+        'verify.missing': 'No confirmation token. Please use the link from the email.',
         'rec.status': 'Recording', 'rec.hint': 'Speak calmly and clearly. The text is added continuously.',
         'rec.stop': 'Stop recording',
         'toast.loggedin': 'Signed in.', 'toast.loggedout': 'Signed out.', 'toast.registered': 'Account created.',
@@ -2093,6 +2134,13 @@ const I18N = {
         'konto.sync.note': 'Limba și tema se salvează în contul tău.',
         'konto.logout': 'Deconectare', 'konto.manage': 'Gestionează contul',
         'konto.loggedout.hint': 'Autentifică-te ca istoricul și setările să fie salvate pe toate dispozitivele.',
+        'verify.title': 'Confirmă emailul', 'verify.sub': 'Confirmă adresa de email ca să finalizezi contul.',
+        'verify.btn': 'Confirmă acum', 'verify.later': 'Mai târziu',
+        'verify.banner': 'Confirmă-ți adresa de email.', 'verify.resend': 'Retrimite emailul',
+        'verify.ok': 'Email confirmat. Mulțumim!', 'verify.resent': 'Email de confirmare retrimis.',
+        'verify.sent': 'Ți-am trimis un email de confirmare.',
+        'verify.devlink': 'Fără provider de email – link-ul de confirmare e în consolă (F12).',
+        'verify.missing': 'Lipsește tokenul de confirmare. Folosește link-ul din email.',
         'rec.status': 'Înregistrare în curs', 'rec.hint': 'Vorbește calm și clar. Textul se adaugă continuu.',
         'rec.stop': 'Oprește înregistrarea',
         'toast.loggedin': 'Autentificat.', 'toast.loggedout': 'Deconectat.', 'toast.registered': 'Cont creat.',
@@ -2236,6 +2284,9 @@ function applyAuthUI() {
     if (hint) hint.textContent = authed ? authState.user.email : t('konto.loggedout.hint');
     const vs = document.querySelector('#screen-verlauf .screen__sub');
     if (vs) vs.textContent = authed ? t('verlauf.sub.account') : t('verlauf.sub.local');
+    // Banner „confirmă emailul" — doar când ești logat și NEconfirmat.
+    const vb = document.getElementById('verifyBanner');
+    if (vb) vb.hidden = !(authed && authState.user && authState.user.email_verified === false);
 }
 
 function fillKonto() {
@@ -2301,6 +2352,12 @@ if (registerForm) registerForm.addEventListener('submit', async (e) => {
             applyTheme(); applyI18n();
             await migrateLocalHistory();
             toast('success', t('toast.registered'));
+            if (d.devVerifyUrl) {
+                console.log('[PflegeDoc] Bestätigungslink (dev):', d.devVerifyUrl);
+                toast('info', t('verify.devlink'));
+            } else if (d.emailSent) {
+                toast('info', t('verify.sent'));
+            }
             location.hash = '#/verlauf';
         } else {
             toast('info', t('toast.exists'));
@@ -2322,6 +2379,45 @@ if (logoutBtn) logoutBtn.addEventListener('click', async () => {
     toast('info', t('toast.loggedout'));
     location.hash = '#/home';
     logoutBtn.disabled = false;
+});
+
+/* ---- Verificare e-mail ---- */
+let pendingVerifyToken = null;
+
+const verifyBtn = document.getElementById('verifyBtn');
+if (verifyBtn) verifyBtn.addEventListener('click', async () => {
+    if (!pendingVerifyToken) { toast('warning', t('verify.missing')); return; }
+    verifyBtn.disabled = true;
+    try {
+        await apiFetch('/api/auth/verify', { method: 'POST', body: { token: pendingVerifyToken } });
+        pendingVerifyToken = null;
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        toast('success', t('verify.ok'));
+        await refreshAuth();          // actualizează email_verified -> banner dispare
+        location.hash = authState.authenticated ? '#/konto' : '#/login';
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        verifyBtn.disabled = false;
+    }
+});
+
+const verifyResendBtn = document.getElementById('verifyResendBtn');
+if (verifyResendBtn) verifyResendBtn.addEventListener('click', async () => {
+    verifyResendBtn.disabled = true;
+    try {
+        const d = await apiFetch('/api/auth/resend-verification', { method: 'POST' });
+        if (d.devVerifyUrl) {
+            console.log('[PflegeDoc] Bestätigungslink (dev):', d.devVerifyUrl);
+            toast('info', t('verify.devlink'));
+        } else {
+            toast('success', t('verify.resent'));
+        }
+    } catch (err) {
+        toast('error', err.message);
+    } finally {
+        verifyResendBtn.disabled = false;
+    }
 });
 
 /* ---- Migrare istoric local -> cont (o singură dată, la login) ---- */
@@ -2428,6 +2524,11 @@ function buildHistItemRemote(it) {
 
 /* ---- Init ---- */
 applyTheme();
+// Link de verificare e-mail: /?verify=<token> -> ecranul de confirmare
+try {
+    const vp = new URLSearchParams(location.search).get('verify');
+    if (vp) { pendingVerifyToken = vp; location.hash = '#/verify'; }
+} catch (e) { /* ignorăm */ }
 // dacă limba salvată e una „externă" (fr/es/…), o încărcăm înainte de primul render
 loadLocale(getLocale()).then(() => {
     applyI18n();

@@ -27,6 +27,7 @@ export default async function handler(req, res) {
                 ui_language: auth.user.ui_language,
                 theme: auth.user.theme,
                 created_at: auth.user.created_at,
+                email_verified: auth.user.email_verified,
             },
             csrfToken: auth.session.csrf,
         });

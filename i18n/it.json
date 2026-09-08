@@ -114,5 +114,16 @@
   "lang.en": "Inglese",
   "lang.es": "Spagnolo",
   "lang.ru": "Russo",
-  "lang.tr": "Turco"
+  "lang.tr": "Turco",
+  "verify.title": "Conferma la tua e-mail",
+  "verify.sub": "Conferma il tuo indirizzo e-mail per completare l’account.",
+  "verify.btn": "Conferma ora",
+  "verify.later": "Più tardi",
+  "verify.banner": "Conferma il tuo indirizzo e-mail.",
+  "verify.resend": "Invia di nuovo l’e-mail",
+  "verify.ok": "E-mail confermata. Grazie!",
+  "verify.resent": "E-mail di conferma inviata di nuovo.",
+  "verify.sent": "Ti abbiamo inviato un’e-mail di conferma.",
+  "verify.devlink": "Nessun provider e-mail configurato: il link è nella console (F12).",
+  "verify.missing": "Nessun token di conferma. Usa il link dell’e-mail."
 }

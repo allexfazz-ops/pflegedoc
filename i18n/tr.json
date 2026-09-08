@@ -114,5 +114,16 @@
   "lang.en": "İngilizce",
   "lang.es": "İspanyolca",
   "lang.ru": "Rusça",
-  "lang.tr": "Türkçe"
+  "lang.tr": "Türkçe",
+  "verify.title": "E-postanı doğrula",
+  "verify.sub": "Hesabını tamamlamak için e-posta adresini doğrula.",
+  "verify.btn": "Şimdi doğrula",
+  "verify.later": "Sonra",
+  "verify.banner": "Lütfen e-posta adresini doğrula.",
+  "verify.resend": "E-postayı yeniden gönder",
+  "verify.ok": "E-posta doğrulandı. Teşekkürler!",
+  "verify.resent": "Doğrulama e-postası yeniden gönderildi.",
+  "verify.sent": "Sana bir doğrulama e-postası gönderdik.",
+  "verify.devlink": "E-posta sağlayıcısı yapılandırılmadı – bağlantı konsolda (F12).",
+  "verify.missing": "Doğrulama belirteci yok. Lütfen e-postadaki bağlantıyı kullan."
 }

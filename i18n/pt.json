@@ -114,5 +114,16 @@
   "lang.en": "Inglês",
   "lang.es": "Espanhol",
   "lang.ru": "Russo",
-  "lang.tr": "Turco"
+  "lang.tr": "Turco",
+  "verify.title": "Confirma o teu e-mail",
+  "verify.sub": "Confirma o teu endereço de e-mail para concluir a conta.",
+  "verify.btn": "Confirmar agora",
+  "verify.later": "Mais tarde",
+  "verify.banner": "Confirma o teu endereço de e-mail.",
+  "verify.resend": "Reenviar e-mail",
+  "verify.ok": "E-mail confirmado. Obrigado!",
+  "verify.resent": "E-mail de confirmação reenviado.",
+  "verify.sent": "Enviámos-te um e-mail de confirmação.",
+  "verify.devlink": "Sem fornecedor de e-mail configurado – o link está na consola (F12).",
+  "verify.missing": "Sem token de confirmação. Usa o link do e-mail."
 }

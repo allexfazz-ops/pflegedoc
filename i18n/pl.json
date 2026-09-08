@@ -114,5 +114,16 @@
   "lang.en": "angielski",
   "lang.es": "hiszpański",
   "lang.ru": "rosyjski",
-  "lang.tr": "turecki"
+  "lang.tr": "turecki",
+  "verify.title": "Potwierdź e-mail",
+  "verify.sub": "Potwierdź swój adres e-mail, aby dokończyć konfigurację konta.",
+  "verify.btn": "Potwierdź teraz",
+  "verify.later": "Później",
+  "verify.banner": "Potwierdź swój adres e-mail.",
+  "verify.resend": "Wyślij e-mail ponownie",
+  "verify.ok": "E-mail potwierdzony. Dziękujemy!",
+  "verify.resent": "Ponownie wysłano e-mail potwierdzający.",
+  "verify.sent": "Wysłaliśmy Ci e-mail potwierdzający.",
+  "verify.devlink": "Brak skonfigurowanego dostawcy e-mail – link jest w konsoli (F12).",
+  "verify.missing": "Brak tokena potwierdzenia. Użyj linku z e-maila."
 }

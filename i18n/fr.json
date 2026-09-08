@@ -114,5 +114,16 @@
   "lang.en": "Anglais",
   "lang.es": "Espagnol",
   "lang.ru": "Russe",
-  "lang.tr": "Turc"
+  "lang.tr": "Turc",
+  "verify.title": "Confirmez votre e-mail",
+  "verify.sub": "Confirmez votre adresse e-mail pour finaliser votre compte.",
+  "verify.btn": "Confirmer maintenant",
+  "verify.later": "Plus tard",
+  "verify.banner": "Veuillez confirmer votre adresse e-mail.",
+  "verify.resend": "Renvoyer l’e-mail",
+  "verify.ok": "E-mail confirmé. Merci !",
+  "verify.resent": "E-mail de confirmation renvoyé.",
+  "verify.sent": "Nous vous avons envoyé un e-mail de confirmation.",
+  "verify.devlink": "Aucun fournisseur d’e-mail configuré – lien de confirmation dans la console (F12).",
+  "verify.missing": "Aucun jeton de confirmation. Utilisez le lien de l’e-mail."
 }
