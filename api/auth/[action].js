@@ -35,6 +35,12 @@ import {
 import { emailEnabled, isProduction } from "../../lib/email.mjs";
 import { securityEvent } from "../../lib/securitylog.mjs";
 
+// Rutele de auth ating baza la prima interogare (ensureSchema + SELECT). Pe un
+// cold start Neon asta poate depăși timeout-ul implicit -> /api/auth/me sau
+// /login/register sunt întrerupte, iar frontend-ul pierde artificial sesiunea.
+// Marja explicită (ca la /api/generate) reduce acest risc. Nu schimbă logica.
+export const maxDuration = 30;
+
 const GENERIC_LOGIN = "E-Mail oder Passwort ist falsch.";
 
 // Link-uri/erori de e-mail cu potențial de token: DOAR în afara producției (F-04).

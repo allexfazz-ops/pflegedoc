@@ -5,7 +5,7 @@
   "type": "module",
   "description": "PflegeDoc AI - note vocale/scrise -> Pflegedokumentation germana (Gemini API)",
   "scripts": {
-    "dev": "vercel dev",
+    "dev:vercel": "vercel dev",
     "deploy": "vercel --prod",
     "migrate": "node --env-file=.env.local db/migrate.mjs",
     "test:engine": "node tests/engine-suite.mjs"

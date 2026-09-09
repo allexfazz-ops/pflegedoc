@@ -17,3 +17,6 @@ Thumbs.db
 # Ieșiri teste (pot conține text generat)
 tests/last-run.json
 tests/run*.log
+
+.vercel
+.env*

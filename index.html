@@ -1281,15 +1281,71 @@ function persistApiKey() {
 
 /* ---------- 3. WEB SPEECH API ---------- */
 let recognition = null;
-let isRecording = false;
-let baseText = '';            // textul din <textarea> la pornirea dictării
-let finalizedInSession = '';  // frazele finalizate în sesiunea curentă
-let recognitionRestartTimer = null; // repornire amânată după onend (evită „already started")
+let isRecording = false;            // intenția utilizatorului: dictare pornită
+let baseText = '';                  // textul din <textarea> la pornirea dictării
+let finalizedInSession = '';        // frazele finalizate în sesiunea curentă
+let recognitionRestartTimer = null; // repornire amânată după onend
+
+// Stare fină + protecție anti-race pentru Web Speech API (mai ales Safari/WebKit).
+let recGen = 0;               // ID de sesiune de dictare: crește la fiecare start ȘI stop
+let recRunning = false;       // recognition e între onstart și onend
+let recStartInFlight = false; // un start() e în curs -> nu porni al doilea
+let recRestartAttempts = 0;   // reporniri consecutive fără progres (onresult resetează)
+let recConsumedFinals = 0;    // câte rezultate finale am consumat în sesiune (anti-dublare)
+let lastInterim = '';         // ultimul rezultat intermediar (pentru flush la stop)
+let finalizedAtStop = '';     // snapshot al finalelor la stop() -> decide dacă interimul a fost finalizat
+let flushWaiters = [];        // resolveri care așteaptă rezultatul final după un stop manual
+let flushTimeout = null;
+let _safariHintShown = false;
+const REC_MAX_RESTARTS = 8;   // limită clară pentru bucla de restart
+
+// Safari / WebKit-non-Chrome (iOS = orice browser, toate sunt WebKit).
+const _isAppleWebKit = (function () {
+    const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+    if (/\b(CriOS|FxiOS|EdgiOS|Chrome|Chromium|Edg|OPR|Android)\b/.test(ua)) return false;
+    return /iP(hone|ad|od)/.test(ua) || (/Safari\//.test(ua) && /Version\//.test(ua));
+})();
 
 const micBtn = document.getElementById('micBtn');
 const micStatus = document.getElementById('micStatus');
 const userInputEl = document.getElementById('userInput');
 const recorderEl = document.getElementById('recorder');
+
+function recResetUi(statusKey) {
+    if (micBtn) { micBtn.classList.remove('is-recording'); micBtn.setAttribute('aria-pressed', 'false'); }
+    if (recorderEl) recorderEl.hidden = true;
+    if (statusKey && micStatus) micStatus.textContent = t(statusKey);
+}
+
+// Rezolvă toți așteptătorii de flush (fiecare o singură dată).
+function recResolveFlush() {
+    clearTimeout(flushTimeout); flushTimeout = null;
+    if (!flushWaiters.length) return;
+    const ws = flushWaiters; flushWaiters = [];
+    ws.forEach(w => { try { w(); } catch (e) { /* ignorăm */ } });
+}
+
+// Un singur start() la un moment dat; InvalidStateError tratat controlat, sub aceeași limită.
+function safeStart(gen) {
+    if (!recognition || gen !== recGen || !isRecording) return;
+    if (recRunning || recStartInFlight) return;
+    recStartInFlight = true;
+    try {
+        recognition.lang = document.getElementById('inputLanguage').value;
+        recognition.start();
+    } catch (e) {
+        recStartInFlight = false;
+        if (e && e.name === 'InvalidStateError' && recRestartAttempts < REC_MAX_RESTARTS) {
+            recRestartAttempts++;
+            clearTimeout(recognitionRestartTimer);
+            recognitionRestartTimer = setTimeout(() => safeStart(gen), 300);
+        } else {
+            isRecording = false;
+            recResetUi();
+            if (micStatus) micStatus.textContent = t('mic.startFailPrefix') + (e && e.message ? e.message : 'error');
+        }
+    }
+}
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1297,19 +1353,29 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.continuous = true;
     recognition.interimResults = true;
 
+    recognition.onstart = () => {
+        recRunning = true;
+        recStartInFlight = false;
+    };
+
     recognition.onresult = (event) => {
+        // Ignoră evenimente stale sosite după ce totul s-a stabilizat.
+        if (!isRecording && !flushWaiters.length) return;
+        recRestartAttempts = 0; // progres real -> resetează backoff-ul de restart
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
-            const chunk = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
+            const res = event.results[i];
+            const chunk = res && res[0] ? res[0].transcript : '';
+            if (res && res.isFinal) {
+                if (i < recConsumedFinals) continue; // deja consumat -> fără duplicat
+                recConsumedFinals = i + 1;
                 finalizedInSession = joinSmart(finalizedInSession, processChunk(chunk));
             } else {
                 interim += chunk;
             }
         }
-        const interimShown = voiceCommandsEnabled()
-            ? interim.replace(/[.,;:!?]+/g, '')
-            : interim;
+        lastInterim = interim;
+        const interimShown = voiceCommandsEnabled() ? interim.replace(/[.,;:!?]+/g, '') : interim;
         const next = joinSmart(baseText, joinSmart(finalizedInSession, interimShown.trim()));
         if (next !== userInputEl.value) {
             userInputEl.value = next;
@@ -1319,53 +1385,64 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     recognition.onerror = (event) => {
-        if (event.error === 'no-speech') {
-            micStatus.textContent = t('mic.nospeech');
+        const err = event && event.error;
+        if (err === 'no-speech') { if (micStatus) micStatus.textContent = t('mic.nospeech'); return; }
+        if (err === 'aborted') return; // provocat de propriul nostru stop()
+        if (err === 'not-allowed' || err === 'service-not-allowed') {
+            isRecording = false; recRunning = false; recStartInFlight = false;
+            recGen++; clearTimeout(recognitionRestartTimer);
+            recResetUi();
+            if (micStatus) micStatus.textContent = t('mic.errPrefix') + err + t('mic.notAllowedSuffix');
+            recResolveFlush();
             return;
         }
-        if (event.error === 'aborted') return;
-        toast('error', t('mic.errPrefix') + event.error +
-            (event.error === 'not-allowed' ? t('mic.notAllowedSuffix') : ''));
-        stopRecording();
+        // Alte erori: oprire grațioasă. NU lăsa isRecording=true; deblochează flush-ul.
+        toast('error', t('mic.errPrefix') + err);
+        isRecording = false; recStartInFlight = false;
+        recGen++; clearTimeout(recognitionRestartTimer);
+        recResetUi('mic.stopped');
+        recResolveFlush();
     };
 
     recognition.onend = () => {
-        // Chrome termină singur sesiunea la pauze / periodic. Repornim, dar cu o
-        // mică întârziere: `start()` sincron prinde des un „already started" care,
-        // înghițit, lăsa dictarea blocată după 2-3 fraze.
-        if (!isRecording) return;
+        recRunning = false;
+        recStartInFlight = false;
+        // Stop manual care așteaptă ultimul rezultat: finalele sosesc înaintea lui
+        // onend (conform specificației) -> rezolvă acum.
+        if (flushWaiters.length) { recResolveFlush(); return; }
+        if (!isRecording) return; // oprire curată
+        // Sfârșit neașteptat în timpul dictării active -> restart controlat, cu limită.
+        const myGen = recGen;
+        if (recRestartAttempts >= REC_MAX_RESTARTS) {
+            isRecording = false;
+            recResetUi('mic.restartFailed');
+            userInputEl.value = joinSmart(baseText, finalizedInSession.trim());
+            return;
+        }
         clearTimeout(recognitionRestartTimer);
-        recognitionRestartTimer = setTimeout(function tryStart(attempt) {
-            if (!isRecording) return;
-            try {
-                recognition.start();
-            } catch (e) {
-                // instanța veche nu s-a oprit încă -> reîncercăm de câteva ori
-                if ((attempt || 0) < 5) {
-                    recognitionRestartTimer = setTimeout(() => tryStart((attempt || 0) + 1), 300);
-                }
-            }
-        }, 120);
+        const delay = Math.min(220 + recRestartAttempts * 260, 1400); // backoff, plafonat
+        recognitionRestartTimer = setTimeout(() => {
+            if (myGen !== recGen || !isRecording || recRunning || recStartInFlight) return;
+            recRestartAttempts++;
+            safeStart(myGen);
+        }, delay);
     };
 } else {
-    micBtn.disabled = true;
-    micStatus.textContent = t('mic.unsupported');
-    micStatus.dataset.i18n = 'mic.unsupported';
+    if (micBtn) micBtn.disabled = true;
+    if (micStatus) { micStatus.textContent = t('mic.unsupported'); micStatus.dataset.i18n = 'mic.unsupported'; }
 }
 
 function toggleRecording() {
     if (!recognition) return;
     if (!isRecording) {
         clearTimeout(recognitionRestartTimer);
+        recGen++;                 // sesiune nouă -> invalidează orice callback/timer vechi
+        recRestartAttempts = 0;
+        recConsumedFinals = 0;
+        lastInterim = '';
+        finalizedAtStop = '';
         baseText = userInputEl.value.trim();
         finalizedInSession = '';
-        recognition.lang = document.getElementById('inputLanguage').value;
-        try {
-            recognition.start();
-        } catch (e) {
-            toast('error', t('mic.startFailPrefix') + e.message);
-            return;
-        }
         isRecording = true;
         micBtn.classList.add('is-recording');
         micBtn.setAttribute('aria-pressed', 'true');
@@ -1373,29 +1450,88 @@ function toggleRecording() {
         const rp = document.getElementById('recorderPreview');
         if (rp) rp.textContent = baseText;
         if (recorderEl) recorderEl.hidden = false;
+        if (_isAppleWebKit && !_safariHintShown) {
+            _safariHintShown = true;
+            toast('info', t('mic.safariHint'));
+        }
+        // Dacă o instanță anterioară n-a terminat, oprește-o; onend va declanșa restart.
+        if (recRunning) { try { recognition.stop(); } catch (e) { /* ignorăm */ } }
+        safeStart(recGen);
     } else {
         stopRecording();
     }
 }
 
-function stopRecording() {
-    isRecording = false;
-    clearTimeout(recognitionRestartTimer);
-    if (recognition) {
-        try { recognition.stop(); } catch (e) { /* ignorăm */ }
-    }
-    micBtn.classList.remove('is-recording');
-    micBtn.setAttribute('aria-pressed', 'false');
-    micStatus.textContent = t('mic.stopped');
-    if (recorderEl) recorderEl.hidden = true;
+// Oprire + așteptarea ultimului rezultat. Se bazează pe evenimentul `onend`
+// (nu pe un timeout arbitrar); flushTimeout e DOAR plasă de siguranță pentru
+// browsere care nu emit `onend` după stop(). Poate fi `await`-uit din generateDoc().
+function stopAndFlush() {
+    return new Promise((resolve) => {
+        const wasActive = isRecording || recRunning || flushWaiters.length > 0;
+        if (!wasActive) { resolve(userInputEl.value); return; }
 
-    let consolidated = joinSmart(baseText, finalizedInSession.trim());
-    if (voiceCommandsEnabled()) consolidated = capitalizeSentences(consolidated);
-    userInputEl.value = consolidated;
+        isRecording = false;
+        const myGen = ++recGen;          // sesiunea acestui flush
+        clearTimeout(recognitionRestartTimer);
+        finalizedAtStop = finalizedInSession;
+        recResetUi('mic.stopped');
+
+        const finalize = () => {
+            // Dacă între timp a început o sesiune nouă / s-a golit inputul -> nu atinge textarea.
+            if (recGen !== myGen) { resolve(userInputEl.value); return; }
+            let tail = finalizedInSession.trim();
+            // Include interimul DOAR dacă niciun final nou n-a sosit după stop()
+            // (browserul nu l-a finalizat singur) -> fără pierdere și fără duplicat.
+            if (lastInterim.trim() && finalizedInSession === finalizedAtStop) {
+                tail = joinSmart(tail, processChunk(lastInterim));
+            }
+            let consolidated = joinSmart(baseText, tail);
+            if (voiceCommandsEnabled()) consolidated = capitalizeSentences(consolidated);
+            userInputEl.value = consolidated;
+            const rp = document.getElementById('recorderPreview');
+            if (rp) rp.textContent = '';
+            lastInterim = '';
+            resolve(consolidated);
+        };
+
+        let done = false;
+        const wrap = () => { if (done) return; done = true; clearTimeout(flushTimeout); finalize(); };
+        flushWaiters.push(wrap);
+        flushTimeout = setTimeout(() => {
+            flushWaiters = flushWaiters.filter(w => w !== wrap);
+            wrap();
+        }, 1500);
+
+        try { recognition && recognition.stop(); } catch (e) { /* InvalidStateError etc. */ }
+        // Dacă recognition nu rula, `onend` nu va veni -> rezolvă imediat.
+        if (!recRunning) {
+            flushWaiters = flushWaiters.filter(w => w !== wrap);
+            wrap();
+        }
+    });
+}
+
+// Oprire declanșată de buton (fire-and-forget). generateDoc() folosește
+// stopAndFlush() ȘI îl așteaptă.
+function stopRecording() {
+    stopAndFlush();
+}
+
+// true dacă dictarea e activă sau un flush e în curs.
+function recBusy() {
+    return isRecording || recRunning || flushWaiters.length > 0;
 }
 
 function clearInput() {
-    if (isRecording) stopRecording();
+    if (isRecording || recRunning) {
+        isRecording = false;
+        recGen++;                 // invalidează flush pending + restart
+        clearTimeout(recognitionRestartTimer);
+        try { recognition && recognition.stop(); } catch (e) { /* ignorăm */ }
+        recResetUi();
+    }
+    flushWaiters = []; clearTimeout(flushTimeout); flushTimeout = null;
+    lastInterim = '';
     userInputEl.value = '';
     baseText = '';
     finalizedInSession = '';
@@ -1486,6 +1622,15 @@ const generateBtn = document.getElementById('generateBtn');
 
 async function generateDoc() {
     const apiKey = apiKeyInput.value.trim();
+
+    // FIX pierdere de cuvinte: oprește + flush dictarea ȘI așteaptă ultimul
+    // rezultat final/interim ÎNAINTE de a citi textul. Nu se folosește un
+    // setTimeout arbitrar — stopAndFlush() se rezolvă pe evenimentul onend
+    // (cu o plasă de siguranță pentru browserele care nu-l emit).
+    if (recBusy()) {
+        await stopAndFlush();
+    }
+
     const userInput = userInputEl.value.trim();
     const outputDiv = document.getElementById('output');
     const resultSection = document.getElementById('resultSection');
@@ -1496,7 +1641,6 @@ async function generateDoc() {
     if (!userInput) {
         return toast('warning', t('toast.needText'));
     }
-    if (isRecording) stopRecording();
 
     setLoading(true);
 
@@ -1526,6 +1670,10 @@ async function generateDoc() {
     } catch (err) {
         resultSection.hidden = true;
         toast('error', err.message);
+        // Sesiune pierdută/desincronizată chiar și după recovery -> trimite la login.
+        if (err && (err.sessionDesync || err.authRecoverable)) {
+            location.hash = '#/login';
+        }
     } finally {
         setLoading(false);
     }
@@ -1561,6 +1709,18 @@ async function callGemini(apiKey, userInput, opts) {
             // Fidelitate maximă: temperatură joasă, fără „creativitate".
             generationConfig: { temperature: 0.1, topP: 0.85, maxOutputTokens: 8192 }
         };
+    }
+
+    // Recovery preventiv: dacă ne credem autentificați dar am pierdut csrfToken
+    // (ex. /api/auth/me a eșuat tranzitoriu, tab vechi), revalidăm O DATĂ înainte
+    // de POST. Dacă tot nu avem sesiune + token -> mesaj clar, fără request.
+    if (useBackend && authState.authenticated === true && !authState.csrfToken) {
+        const okAuth = await ensureAuthFresh();
+        if (!okAuth) {
+            const e = new Error(t('session.desync'));
+            e.sessionDesync = true;
+            throw e;
+        }
     }
 
     const controller = new AbortController();
@@ -1599,6 +1759,20 @@ async function callGemini(apiKey, userInput, opts) {
 
     // --- Mod BACKEND: răspuns normalizat { text } / { error } ---
     if (useBackend) {
+        // Recovery sesiune/CSRF: 401 sau 403 fără `code` -> O SINGURĂ revalidare
+        // de sesiune + un singur retry cu tokenul proaspăt. NU atinge backend-ul
+        // CSRF: doar re-obține tokenul legitim și retrimite o dată.
+        if (isAuthRecoverable(response.status, data)) {
+            if (!opts._authRetry) {
+                const okAuth = await ensureAuthFresh(true);
+                if (okAuth) {
+                    return callGemini(apiKey, userInput, Object.assign({}, opts, { _authRetry: 1 }));
+                }
+            }
+            const e = new Error(t('session.desync'));
+            e.sessionDesync = true;
+            throw e;
+        }
         // Gemini supraîncărcat (503): o singură reîncercare automată după o scurtă pauză.
         if (response.status === 503 && (opts._retry || 0) < 1) {
             await new Promise(r => setTimeout(r, 3500));
@@ -1922,7 +2096,14 @@ async function acceptDoc() {
     const isPlan = currentDocMode === 'pflegeplanung';
     if (isPlan && !planningPatient) { toast('error', t('plan.noPatient')); return; }
 
-    if (typeof authState !== 'undefined' && authState.authenticated) {
+    // Stare de autentificare incertă (tab vechi, /api/auth/me eșuat tranzitoriu):
+    // revalidăm ÎNAINTE de a decide între salvare server-side și fallback local,
+    // ca să nu mascăm o sesiune pierdută cu un „succes" local.
+    if (typeof authState !== 'undefined' && (!authState.authenticated || !authState.csrfToken)) {
+        await ensureAuthFresh();
+    }
+
+    if (typeof authState !== 'undefined' && authState.authenticated && authState.csrfToken) {
         try {
             const langEl = document.getElementById('inputLanguage');
             const outEl = document.getElementById('outputLanguage');
@@ -1949,15 +2130,24 @@ async function acceptDoc() {
                 toast('success', t('toast.accepted'));
             }
         } catch (e) {
-            toast('error', e.message);
+            // Sesiune pierdută chiar și după recovery-ul din apiFetch -> nu salvăm
+            // local sub o sesiune moartă; mesaj clar + login.
+            if (e && (e.status === 401 || e.authRecoverable)) {
+                toast('error', t('session.desync'));
+                location.hash = '#/login';
+            } else {
+                toast('error', e.message);
+            }
         }
         return;
     }
 
+    // Utilizator realmente neautentificat: fallback local (intenționat pentru
+    // vizitatori anonimi), dar mesajul spune explicit că NU s-a sincronizat.
     const list = readHistory();
     list.unshift({ id: Date.now(), date: new Date().toISOString(), original, improved });
     writeHistory(list.slice(0, 100));
-    toast('success', 'In den Verlauf übernommen.');
+    toast('success', t('toast.acceptedLocal'));
 }
 
 function renderHistory() {
@@ -2134,7 +2324,15 @@ const DOC_MODE_I18N = {
 function resetDocWorkspace() {
     // Ecranul #screen-doc e partajat de toate modurile: la schimbarea modului
     // golim notița + rezultatul, ca să nu apară conținut de la alt mod.
-    if (isRecording) stopRecording();
+    if (isRecording || recRunning) {
+        isRecording = false;
+        clearTimeout(recognitionRestartTimer);
+        try { recognition && recognition.stop(); } catch (e) { /* ignorăm */ }
+        recResetUi();
+    }
+    recGen++;                 // invalidează orice flush pending / callback de restart
+    flushWaiters = []; clearTimeout(flushTimeout); flushTimeout = null;
+    lastInterim = '';
     if (typeof userInputEl !== 'undefined' && userInputEl) userInputEl.value = '';
     baseText = ''; finalizedInSession = '';
     const ids = ['resultSection', 'processing', 'diffView', 'outputEdit'];
@@ -2409,6 +2607,8 @@ const I18N = {
         'toast.deleted': 'Eintrag gelöscht.', 'toast.histCleared': 'Verlauf gelöscht.',
         'toast.docReady': 'Dokumentation erstellt. Bitte prüfen.',
         'toast.accepted': 'In den Verlauf übernommen.',
+        'toast.acceptedLocal': 'Lokal gespeichert (nicht mit deinem Konto synchronisiert).',
+        'session.desync': 'Deine Sitzung ist abgelaufen oder nicht mehr synchronisiert. Bitte melde dich erneut an.',
         'toast.nothingAccept': 'Es gibt noch keine Dokumentation zum Übernehmen.',
         'toast.needText': 'Bitte zuerst etwas eingeben oder diktieren.',
         'toast.noApiKey': 'Bitte in den Einstellungen einen API-Schlüssel hinterlegen.',
@@ -2423,6 +2623,8 @@ const I18N = {
         'mic.nospeech': 'Keine Sprache erkannt. Bitte erneut versuchen.',
         'mic.errPrefix': 'Mikrofonfehler: ', 'mic.notAllowedSuffix': ' – bitte Mikrofonzugriff im Browser erlauben.',
         'mic.startFailPrefix': 'Spracheingabe konnte nicht gestartet werden: ',
+        'mic.safariHint': 'Die Spracheingabe kann in Safari weniger stabil sein. Bitte deutlich sprechen und den Text vor dem Erstellen prüfen.',
+        'mic.restartFailed': 'Die Spracheingabe wurde beendet. Zum Fortsetzen erneut auf das Mikrofon tippen.',
         'greet.morning': 'Guten Morgen', 'greet.day': 'Guten Tag', 'greet.evening': 'Guten Abend', 'greet.welcome': 'Willkommen'
     },
     en: {
@@ -2554,6 +2756,8 @@ const I18N = {
         'toast.deleted': 'Entry deleted.', 'toast.histCleared': 'History deleted.',
         'toast.docReady': 'Documentation created. Please review.',
         'toast.accepted': 'Saved to history.',
+        'toast.acceptedLocal': 'Saved locally (not synced to your account).',
+        'session.desync': 'Your session has expired or is no longer synchronized. Please sign in again.',
         'toast.nothingAccept': 'There is no documentation to accept yet.',
         'toast.needText': 'Please enter or dictate something first.',
         'toast.noApiKey': 'Please add an API key in the settings.',
@@ -2568,6 +2772,8 @@ const I18N = {
         'mic.nospeech': 'No speech detected. Please try again.',
         'mic.errPrefix': 'Microphone error: ', 'mic.notAllowedSuffix': ' – please allow microphone access in the browser.',
         'mic.startFailPrefix': 'Voice input could not be started: ',
+        'mic.safariHint': 'Dictation can be less stable in Safari. Please speak clearly and check the text before generating.',
+        'mic.restartFailed': 'Dictation has stopped. Tap the microphone again to continue.',
         'greet.morning': 'Good morning', 'greet.day': 'Good day', 'greet.evening': 'Good evening', 'greet.welcome': 'Welcome'
     },
     ro: {
@@ -2699,6 +2905,8 @@ const I18N = {
         'toast.deleted': 'Intrare ștearsă.', 'toast.histCleared': 'Istoric șters.',
         'toast.docReady': 'Documentație creată. Verific-o.',
         'toast.accepted': 'Salvat în istoric.',
+        'toast.acceptedLocal': 'Salvat local (nesincronizat cu contul tău).',
+        'session.desync': 'Sesiunea ta a expirat sau nu mai este sincronizată. Te rugăm să te autentifici din nou.',
         'toast.nothingAccept': 'Încă nu există o documentație de preluat.',
         'toast.needText': 'Introdu sau dictează întâi ceva.',
         'toast.noApiKey': 'Adaugă o cheie API în setări.',
@@ -2713,6 +2921,8 @@ const I18N = {
         'mic.nospeech': 'Nicio voce detectată. Încearcă din nou.',
         'mic.errPrefix': 'Eroare microfon: ', 'mic.notAllowedSuffix': ' – permite accesul la microfon în browser.',
         'mic.startFailPrefix': 'Dictarea nu a putut porni: ',
+        'mic.safariHint': 'Dictarea poate fi mai puțin stabilă în Safari. Vorbește clar și verifică textul înainte de generare.',
+        'mic.restartFailed': 'Dictarea s-a oprit. Apasă din nou pe microfon pentru a continua.',
         'greet.morning': 'Bună dimineața', 'greet.day': 'Bună ziua', 'greet.evening': 'Bună seara', 'greet.welcome': 'Bun venit'
     }
     // fr, es, it, pt, pl, tr, ru, uk, ar -> încărcate din /i18n/<code>.json
@@ -2806,7 +3016,13 @@ document.addEventListener('change', (e) => {
 /* ---- API client ---- */
 const authState = { authenticated: false, user: null, csrfToken: null };
 
-async function apiFetch(path, { method = 'GET', body = null } = {}) {
+// Recovery: se reîncearcă O SINGURĂ DATĂ, doar pentru 401 sau un 403 fără `code`
+// (adică lipsă/nepotrivire token CSRF — nu „email_unverified" și nu ownership).
+function isAuthRecoverable(status, data) {
+    return status === 401 || (status === 403 && !(data && data.code));
+}
+
+async function apiFetch(path, { method = 'GET', body = null, _noRetry = false } = {}) {
     const opts = { method, headers: {}, credentials: 'same-origin' };
     if (body != null) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
     if (method !== 'GET' && authState.csrfToken) opts.headers['X-CSRF-Token'] = authState.csrfToken;
@@ -2814,16 +3030,28 @@ async function apiFetch(path, { method = 'GET', body = null } = {}) {
     let data = null;
     try { data = await r.json(); } catch (e) { /* fără corp JSON */ }
     if (!r.ok) {
+        // O singură revalidare de sesiune + un singur retry, strict pentru 401 / 403-CSRF.
+        // NU pentru alte 4xx (400/404/409/413/422/429) și NU pentru 5xx.
+        if (isAuthRecoverable(r.status, data) && !_noRetry) {
+            const okAuth = await ensureAuthFresh(true);
+            if (okAuth) return apiFetch(path, { method, body, _noRetry: true });
+        }
         const err = new Error((data && data.error) || ('HTTP ' + r.status));
         err.status = r.status;
+        err.code = (data && data.code) || null;
+        err.authRecoverable = isAuthRecoverable(r.status, data);
         throw err;
     }
     return data || {};
 }
 
-async function refreshAuth() {
+// Un singur refresh „în zbor" partajat (deduplică apeluri concurente din mai
+// multe requesturi care primesc 401/403 simultan). Fără loop: apelul intern
+// către /api/auth/me folosește _noRetry.
+let _authRefreshInFlight = null;
+async function refreshAuth(_attempt = 0) {
     try {
-        const d = await apiFetch('/api/auth/me');
+        const d = await apiFetch('/api/auth/me', { _noRetry: true });
         if (d.authenticated) {
             authState.authenticated = true;
             authState.user = d.user;
@@ -2833,14 +3061,47 @@ async function refreshAuth() {
             }
             if (d.user.theme) setStore('pflegedoc_theme', d.user.theme);
         } else {
+            // Răspuns definitiv de la server (200 { authenticated:false }) -> logout real.
             authState.authenticated = false; authState.user = null; authState.csrfToken = null;
         }
     } catch (e) {
+        // Eșec tranzitoriu (500 / rețea / cold start): o singură reîncercare
+        // controlată înainte de a considera sesiunea pierdută. Fără loop infinit.
+        if (_attempt < 1) {
+            await new Promise(res => setTimeout(res, 800));
+            return refreshAuth(_attempt + 1);
+        }
         authState.authenticated = false; authState.user = null; authState.csrfToken = null;
     }
     applyTheme();
     applyI18n();
 }
+
+// Garantează un authState coerent (authenticated + csrfToken) înainte de o
+// operație autentificată. `force` = revalidează chiar dacă avem deja un token
+// (cazul „token vechi" din tab-uri paralele). Întoarce true doar dacă sesiunea
+// e confirmată ȘI avem csrfToken.
+function ensureAuthFresh(force = false) {
+    if (!force && authState.authenticated && authState.csrfToken) return Promise.resolve(true);
+    if (!_authRefreshInFlight) {
+        _authRefreshInFlight = refreshAuth().finally(() => { _authRefreshInFlight = null; });
+    }
+    return _authRefreshInFlight.then(() => authState.authenticated && !!authState.csrfToken);
+}
+
+// Re-sincronizare la revenirea în foreground (tab vechi, sesiune reînnoită în
+// alt tab). Throttled la cel mult o dată pe minut; doar dacă aplicația se crede
+// autentificată. Fără polling.
+let _lastAuthResync = Date.now();
+function resyncAuthOnForeground() {
+    if (document.visibilityState === 'hidden') return;
+    if (!authState.authenticated) return;
+    if (Date.now() - _lastAuthResync < 60000) return;
+    _lastAuthResync = Date.now();
+    refreshAuth().then(route);
+}
+document.addEventListener('visibilitychange', resyncAuthOnForeground);
+window.addEventListener('focus', resyncAuthOnForeground);
 
 function applyAuthUI() {
     // Aplicația e gated: Einstellungen se vede doar autentificat. Contul e o
