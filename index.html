@@ -410,6 +410,7 @@
         box-shadow: var(--shadow-sm);
     }
     .processing__title { margin: 14px 0 18px; font-weight: 650; }
+    .processing__elapsed { margin: 4px 0 0; font-size: .85rem; color: var(--text-faint); min-height: 1.2em; }
     .spinner {
         width: 34px; height: 34px; margin: 0 auto; border-radius: 50%;
         border: 3px solid var(--surface-3); border-top-color: var(--accent);
@@ -874,6 +875,7 @@
                 <li class="step" data-state="pending"><span class="step__icon"></span> <span data-i18n="proc.step2">Sprache korrigiert</span></li>
                 <li class="step" data-state="pending"><span class="step__icon"></span> <span data-i18n="proc.step3">Dokumentation wird formuliert</span></li>
             </ol>
+            <p class="processing__elapsed"><span id="procElapsedMsg"></span><span id="procElapsedNum" aria-hidden="true"></span></p>
         </div>
 
         <section id="resultSection" class="result" hidden aria-live="polite">
@@ -1247,7 +1249,12 @@
 const CONFIG = {
     GEMINI_MODEL: "gemini-3.6-flash",
     BACKEND_ENDPOINT: "/api/generate",
-    TIMEOUT_MS: 75000
+    // Backstop client pentru POST /api/generate. Serverul se auto-limitează la
+    // bugetul hard de retry ~44s (K3-E+) + overhead guard/serializare/rețea
+    // (~49s realist), sub maxDuration=60s. 55s lasă marjă peste orice răspuns
+    // de succes pe care serverul îl poate produce și abortează înainte de
+    // kill-ul negrațios al platformei la 60s.
+    TIMEOUT_MS: 55000
 };
 
 /* ---------- 2. PERSISTENȚĂ CHEIE API ---------- */
@@ -1620,62 +1627,74 @@ Gib NUR den fertigen Dokumentationstext zurück. Keine Einleitung, keine Erklär
 
 const generateBtn = document.getElementById('generateBtn');
 
+// K5: gardă „o singură generare în curs". Setată IMEDIAT la intrarea în
+// generateDoc(), înainte de `await stopAndFlush()`, și resetată garantat în
+// finally. Acoperă double-click, click repetat în timpul dictării și orice
+// invocare accidentală simultană (butonul rămâne oricum disabled prin setLoading).
+let generating = false;
+
 async function generateDoc() {
-    const apiKey = apiKeyInput.value.trim();
-
-    // FIX pierdere de cuvinte: oprește + flush dictarea ȘI așteaptă ultimul
-    // rezultat final/interim ÎNAINTE de a citi textul. Nu se folosește un
-    // setTimeout arbitrar — stopAndFlush() se rezolvă pe evenimentul onend
-    // (cu o plasă de siguranță pentru browserele care nu-l emit).
-    if (recBusy()) {
-        await stopAndFlush();
-    }
-
-    const userInput = userInputEl.value.trim();
-    const outputDiv = document.getElementById('output');
-    const resultSection = document.getElementById('resultSection');
-
-    if (!CONFIG.BACKEND_ENDPOINT && !apiKey) {
-        return toast('error', t('toast.noApiKey'));
-    }
-    if (!userInput) {
-        return toast('warning', t('toast.needText'));
-    }
-
-    setLoading(true);
-
+    if (generating) return;
+    generating = true;
     try {
-        const outSel = document.getElementById('outputLanguage');
-        const modelSel = document.getElementById('docModel');
-        const targetLang = (currentDocMode !== 'korrigieren' && outSel) ? outSel.value : 'de';
-        const docModel = (currentDocMode === 'pflegeplanung' && modelSel) ? modelSel.value : 'sis';
-        const text = await callGemini(apiKey, userInput, {
-            mode: currentDocMode, targetLang: targetLang, docModel: docModel
-        });
-        finishProcessingSteps();
+        const apiKey = apiKeyInput.value.trim();
 
-        document.getElementById('originalText').textContent = userInput;
-        outputDiv.textContent = text;
-        outputDiv.hidden = false;
+        // FIX pierdere de cuvinte: oprește + flush dictarea ȘI așteaptă ultimul
+        // rezultat final/interim ÎNAINTE de a citi textul. Nu se folosește un
+        // setTimeout arbitrar — stopAndFlush() se rezolvă pe evenimentul onend
+        // (cu o plasă de siguranță pentru browserele care nu-l emit).
+        if (recBusy()) {
+            await stopAndFlush();
+        }
 
-        const oe = document.getElementById('outputEdit');
-        oe.hidden = true; oe.value = '';
-        document.getElementById('diffView').hidden = true;
-        document.getElementById('editBtn').innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="result.edit">' + t('result.edit') + '</span>';
-        document.getElementById('diffBtn').hidden = false;
+        const userInput = userInputEl.value.trim();
+        const outputDiv = document.getElementById('output');
+        const resultSection = document.getElementById('resultSection');
 
-        resultSection.hidden = false;
-        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        toast('success', t('toast.docReady'));
-    } catch (err) {
-        resultSection.hidden = true;
-        toast('error', err.message);
-        // Sesiune pierdută/desincronizată chiar și după recovery -> trimite la login.
-        if (err && (err.sessionDesync || err.authRecoverable)) {
-            location.hash = '#/login';
+        if (!CONFIG.BACKEND_ENDPOINT && !apiKey) {
+            return toast('error', t('toast.noApiKey'));
+        }
+        if (!userInput) {
+            return toast('warning', t('toast.needText'));
+        }
+
+        setLoading(true);
+
+        try {
+            const outSel = document.getElementById('outputLanguage');
+            const modelSel = document.getElementById('docModel');
+            const targetLang = (currentDocMode !== 'korrigieren' && outSel) ? outSel.value : 'de';
+            const docModel = (currentDocMode === 'pflegeplanung' && modelSel) ? modelSel.value : 'sis';
+            const text = await callGemini(apiKey, userInput, {
+                mode: currentDocMode, targetLang: targetLang, docModel: docModel
+            });
+            finishProcessingSteps();
+
+            document.getElementById('originalText').textContent = userInput;
+            outputDiv.textContent = text;
+            outputDiv.hidden = false;
+
+            const oe = document.getElementById('outputEdit');
+            oe.hidden = true; oe.value = '';
+            document.getElementById('diffView').hidden = true;
+            document.getElementById('editBtn').innerHTML = '<svg class="ic"><use href="#ic-edit"/></svg> <span data-i18n="result.edit">' + t('result.edit') + '</span>';
+            document.getElementById('diffBtn').hidden = false;
+
+            resultSection.hidden = false;
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            toast('success', t('toast.docReady'));
+        } catch (err) {
+            resultSection.hidden = true;
+            toast('error', err.message);
+            // Sesiune pierdută/desincronizată chiar și după recovery -> trimite la login.
+            if (err && (err.sessionDesync || err.authRecoverable)) {
+                location.hash = '#/login';
+            }
+        } finally {
+            setLoading(false);
         }
     } finally {
-        setLoading(false);
+        generating = false;
     }
 }
 
@@ -1711,11 +1730,13 @@ async function callGemini(apiKey, userInput, opts) {
         };
     }
 
-    // Recovery preventiv: dacă ne credem autentificați dar am pierdut csrfToken
-    // (ex. /api/auth/me a eșuat tranzitoriu, tab vechi), revalidăm O DATĂ înainte
-    // de POST. Dacă tot nu avem sesiune + token -> mesaj clar, fără request.
-    if (useBackend && authState.authenticated === true && !authState.csrfToken) {
-        const okAuth = await ensureAuthFresh();
+    // Recovery preventiv: dacă lipsește csrfToken (getAuth a eșuat tranzitoriu și
+    // a raportat 200 {authenticated:false}, tab vechi, cold start), revalidăm O
+    // DATĂ înainte de POST — indiferent de authState.authenticated. Un POST spre
+    // /api/generate NU pleacă niciodată fără X-CSRF-Token: dacă nu putem obține un
+    // token valid -> mesaj clar de sesiune, fără request.
+    if (useBackend && !authState.csrfToken) {
+        const okAuth = await ensureAuthFresh(true);
         if (!okAuth) {
             const e = new Error(t('session.desync'));
             e.sessionDesync = true;
@@ -1773,11 +1794,10 @@ async function callGemini(apiKey, userInput, opts) {
             e.sessionDesync = true;
             throw e;
         }
-        // Gemini supraîncărcat (503): o singură reîncercare automată după o scurtă pauză.
-        if (response.status === 503 && (opts._retry || 0) < 1) {
-            await new Promise(r => setTimeout(r, 3500));
-            return callGemini(apiKey, userInput, Object.assign({}, opts, { _retry: (opts._retry || 0) + 1 }));
-        }
+        // K1: 503 (server epuizat / Gemini supraîncărcat) -> NU mai facem un al
+        // doilea POST din client. Serverul a rulat deja retry-urile lui către
+        // Gemini; un nou POST doar duplică tot pipeline-ul. Afișăm eroarea
+        // localizată trimisă de server (OVERLOAD_MSG) și ne oprim după un request.
         if (!response.ok) {
             throw new Error((data && data.error) || ('Serverfehler (HTTP ' + response.status + ').'));
         }
@@ -1922,6 +1942,30 @@ function clearMessage() { /* toasturile se sting singure */ }
 
 /* ---- Loading + pași de procesare ---- */
 let stepTimers = [];
+
+// Cronometru „timp scurs" real în panoul #processing. NU e progres procentual,
+// NU cunoaște starea internă a Gemini, NU semnalează un retry (frontendul nu are
+// acel semnal). Nu atinge cererea de generare, nu adaugă request-uri, nu face
+// polling. Pornit din setLoading(true); oprit GARANTAT din setLoading(false)
+// (succes ȘI eroare) și din finishProcessingSteps().
+const ELAPSED_LONG_THRESHOLD_S = 15; // peste acest prag: text „durează mai mult decât de obicei" — nu implică eșec, nu promite un timp
+let elapsedTimer = null;
+let elapsedStartedAt = 0;
+function renderElapsed() {
+    const numEl = document.getElementById('procElapsedNum');
+    const msgEl = document.getElementById('procElapsedMsg');
+    if (!numEl || !msgEl) return;
+    const secs = Math.max(0, Math.floor((Date.now() - elapsedStartedAt) / 1000));
+    numEl.textContent = ' … ' + secs + ' s'; // aria-hidden: se schimbă în fiecare secundă, dar NU e anunțat de screen reader
+    const msg = t(secs >= ELAPSED_LONG_THRESHOLD_S ? 'proc.elapsed.long' : 'proc.elapsed');
+    // Textul mesajului se schimbă doar la start și o singură dată la prag ->
+    // regiunea aria-live „polite" existentă anunță de cel mult două ori.
+    if (msgEl.textContent !== msg) msgEl.textContent = msg;
+}
+function stopElapsed() {
+    if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+}
+
 function runProcessingSteps() {
     const steps = Array.from(document.querySelectorAll('#processing .step'));
     stepTimers.forEach(clearTimeout);
@@ -1941,6 +1985,7 @@ function runProcessingSteps() {
 function finishProcessingSteps() {
     stepTimers.forEach(clearTimeout);
     stepTimers = [];
+    stopElapsed();
     document.querySelectorAll('#processing .step').forEach(s => s.dataset.state = 'done');
 }
 
@@ -1953,9 +1998,17 @@ function setLoading(loading) {
     if (loading) {
         form.hidden = true;
         proc.hidden = false;
+        proc.setAttribute('aria-busy', 'true');
+        stopElapsed();                                  // fără intervale duplicate dacă starea de încărcare reintră
+        elapsedStartedAt = Date.now();                  // timp real de la începutul stării de încărcare
+        renderElapsed();                                // afișează imediat „… 0 s"
+        elapsedTimer = setInterval(renderElapsed, 1000);
+        try { proc.scrollIntoView({ block: 'center' }); } catch (e) {} // fără 'smooth' -> nu intră în conflict cu reduced-motion
         runProcessingSteps();
     } else {
+        stopElapsed();                                  // oprit garantat pe succes ȘI pe eroare; niciun timer nu supraviețuiește generării
         proc.hidden = true;
+        proc.removeAttribute('aria-busy');
         form.hidden = false;
     }
 }
@@ -2518,6 +2571,7 @@ const I18N = {
         'doc.disclaimer': 'PflegeDoc ist eine Dokumentationshilfe: Sie formuliert deine Angaben, stellt aber keine Diagnosen und trifft keine medizinischen Entscheidungen.',
         'proc.title': 'Dokumentation wird vorbereitet …',
         'proc.step1': 'Inhalt erkannt', 'proc.step2': 'Sprache korrigiert', 'proc.step3': 'Dokumentation wird formuliert',
+        'proc.elapsed': 'KI verarbeitet', 'proc.elapsed.long': 'Das dauert etwas länger als üblich',
         'result.check': 'Bitte überprüfe die Dokumentation vor der Übernahme.',
         'result.original': 'Deine ursprüngliche Notiz anzeigen',
         'result.improved': 'Verbesserte Dokumentation', 'result.diff': 'Unterschiede zur Notiz',
@@ -2667,6 +2721,7 @@ const I18N = {
         'doc.disclaimer': 'PflegeDoc is a documentation aid: it phrases your input but does not make diagnoses or medical decisions.',
         'proc.title': 'Preparing documentation …',
         'proc.step1': 'Content recognised', 'proc.step2': 'Language corrected', 'proc.step3': 'Documentation being written',
+        'proc.elapsed': 'AI is processing', 'proc.elapsed.long': 'This is taking a little longer than usual',
         'result.check': 'Please review the documentation before accepting it.',
         'result.original': 'Show your original note',
         'result.improved': 'Improved documentation', 'result.diff': 'Differences from the note',
@@ -2816,6 +2871,7 @@ const I18N = {
         'doc.disclaimer': 'PflegeDoc este un ajutor de documentare: formulează datele tale, dar nu pune diagnostice și nu ia decizii medicale.',
         'proc.title': 'Se pregătește documentația …',
         'proc.step1': 'Conținut recunoscut', 'proc.step2': 'Limbă corectată', 'proc.step3': 'Se formulează documentația',
+        'proc.elapsed': 'AI procesează', 'proc.elapsed.long': 'Durează puțin mai mult decât de obicei',
         'result.check': 'Verifică documentația înainte de a o prelua.',
         'result.original': 'Arată nota inițială',
         'result.improved': 'Documentație îmbunătățită', 'result.diff': 'Diferențe față de notă',
@@ -3060,8 +3116,17 @@ async function refreshAuth(_attempt = 0) {
                 setStore('pflegedoc_locale', d.user.ui_language);
             }
             if (d.user.theme) setStore('pflegedoc_theme', d.user.theme);
+        } else if (authState.authenticated === true && _attempt < 1) {
+            // Ne credeam autentificați, dar /api/auth/me spune brusc „false".
+            // getAuth() înghite erorile tranzitorii de DB și le raportează tot ca
+            // 200 {authenticated:false} -> înainte de a considera sesiunea pierdută,
+            // O SINGURĂ reîncercare după 800 ms (la fel ca la eroarea aruncată mai
+            // jos). Fără loop: _attempt plafonează la 1.
+            await new Promise(res => setTimeout(res, 800));
+            return refreshAuth(_attempt + 1);
         } else {
-            // Răspuns definitiv de la server (200 { authenticated:false }) -> logout real.
+            // Confirmat (retry a spus tot „false") sau nu ne credeam autentificați
+            // -> logout real.
             authState.authenticated = false; authState.user = null; authState.csrfToken = null;
         }
     } catch (e) {

@@ -37,6 +37,70 @@ function isTransientUpstream(status, msg) {
     return /overload|high demand|unavailable|temporarily|try again later|RESOURCE_EXHAUSTED|UNAVAILABLE|INTERNAL/i.test(msg || "");
 }
 
+/* ================================================================
+   K3 (E+) — HARD GLOBAL DEADLINE pentru bucla de retry
+   ----------------------------------------------------------------
+   O singură sursă de adevăr: `deadline = startedAt + TOTAL_BUDGET_MS`.
+   `remainingBudget()` (= max(0, deadline - now)) mărginește TOT:
+     • timeout-ul AbortController al fiecărui attempt;
+     • pornirea unui nou attempt;
+     • backoff-ul dintre attempts.
+   Un attempt pornit târziu NU mai poate rula încă PER_ATTEMPT_TIMEOUT_MS
+   peste buget — timeout-ul lui efectiv scade la cât a mai rămas.
+   Funcțiile de mai jos sunt PURE (fără timere, fără I/O) și exportate
+   exclusiv pentru testare unitară; bucla de retry le folosește direct,
+   deci nu există logică duplicată care se poate desincroniza.
+   ================================================================ */
+
+// Timeout efectiv al unui attempt = min(limita per-attempt, restul bugetului global).
+// Minim 1 ms ca setTimeout să nu primească 0 / negativ.
+export function effectiveAttemptTimeout(perAttemptMs, remainingMs) {
+    return Math.max(1, Math.min(perAttemptMs, Math.max(0, remainingMs)));
+}
+
+// Mai putem porni un fetch Gemini? Doar dacă deadline-ul global nu a fost atins.
+export function canStartAttempt(remainingMs) {
+    return remainingMs > 0;
+}
+
+// Decide backoff + retry în interiorul deadline-ului global.
+// retry doar dacă (a) mai avem attempts și (b) DUPĂ backoff rămâne timp real de
+// rulare (remainingMs > backoffMs). Altfel: fără sleep inutil, fără attempt nou.
+// sleepMs e mereu clamp-at la restul bugetului (robustețe suplimentară).
+export function planBackoff(attempt, maxAttempts, backoffMs, remainingMs) {
+    if (attempt >= maxAttempts) return { retry: false, sleepMs: 0 };
+    if (remainingMs <= backoffMs) return { retry: false, sleepMs: 0 };
+    return { retry: true, sleepMs: Math.min(backoffMs, remainingMs) };
+}
+
+// K2: extrage un „retry delay" (secunde) din răspunsul Gemini, dacă îl semnalează
+// explicit. Surse (robuste la forme lipsă): header HTTP `Retry-After` (secunde) sau
+// `error.details[].retryDelay` de tip "41s" / "1.5s" (google.rpc.RetryInfo).
+// Întoarce un întreg de secunde sau null. NU expune niciun text din eroare.
+function parseRetryDelaySec(upstream, data) {
+    try {
+        const h = upstream && upstream.headers && typeof upstream.headers.get === "function"
+            ? upstream.headers.get("retry-after") : null;
+        if (h && /^\d+$/.test(String(h).trim())) return parseInt(String(h).trim(), 10);
+        const details = data && data.error && Array.isArray(data.error.details) ? data.error.details : [];
+        for (const d of details) {
+            const rd = d && (d.retryDelay || (d.retryInfo && d.retryInfo.retryDelay));
+            const m = typeof rd === "string" ? rd.match(/^(\d+(?:\.\d+)?)s$/) : null;
+            if (m) return Math.max(1, Math.ceil(parseFloat(m[1])));
+        }
+    } catch (_) { /* formă neașteptată -> null */ }
+    return null;
+}
+
+// K2: 429 care indică epuizare de cotă (nu doar rate-limit de moment). Pentru
+// acest caz un retry rapid e garantat inutil -> întoarcem repede 503.
+function isQuotaExhausted(upstream, data) {
+    if (!upstream || upstream.status !== 429) return false;
+    const st = data && data.error && data.error.status;
+    const msg = data && data.error && data.error.message ? String(data.error.message) : "";
+    return st === "RESOURCE_EXHAUSTED" || /\bquota\b|exceeded/i.test(msg);
+}
+
 // Limită de siguranță pentru input (caractere). Protejează de abuz/costuri.
 // 8000: o documentație existentă de tradus poate fi mai lungă decât o notiță brută.
 const MAX_INPUT_CHARS = 8000;
@@ -93,6 +157,9 @@ Genannte Angaben („Ibuprofen 400 mg wurde verabreicht“) exakt erhalten.
 
 KÖRPERTEILE & SEITIGKEIT
 Anatomie exakt übernehmen. Niemals rechts/links tauschen, Arm/Hand, Bein/Fuß, Schulter/Ellenbogen verwechseln oder eine fehlende Seitigkeit erfinden.
+
+KEINE UNTERSCHIEDE ERFINDEN
+Was einheitlich, beidseitig oder ohne genaue Stelle genannt wurde, bleibt einheitlich, beidseitig und ohne genaue Stelle. Füge KEINE Seiten-, Grad- oder Ortsunterschiede hinzu, die nicht genannt wurden – kein „rechts stärker als links“, kein „vor allem am …“, keine Lokalisation, wenn nur ein Symptom ohne Stelle genannt wurde. „Beide Unterschenkel etwas gerötet“ bleibt „beide Unterschenkel etwas gerötet“.
 
 BEOBACHTUNG vs. INTERPRETATION
 „Patient war sehr unruhig.“ -> „Der Patient zeigte sich deutlich unruhig.“ Die Ursache NICHT ergänzen (z. B. „aufgrund von Angst“), außer sie wurde genannt.
@@ -176,7 +243,7 @@ Ressourcen:
 <was die Person selbst kann oder was sie unterstützt – nur wenn genannt>
 
 Pflegeziel:
-<Nah- und Fernziel trennen, wenn möglich; überprüfbar, ohne erfundene Werte oder Fristen>
+<Pflichtangabe: zu jedem Pflegeproblem ein Pflegeziel – der fachlich naheliegende, positiv formulierte Sollzustand, direkt aus dem genannten Problem abgeleitet (Problem „Gangunsicherheit“ -> Ziel „sicheres Gehen, Sturzrisiko verringert“). Nah- und Fernziel trennen, wenn möglich. KEINE erfundenen Werte, Messgrößen, Fristen oder Termine und keine neuen Fakten; ein aus dem Problem abgeleitetes Ziel gilt nicht als Erfindung. Nur weglassen, wenn sich aus dem Problem kein sinnvolles Ziel ableiten lässt.>
 
 Pflegemaßnahmen:
 - <konkrete Maßnahme, je Zeile eine; Häufigkeit/Zeitpunkt nur wenn genannt>
@@ -397,12 +464,40 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
     // Mesaj generic pentru clienți la erori de furnizor (detaliile rămân în log server).
     const SERVICE_ERR = "Der Dokumentationsdienst ist derzeit nicht verfügbar. Bitte später erneut versuchen.";
     const startedAt = Date.now();
+    // K3 (E+): deadline global HARD. Nimic din bucla de retry (fetch, timeout
+    // per-attempt, backoff, pornirea unui nou attempt) nu are voie să depășească
+    // acest moment. `remainingBudget()` e singura sursă de adevăr.
+    const deadline = startedAt + TOTAL_BUDGET_MS;
+    const remainingBudget = () => Math.max(0, deadline - Date.now());
     let data = null;
 
+    // K4: dacă browserul închide requestul /api/generate, oprim retry-urile și
+    // abortăm apelul Gemini în curs — best-effort. Runtime Vercel Node: propagarea
+    // disconnect-ului NU e garantată de platformă; dacă `res.once` nu există sau
+    // evenimentul nu vine, blocul e un no-op inofensiv (listener `once`, fără leak).
+    let clientGone = false;
+    let activeUpstreamController = null;
+    if (typeof res.once === "function") {
+        res.once("close", () => {
+            if (res.writableFinished) return; // răspunsul a fost deja trimis
+            clientGone = true;
+            try { activeUpstreamController && activeUpstreamController.abort(); } catch (_) {}
+        });
+        // Nu lăsa un `res.end()` pe un socket deja închis să devină excepție necaptată.
+        if (typeof res.on === "function") res.on("error", () => {});
+    }
+
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        const budgetLeft = () => Date.now() - startedAt < TOTAL_BUDGET_MS;
+        if (clientGone) { try { res.end(); } catch (_) {} return; } // clientul a plecat
+        // K3 (E+): deadline global atins -> nu mai porni niciun fetch Gemini.
+        if (!canStartAttempt(remainingBudget())) break;
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), PER_ATTEMPT_TIMEOUT_MS);
+        activeUpstreamController = controller;
+        // Timeout efectiv = min(limita per-attempt, cât a mai rămas din bugetul global).
+        const timer = setTimeout(
+            () => controller.abort(),
+            effectiveAttemptTimeout(PER_ATTEMPT_TIMEOUT_MS, remainingBudget())
+        );
 
         let upstream;
         try {
@@ -414,9 +509,14 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
             });
         } catch (err) {
             clearTimeout(timer);
+            if (clientGone) { try { res.end(); } catch (_) {} return; }
             const aborted = err.name === "AbortError";
-            if (attempt < MAX_ATTEMPTS && budgetLeft()) {
-                await sleep(RETRY_BACKOFF_MS[attempt - 1] || 2600);
+            // K3 (E+): retry doar dacă backoff-ul + un attempt nou încap în deadline.
+            const plan = planBackoff(attempt, MAX_ATTEMPTS, RETRY_BACKOFF_MS[attempt - 1] || 2600, remainingBudget());
+            if (plan.retry) {
+                await sleep(plan.sleepMs);
+                if (clientGone) { try { res.end(); } catch (_) {} return; }
+                if (!canStartAttempt(remainingBudget())) break; // deadline atins în timpul backoff-ului
                 continue;
             }
             return res.status(aborted ? 504 : 502).json({
@@ -449,15 +549,31 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
             return res.status(502).json({ error: SERVICE_ERR });
         }
 
-        // Tranzitorie -> backoff + retry cât timp mai avem buget.
-        if (isTransientUpstream(upstream.status, apiMsg) && attempt < MAX_ATTEMPTS && budgetLeft()) {
-            data = null;
-            await sleep(RETRY_BACKOFF_MS[attempt - 1] || 2600);
-            continue;
+        // K2: semnal explicit de retry îndepărtat / cotă epuizată -> NU retry rapid
+        // cu 1200/2600 ms (garantat inutil). Întoarcem repede 503, cu un Retry-After
+        // derivat din semnalul furnizorului (doar un întreg de secunde, fără text).
+        const retrySec = parseRetryDelaySec(upstream, data);
+        const quota = isQuotaExhausted(upstream, data);
+        if ((retrySec !== null && retrySec >= 4) || quota) {
+            res.setHeader("Retry-After", String(Math.min(retrySec || 30, 120)));
+            return res.status(503).json({ error: OVERLOAD_MSG });
+        }
+
+        // Tranzitorie fără semnal utilizabil -> backoff bounded + retry cât timp
+        // încape în deadline-ul global (MAX_ATTEMPTS oricum plafonează; fără loop infinit).
+        if (isTransientUpstream(upstream.status, apiMsg)) {
+            const plan = planBackoff(attempt, MAX_ATTEMPTS, RETRY_BACKOFF_MS[attempt - 1] || 2600, remainingBudget());
+            if (plan.retry) {
+                data = null;
+                await sleep(plan.sleepMs);
+                if (clientGone) { try { res.end(); } catch (_) {} return; }
+                if (!canStartAttempt(remainingBudget())) break; // deadline atins în timpul backoff-ului
+                continue;
+            }
         }
 
         if (upstream.status === 429 || isTransientUpstream(upstream.status, apiMsg)) {
-            res.setHeader("Retry-After", "20");
+            res.setHeader("Retry-After", retrySec ? String(Math.min(retrySec, 120)) : "20");
             return res.status(503).json({ error: OVERLOAD_MSG });
         }
         return res.status(502).json({ error: SERVICE_ERR });
