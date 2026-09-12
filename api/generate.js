@@ -31,6 +31,17 @@ const MAX_ATTEMPTS = 3;
 const RETRY_BACKOFF_MS = [1200, 2600];
 const PER_ATTEMPT_TIMEOUT_MS = 22000;
 const TOTAL_BUDGET_MS = 44000;
+
+// Pflegeplanung (SIS 6 Themenfelder / ABEDL 13 Bereiche) generează un document
+// mult mai lung și structurat decât un Verlaufsbericht -> are nevoie de mai mult
+// timp de generare reală per attempt, nu de mai multe reîncercări scurte care se
+// întrerup mereu în plină generare. Deadline-ul global rămâne HARD (K3-E+ mai
+// jos) și e doar mărit pentru acest mod, cu marjă sub client (55s) și
+// maxDuration (60s): 48s buget + ~0.2-1.7s guard/serializare < 55s.
+// MAX_ATTEMPTS / RETRY_BACKOFF_MS / maxDuration / timeout-ul client (55s) NU se schimbă.
+const PFLEGEPLANUNG_PER_ATTEMPT_TIMEOUT_MS = 30000;
+const PFLEGEPLANUNG_TOTAL_BUDGET_MS = 48000;
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function isTransientUpstream(status, msg) {
     if (status === 429 || status === 503 || status === 500) return true;
@@ -233,23 +244,42 @@ Gib NUR den fertigen Dokumentationstext zurück. Keine Einleitung („Hier ist �
 // MODE: pflegeplanung — descriere liberă -> plan structurat.
 function promptPflegeplanung(docModel) {
     const koerper = docModel === "klassisch"
-        ? `DOKUMENTATIONSMODELL: KLASSISCHE PFLEGEPLANUNG (nach AEDL/ABEDL)
-Struktur je Pflegeproblem – Überschriften genau so:
+        ? `DOKUMENTATIONSMODELL: KLASSISCHE PFLEGEPLANUNG NACH ABEDL (KROHWINKEL)
+Die 13 AEDL-Bereiche: Kommunizieren können; Sich bewegen können; Vitale Funktionen des Lebens aufrechterhalten können; Sich pflegen können; Essen und trinken können; Ausscheiden können; Sich kleiden können; Ruhen und schlafen können; Sich beschäftigen können; Sich als Mann oder Frau fühlen und verhalten können; Für eine sichere und fördernde Umgebung sorgen können; Soziale Bereiche des Lebens sichern können; Mit existenziellen Erfahrungen des Lebens umgehen können.
 
+TEIL 1 – GEPLANTE EINTRÄGE
+Für jeden AEDL-Bereich, zu dem die Pflegekraft Angaben gemacht hat, ein Block – Überschriften genau so:
+
+AEDL-Bereich: <Name des Bereichs>
 Pflegeproblem:
 <kurz und konkret; wenn die Angaben es hergeben im Format „Problem – beeinflussende Faktoren – Zeichen/Symptome“ (PES), sonst nur das Genannte>
-
 Ressourcen:
 <was die Person selbst kann oder was sie unterstützt – nur wenn genannt>
-
 Pflegeziel:
-<Pflichtangabe: zu jedem Pflegeproblem ein Pflegeziel – der fachlich naheliegende, positiv formulierte Sollzustand, direkt aus dem genannten Problem abgeleitet (Problem „Gangunsicherheit“ -> Ziel „sicheres Gehen, Sturzrisiko verringert“). Nah- und Fernziel trennen, wenn möglich. KEINE erfundenen Werte, Messgrößen, Fristen oder Termine und keine neuen Fakten; ein aus dem Problem abgeleitetes Ziel gilt nicht als Erfindung. Nur weglassen, wenn sich aus dem Problem kein sinnvolles Ziel ableiten lässt.>
-
+<Pflichtangabe: der fachlich naheliegende, positiv formulierte Sollzustand, direkt aus dem genannten Problem abgeleitet (Problem „Gangunsicherheit“ -> Ziel „sicheres Gehen, Sturzrisiko verringert“). Nah- und Fernziel trennen, wenn möglich. KEINE erfundenen Werte, Messgrößen, Fristen oder Termine und keine neuen Fakten; ein aus dem Problem abgeleitetes Ziel gilt nicht als Erfindung. Nur weglassen, wenn sich aus dem Problem kein sinnvolles Ziel ableiten lässt.>
 Pflegemaßnahmen:
 - <konkrete Maßnahme, je Zeile eine; Häufigkeit/Zeitpunkt nur wenn genannt>
-
 Evaluation:
-<nur wenn ein Überprüfungsdatum oder ein Ergebnis genannt wurde>`
+<nur wenn ein Überprüfungsdatum oder ein Ergebnis genannt wurde>
+
+TEIL 2 – OFFENE AEDL-BEREICHE
+Danach die Überschrift „Noch zu erheben:“ und darunter JEDEN AEDL-Bereich, zu dem KEINE Angaben vorliegen, als eigene Zeile im Format:
+- <AEDL-Bereich>: keine Angaben – z. B. <ein bis zwei typische Informationen für diesen Bereich>
+Typische Informationen je Bereich (als Beispiel, NICHT als Behauptung übernehmen):
+Kommunizieren können: Sehen, Hören, Sprache, Verständigung, Orientierung.
+Sich bewegen können: Gehfähigkeit, Transfer, Sturzrisiko, Hilfsmittel, Lagerung.
+Vitale Funktionen des Lebens aufrechterhalten können: Atmung, Kreislauf, Temperatur, Bewusstsein, Erkrankungen, Medikamente.
+Sich pflegen können: Körperpflege, Mund- und Zahnpflege, Hautzustand.
+Essen und trinken können: Appetit, Trinkmenge, Schlucken, besondere Kost, Gewicht.
+Ausscheiden können: Kontinenz, Miktion, Stuhlgang, Hilfsmittel.
+Sich kleiden können: An- und Auskleiden, Hilfebedarf, witterungsangemessene Kleidung.
+Ruhen und schlafen können: Schlafrhythmus, Ein- und Durchschlafen, Ruhephasen.
+Sich beschäftigen können: Tagesstruktur, Hobbys, Beschäftigungsangebote.
+Sich als Mann oder Frau fühlen und verhalten können: Intimsphäre, Selbstwertgefühl, geschlechtsspezifische Bedürfnisse.
+Für eine sichere und fördernde Umgebung sorgen können: Wohnumfeld, Sturzgefahren, Orientierungshilfen.
+Soziale Bereiche des Lebens sichern können: Kontakte, Angehörige, Besuche, Isolation.
+Mit existenziellen Erfahrungen des Lebens umgehen können: Verluste, Abschied, Ängste, religiöse oder spirituelle Bedürfnisse.
+Sind zu ALLEN 13 AEDL-Bereichen Angaben vorhanden, entfällt Teil 2.`
         : `DOKUMENTATIONSMODELL: STRUKTURMODELL – MASSNAHMENPLAN
 Die sechs SIS-Themenfelder: Kognition und Kommunikation; Mobilität und Bewegung; Krankheitsbezogene Anforderungen und Belastungen; Selbstversorgung; Leben in sozialen Beziehungen; Wohnen bzw. Haushaltsführung.
 
@@ -461,13 +491,21 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
 
     // --- Apel Gemini: până la MAX_ATTEMPTS încercări, cu backoff pe erori tranzitorii ---
     const OVERLOAD_MSG = "Gemini ist zurzeit überlastet (hohe Nachfrage). Bitte in einigen Sekunden erneut versuchen.";
+    // Cotă epuizată (429 RESOURCE_EXHAUSTED / „quota"): NU e o supraîncărcare
+    // temporară a furnizorului, deci mesaj distinct — fără jargon tehnic ("Kontingent"),
+    // ca să nu inducă în eroare persoana îngrijitoare. Detaliul real rămâne doar în log.
+    const QUOTA_MSG = "Das System ist gerade stark ausgelastet. Bitte versuche es in ein paar Sekunden erneut.";
     // Mesaj generic pentru clienți la erori de furnizor (detaliile rămân în log server).
     const SERVICE_ERR = "Der Dokumentationsdienst ist derzeit nicht verfügbar. Bitte später erneut versuchen.";
+    // Pflegeplanung (SIS/ABEDL) primește buget și timeout per-attempt mai mari —
+    // vezi constantele de mai sus. Toate celelalte moduri rămân neschimbate.
+    const perAttemptTimeoutMs = mode === "pflegeplanung" ? PFLEGEPLANUNG_PER_ATTEMPT_TIMEOUT_MS : PER_ATTEMPT_TIMEOUT_MS;
+    const totalBudgetMs = mode === "pflegeplanung" ? PFLEGEPLANUNG_TOTAL_BUDGET_MS : TOTAL_BUDGET_MS;
     const startedAt = Date.now();
     // K3 (E+): deadline global HARD. Nimic din bucla de retry (fetch, timeout
     // per-attempt, backoff, pornirea unui nou attempt) nu are voie să depășească
     // acest moment. `remainingBudget()` e singura sursă de adevăr.
-    const deadline = startedAt + TOTAL_BUDGET_MS;
+    const deadline = startedAt + totalBudgetMs;
     const remainingBudget = () => Math.max(0, deadline - Date.now());
     let data = null;
 
@@ -496,7 +534,7 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
         // Timeout efectiv = min(limita per-attempt, cât a mai rămas din bugetul global).
         const timer = setTimeout(
             () => controller.abort(),
-            effectiveAttemptTimeout(PER_ATTEMPT_TIMEOUT_MS, remainingBudget())
+            effectiveAttemptTimeout(perAttemptTimeoutMs, remainingBudget())
         );
 
         let upstream;
@@ -552,10 +590,17 @@ Gib die gesamte Dokumentation AUSSCHLIESSLICH auf ${LANG_NAMES[targetLang]} aus,
         // K2: semnal explicit de retry îndepărtat / cotă epuizată -> NU retry rapid
         // cu 1200/2600 ms (garantat inutil). Întoarcem repede 503, cu un Retry-After
         // derivat din semnalul furnizorului (doar un întreg de secunde, fără text).
+        // Mesaj diferențiat: cotă epuizată (RESOURCE_EXHAUSTED / "quota") ≠ furnizor
+        // temporar supraîncărcat — sunt cauze diferite, cu implicații diferite pentru
+        // utilizator (limita de cotă nu se rezolvă prin reîncercare imediată repetată).
         const retrySec = parseRetryDelaySec(upstream, data);
         const quota = isQuotaExhausted(upstream, data);
-        if ((retrySec !== null && retrySec >= 4) || quota) {
+        if (quota) {
             res.setHeader("Retry-After", String(Math.min(retrySec || 30, 120)));
+            return res.status(503).json({ error: QUOTA_MSG });
+        }
+        if (retrySec !== null && retrySec >= 4) {
+            res.setHeader("Retry-After", String(Math.min(retrySec, 120)));
             return res.status(503).json({ error: OVERLOAD_MSG });
         }
 
