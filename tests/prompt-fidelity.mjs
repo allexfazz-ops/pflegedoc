@@ -45,10 +45,16 @@ ok("  -> interzice explicit „rechts stärker als links”", /rechts stärker a
 ok("  -> interzice localizarea când doar un simptom fără stea a fost dat",
     /keine Lokalisation, wenn nur ein Symptom ohne Stelle genannt/.test(treue));
 
-// Blocul se aplică tuturor modurilor (TREUE_REGELN inclus peste tot).
+// Blocul se aplică tuturor modurilor rămase (TREUE_REGELN inclus peste tot).
 ok("formulieren include TREUE_REGELN (prin schreibRahmen)", /function schreibRahmen\(\)[\s\S]*TREUE_REGELN/.test(gen));
-ok("korrigieren include TREUE_REGELN", /const PROMPT_KORRIGIEREN = `\$\{TREUE_REGELN\}/.test(gen));
 ok("pflegeplanung include TREUE_REGELN (prin schreibRahmen)", /function promptPflegeplanung[\s\S]*schreibRahmen\(\)/.test(gen));
+
+// Modulul „korrigieren" a fost eliminat definitiv (decizie funcțională) — nicio
+// urmă nu trebuie să mai existe în backend.
+ok("korrigieren eliminat din VALID_MODES", /const VALID_MODES = \["formulieren", "uebersetzen", "pflegeplanung"\];/.test(gen));
+ok("PROMPT_KORRIGIEREN nu mai există", !/PROMPT_KORRIGIEREN/.test(gen));
+ok("buildSystemPrompt nu mai are ramură pentru korrigieren", !/mode === "korrigieren"/.test(gen));
+ok("nicio referință reziduală la „korrigieren” în api/generate.js", !/korrigieren/i.test(gen));
 
 // Pflegeplanung klassisch (ABEDL): cere un Pflegeziel per AEDL-Bereich, DAR fără invenție.
 const ppKlassisch = (gen.match(/DOKUMENTATIONSMODELL: KLASSISCHE PFLEGEPLANUNG NACH ABEDL[\s\S]*?entfällt Teil 2\.`/) || [, ""])[0];
@@ -111,7 +117,7 @@ ok("constantă nouă: buget global mai mare pentru pflegeplanung (48000ms)",
     /const PFLEGEPLANUNG_TOTAL_BUDGET_MS = 48000;/.test(gen));
 ok("bugetul mai mare rămâne sub client (55000ms) și maxDuration (60000ms)",
     48000 < 55000 && 48000 < 60000);
-ok("modurile formulieren/korrigieren rămân la valorile vechi (22000 / 44000)",
+ok("celelalte moduri rămân la valorile vechi (22000 / 44000)",
     /const PER_ATTEMPT_TIMEOUT_MS = 22000;/.test(gen) && /const TOTAL_BUDGET_MS = 44000;/.test(gen));
 ok("selecția mode-aware există: perAttemptTimeoutMs / totalBudgetMs derivate din `mode`",
     /const perAttemptTimeoutMs = mode === "pflegeplanung" \? PFLEGEPLANUNG_PER_ATTEMPT_TIMEOUT_MS : PER_ATTEMPT_TIMEOUT_MS;/.test(gen) &&

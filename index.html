@@ -916,7 +916,7 @@
         </section>
     </section>
 
-    <!-- Korrigieren + scrierea unui plan refolosesc #screen-doc (moduri) — vezi applyDocMode(). -->
+    <!-- Scrierea unui plan refolosește #screen-doc (moduri) — vezi applyDocMode(). -->
 
     <!-- ===================== PFLEGEPLANUNG — lista de pacienți ===================== -->
     <section id="screen-plan" class="screen" aria-labelledby="plan-h" hidden>
@@ -1663,7 +1663,7 @@ async function generateDoc() {
         try {
             const outSel = document.getElementById('outputLanguage');
             const modelSel = document.getElementById('docModel');
-            const targetLang = (currentDocMode !== 'korrigieren' && outSel) ? outSel.value : 'de';
+            const targetLang = outSel ? outSel.value : 'de';
             const docModel = (currentDocMode === 'pflegeplanung' && modelSel) ? modelSel.value : 'sis';
             const text = await callGemini(apiKey, userInput, {
                 mode: currentDocMode, targetLang: targetLang, docModel: docModel
@@ -1712,7 +1712,7 @@ async function callGemini(apiKey, userInput, opts) {
         url = CONFIG.BACKEND_ENDPOINT;
         payload = { input: userInput };
         if (opts.mode && opts.mode !== 'formulieren') payload.mode = opts.mode;
-        if (opts.mode !== 'korrigieren' && opts.targetLang && opts.targetLang !== 'de') {
+        if (opts.targetLang && opts.targetLang !== 'de') {
             payload.targetLang = opts.targetLang;
         }
         if (opts.mode === 'pflegeplanung' && opts.docModel && opts.docModel !== 'sis') {
@@ -1720,7 +1720,7 @@ async function callGemini(apiKey, userInput, opts) {
         }
     } else {
         // Mod DIRECT (cheie proprie): doar documentația clasică germană.
-        // Korrigieren / traducerea rulează exclusiv prin backend.
+        // Traducerea rulează exclusiv prin backend.
         url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
         payload = {
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
@@ -1990,7 +1990,7 @@ function finishProcessingSteps() {
 }
 
 function setLoading(loading) {
-    const k = { korrigieren: 'doc.k', pflegeplanung: 'doc.p' }[currentDocMode] || 'doc';
+    const k = { pflegeplanung: 'doc.p' }[currentDocMode] || 'doc';
     generateBtn.disabled = loading;
     generateBtn.textContent = loading ? t(k + '.generate.loading') : t(k + '.generate');
     const proc = document.getElementById('processing');
@@ -2160,9 +2160,8 @@ async function acceptDoc() {
         try {
             const langEl = document.getElementById('inputLanguage');
             const outEl = document.getElementById('outputLanguage');
-            const isKorr = currentDocMode === 'korrigieren';
-            const histType = isKorr ? 'korrigierung' : (isPlan ? 'pflegeplanung' : 'dokumentation');
-            const outLang = (!isKorr && outEl && outEl.value && outEl.value !== 'de') ? outEl.value : null;
+            const histType = isPlan ? 'pflegeplanung' : 'dokumentation';
+            const outLang = (outEl && outEl.value && outEl.value !== 'de') ? outEl.value : null;
             await apiFetch('/api/history', {
                 method: 'POST',
                 body: {
@@ -2547,7 +2546,7 @@ const I18N = {
         'home.doc.desc': 'Was mit dem Patienten gemacht wurde – pro Schicht bzw. Uhrzeit.',
         'home.plan.desc': 'Pro Patient ein Projekt: Probleme, Ziele, Maßnahmen.',
         'home.settings.desc': 'Konto, Sprache, Darstellung, Spracheingabe.',
-        'tile.plan': 'Pflegeplanung', 'tile.korrigieren': 'Korrigieren', 'tile.uebersetzen': 'Übersetzen',
+        'tile.plan': 'Pflegeplanung', 'tile.uebersetzen': 'Übersetzen',
         'tile.verlauf': 'Verlauf', 'tag.soon': 'In Vorbereitung', 'soon.title': 'In Vorbereitung',
         'common.newDoc': 'Neue Dokumentation',
         'doc.title': 'Neue Dokumentation', 'doc.sub': 'Beschreibe kurz, was passiert ist.',
@@ -2555,10 +2554,6 @@ const I18N = {
         'doc.note.ph': 'Zum Beispiel:\nHerr Müller klagte heute Morgen über Schmerzen im rechten Knie. Blutdruck 150/95. Medikamente gegeben und bei der Mobilisation geholfen.',
         'doc.inputlang': 'Eingabesprache', 'doc.outputlang': 'Ausgabesprache',
         'doc.model': 'Planungsmodell', 'doc.model.sis': 'Strukturmodell (SIS)', 'doc.model.klassisch': 'Klassisch',
-        'doc.k.title': 'Text korrigieren',
-        'doc.k.sub': 'Rechtschreibung und Grammatik werden korrigiert, ohne den Inhalt zu ändern.',
-        'doc.k.ph': 'Text einfügen, der sprachlich korrigiert werden soll …',
-        'doc.k.generate': 'Text korrigieren', 'doc.k.generate.loading': 'Wird korrigiert …',
         'doc.p.title': 'Pflegeplanung erstellen',
         'doc.p.sub': 'Beschreibe das Pflegeproblem in eigenen Worten – PflegeDoc gliedert es in eine Pflegeplanung.',
         'doc.p.ph': 'Zum Beispiel:\nFrau Keller kann sich seit dem Sturz nicht allein waschen und hat Angst vor dem Wasser. Sie möchte wieder selbstständiger werden. Ich unterstütze beim Waschen von Rücken und Beinen und leite sie täglich an.',
@@ -2578,7 +2573,6 @@ const I18N = {
         'result.accept': 'Übernehmen', 'result.edit': 'Bearbeiten', 'result.editDone': 'Fertig', 'result.copy': 'Kopieren',
         'export.pdf': 'Drucken',
         'plan.soon.text': 'Die Pflegeplanung wird an dieselbe Dokumentationsengine angebunden. Die Oberfläche ist hier bereits vorgesehen.',
-        'korr.soon.text': 'Bestehende Texte sprachlich und fachlich glätten – ohne den Inhalt zu verändern. Integration folgt.',
         'ueb.soon.text': 'Dokumentation in eine andere Sprache übertragen – für Übergaben und Angehörige. Integration folgt.',
         'verlauf.title': 'Verlauf', 'verlauf.clearAll': 'Alles löschen',
         'verlauf.empty.title': 'Noch kein Verlauf',
@@ -2587,7 +2581,7 @@ const I18N = {
         'verlauf.sub.account': 'Übernommene Dokumentationen – in deinem Konto gespeichert.',
         'hist.more': 'Mehr laden', 'hist.copy': 'Kopieren', 'hist.delete': 'Löschen',
         'hist.confirmDelete': 'Diesen Eintrag löschen?',
-        'hist.type.dokumentation': 'Dokumentation', 'hist.type.korrigierung': 'Korrektur',
+        'hist.type.dokumentation': 'Dokumentation',
         'plan.title': 'Pflegeplanung', 'plan.sub': 'Pro Patient ein Projekt – neu anlegen oder fortschreiben.',
         'plan.newPatient': 'Neuer Patient', 'plan.name': 'Name / Kürzel', 'plan.name.ph': 'z. B. M. K. (Zi. 12)',
         'plan.note': 'Notiz (optional)', 'plan.note.ph': 'Pflegegrad, Zimmer, Diagnose …',
@@ -2697,7 +2691,7 @@ const I18N = {
         'home.doc.desc': 'What was done with the patient – per shift or time of day.',
         'home.plan.desc': 'One project per patient: problems, goals, interventions.',
         'home.settings.desc': 'Account, language, appearance, voice input.',
-        'tile.plan': 'Care planning', 'tile.korrigieren': 'Proofread', 'tile.uebersetzen': 'Translate',
+        'tile.plan': 'Care planning', 'tile.uebersetzen': 'Translate',
         'tile.verlauf': 'History', 'tag.soon': 'Coming soon', 'soon.title': 'Coming soon',
         'common.newDoc': 'New documentation',
         'doc.title': 'New documentation', 'doc.sub': 'Briefly describe what happened.',
@@ -2705,10 +2699,6 @@ const I18N = {
         'doc.note.ph': 'For example:\nMr Müller complained of pain in his right knee this morning. Blood pressure 150/95. Medication given and assisted with mobilisation.',
         'doc.inputlang': 'Input language', 'doc.outputlang': 'Output language',
         'doc.model': 'Planning model', 'doc.model.sis': 'Structural model (SIS)', 'doc.model.klassisch': 'Classic',
-        'doc.k.title': 'Correct text',
-        'doc.k.sub': 'Spelling and grammar are corrected without changing the content.',
-        'doc.k.ph': 'Paste the text to be corrected linguistically …',
-        'doc.k.generate': 'Correct text', 'doc.k.generate.loading': 'Correcting …',
         'doc.p.title': 'Create care plan',
         'doc.p.sub': 'Describe the nursing problem in your own words – PflegeDoc structures it into a care plan.',
         'doc.p.ph': 'For example:\nSince her fall, Mrs Keller cannot wash herself and is afraid of the water. She wants to become more independent again. I help wash her back and legs and guide her daily.',
@@ -2728,7 +2718,6 @@ const I18N = {
         'result.accept': 'Accept', 'result.edit': 'Edit', 'result.editDone': 'Done', 'result.copy': 'Copy',
         'export.pdf': 'Print',
         'plan.soon.text': 'Care planning will use the same documentation engine. The interface is already prepared here.',
-        'korr.soon.text': 'Smooth existing texts linguistically and professionally – without changing the content. Integration to follow.',
         'ueb.soon.text': 'Transfer documentation into another language – for handovers and relatives. Integration to follow.',
         'verlauf.title': 'History', 'verlauf.clearAll': 'Delete all',
         'verlauf.empty.title': 'No history yet',
@@ -2737,7 +2726,7 @@ const I18N = {
         'verlauf.sub.account': 'Accepted documentation – stored in your account.',
         'hist.more': 'Load more', 'hist.copy': 'Copy', 'hist.delete': 'Delete',
         'hist.confirmDelete': 'Delete this entry?',
-        'hist.type.dokumentation': 'Documentation', 'hist.type.korrigierung': 'Correction',
+        'hist.type.dokumentation': 'Documentation',
         'plan.title': 'Care planning', 'plan.sub': 'One project per patient – create a new one or continue.',
         'plan.newPatient': 'New patient', 'plan.name': 'Name / initials', 'plan.name.ph': 'e.g. M. K. (Rm. 12)',
         'plan.note': 'Note (optional)', 'plan.note.ph': 'Care level, room, diagnosis …',
@@ -2847,7 +2836,7 @@ const I18N = {
         'home.doc.desc': 'Ce s-a făcut cu pacientul – pe tură sau pe oră.',
         'home.plan.desc': 'Câte un proiect per pacient: probleme, obiective, măsuri.',
         'home.settings.desc': 'Cont, limbă, aspect, dictare.',
-        'tile.plan': 'Planificarea îngrijirii', 'tile.korrigieren': 'Corectare', 'tile.uebersetzen': 'Traducere',
+        'tile.plan': 'Planificarea îngrijirii', 'tile.uebersetzen': 'Traducere',
         'tile.verlauf': 'Istoric', 'tag.soon': 'În pregătire', 'soon.title': 'În pregătire',
         'common.newDoc': 'Documentație nouă',
         'doc.title': 'Documentație nouă', 'doc.sub': 'Descrie pe scurt ce s-a întâmplat.',
@@ -2855,10 +2844,6 @@ const I18N = {
         'doc.note.ph': 'De exemplu:\nDomnul Müller a acuzat azi dimineață dureri la genunchiul drept. Tensiune 150/95. I s-au administrat medicamentele și a fost ajutat la mobilizare.',
         'doc.inputlang': 'Limba de intrare', 'doc.outputlang': 'Limba de ieșire',
         'doc.model': 'Model de planificare', 'doc.model.sis': 'Model structural (SIS)', 'doc.model.klassisch': 'Clasic',
-        'doc.k.title': 'Corectează textul',
-        'doc.k.sub': 'Se corectează ortografia și gramatica, fără a schimba conținutul.',
-        'doc.k.ph': 'Lipește textul care trebuie corectat lingvistic …',
-        'doc.k.generate': 'Corectează textul', 'doc.k.generate.loading': 'Se corectează …',
         'doc.p.title': 'Creează planul de îngrijire',
         'doc.p.sub': 'Descrie problema de îngrijire în cuvintele tale – PflegeDoc o structurează într-un plan de îngrijire.',
         'doc.p.ph': 'De exemplu:\nDe la cădere, doamna Keller nu se mai poate spăla singură și îi e frică de apă. Vrea să redevină mai independentă. O ajut la spălatul spatelui și al picioarelor și o îndrum zilnic.',
@@ -2878,7 +2863,6 @@ const I18N = {
         'result.accept': 'Preia', 'result.edit': 'Editează', 'result.editDone': 'Gata', 'result.copy': 'Copiază',
         'export.pdf': 'Printează',
         'plan.soon.text': 'Planificarea îngrijirii va folosi același motor de documentare. Interfața este deja pregătită aici.',
-        'korr.soon.text': 'Netezește texte existente lingvistic și profesional – fără a schimba conținutul. Integrarea urmează.',
         'ueb.soon.text': 'Transferă documentația în altă limbă – pentru predări și aparținători. Integrarea urmează.',
         'verlauf.title': 'Istoric', 'verlauf.clearAll': 'Șterge tot',
         'verlauf.empty.title': 'Încă niciun istoric',
@@ -2887,7 +2871,7 @@ const I18N = {
         'verlauf.sub.account': 'Documentații preluate – salvate în contul tău.',
         'hist.more': 'Încarcă mai multe', 'hist.copy': 'Copiază', 'hist.delete': 'Șterge',
         'hist.confirmDelete': 'Ștergi această intrare?',
-        'hist.type.dokumentation': 'Documentație', 'hist.type.korrigierung': 'Corectură',
+        'hist.type.dokumentation': 'Documentație',
         'plan.title': 'Planificarea îngrijirii', 'plan.sub': 'Câte un proiect per pacient – creezi unul nou sau continui.',
         'plan.newPatient': 'Pacient nou', 'plan.name': 'Nume / inițiale', 'plan.name.ph': 'ex. M. K. (cam. 12)',
         'plan.note': 'Notă (opțional)', 'plan.note.ph': 'Pflegegrad, cameră, diagnostic …',
@@ -3044,7 +3028,7 @@ function applyI18n() {
     applyAuthUI();
     // reflectă butonul de generare / editare dacă sunt vizibile
     if (typeof generateBtn !== 'undefined' && generateBtn && !generateBtn.disabled) {
-        const gk = { korrigieren: 'doc.k.generate', pflegeplanung: 'doc.p.generate' }[currentDocMode] || 'doc.generate';
+        const gk = { pflegeplanung: 'doc.p.generate' }[currentDocMode] || 'doc.generate';
         generateBtn.textContent = t(gk);
     }
 }
@@ -3473,7 +3457,7 @@ function buildHistItemRemote(it) {
         '</div></div>';
     el.querySelector('.histitem__when').textContent = when;
     const tagEl = el.querySelector('.histitem__tag');
-    const typeKeys = { dokumentation: 'hist.type.dokumentation', korrigierung: 'hist.type.korrigierung', pflegeplanung: 'tile.plan' };
+    const typeKeys = { dokumentation: 'hist.type.dokumentation', pflegeplanung: 'tile.plan' };
     let label = typeKeys[it.type] ? t(typeKeys[it.type]) : '';
     if (label && it.output_language && it.output_language !== 'de') {
         const lo = LOCALES.find(l => l.code === it.output_language);

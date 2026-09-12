@@ -7,7 +7,7 @@
  * (Project → Settings → Environment Variables) sau în `.env.local`
  * pentru rulare locală cu `vercel dev`.
  *
- * Request  (POST, JSON):  { "input": "...", "mode"?: "formulieren" | "korrigieren" | "uebersetzen",
+ * Request  (POST, JSON):  { "input": "...", "mode"?: "formulieren" | "uebersetzen" | "pflegeplanung",
  *                           "targetLang"?: "de" | "en" | "tr" | ... }
  *   - mode implicit: "formulieren" (übersetzen + professionell formulieren)
  *   - targetLang: doar pentru "formulieren". Absent / "de" -> ieșire germană (comportament clasic).
@@ -194,8 +194,8 @@ ABSOLUTE REGEL
 Zwischen einer beeindruckender klingenden und einer einfacheren, vollständig treuen Dokumentation IMMER die einfachere, treue wählen. Aufgabe: „Aus den Informationen der Pflegekraft eine klare, korrekte und professionelle Dokumentation machen.“ NICHT: „Eine möglichst vollständige Dokumentation erfinden.“`;
 
 /* ----------------------------------------------------------------------------
-   Pflegefachsprache + cadru regional. Injectate în modurile de SCRIERE
-   (formulieren / pflegeplanung), NU în korrigieren.
+   Pflegefachsprache + cadru regional. Injectate în ambele moduri de scriere
+   (formulieren / pflegeplanung).
    Regionalizare viitoare: adaugă o intrare în STANDARDS și expune un selector;
    momentan un singur set — Deutschland / Nordrhein-Westfalen.
    ---------------------------------------------------------------------------- */
@@ -321,21 +321,11 @@ AUSGABEFORMAT
 Gib NUR die Planung zurück. Keine Einleitung, keine Erklärung, kein Disclaimer im Text.`;
 }
 
-// MODE: korrigieren — doar corectură lingvistică (fără cadru regional / structură).
-const PROMPT_KORRIGIEREN = `${TREUE_REGELN}
-
-MODUS: KORRIGIEREN
-Korrigiere NUR Rechtschreibung, Grammatik, Zeichensetzung und offensichtliche sprachliche Fehler. Behalte die Wortwahl und den Aufbau der Pflegekraft so weit wie möglich bei. KEINE inhaltliche oder stilistische Umformulierung, keine Umstrukturierung, keine Fachbegriff-Ersetzungen über das Nötige hinaus. Ist die Eingabe nicht auf Deutsch, übertrage sie so wörtlich wie möglich ins korrekte Deutsche.
-
-AUSGABEFORMAT
-Gib NUR den korrigierten Text zurück – ohne Einleitung, ohne Kommentar.`;
-
-const VALID_MODES = ["formulieren", "uebersetzen", "korrigieren", "pflegeplanung"];
+const VALID_MODES = ["formulieren", "uebersetzen", "pflegeplanung"];
 
 // Asamblează promptul de sistem. docModel e relevant DOAR pentru pflegeplanung
 // (Maßnahmenplan vs. clasic); Dokumentation e mereu Verlaufsbericht pe tură.
 function buildSystemPrompt(mode, docModel) {
-    if (mode === "korrigieren") return PROMPT_KORRIGIEREN;
     if (mode === "pflegeplanung") return promptPflegeplanung(docModel);
     return promptFormulieren(); // formulieren + uebersetzen
 }
@@ -455,7 +445,7 @@ export default async function handler(req, res) {
         });
     }
 
-    // Mod de lucru: formulieren (implicit) | korrigieren | uebersetzen | pflegeplanung
+    // Mod de lucru: formulieren (implicit) | uebersetzen | pflegeplanung
     const mode = VALID_MODES.includes(body && body.mode) ? body.mode : "formulieren";
     // Model de documentație: sis (implicit) | klassisch — relevant pt formulieren + pflegeplanung.
     const docModel = DOC_MODELS.includes(body && body.docModel) ? body.docModel : DEFAULT_DOC_MODEL;

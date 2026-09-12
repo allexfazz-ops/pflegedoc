@@ -26,7 +26,7 @@
  *
  * FLAGS
  *   --dry-run              no API calls; prints prompt/input sizes + safety proof
- *   --categories=1,2,..    subset of 1..6 (default: all)
+ *   --categories=1,2,..    subset of 1..5 (default: all)
  *   --mode=nonstream|stream|both   (default: both)
  *   --samples=N            successful-sample target per (category,mode) (default 3)
  *   --spacing=MS           delay between every API call (default 6000)
@@ -63,8 +63,8 @@ const SAMPLES = Math.max(1, parseInt(val("--samples", "3"), 10) || 3);
 const SPACING_MS = Math.max(0, parseInt(val("--spacing", "6000"), 10) || 6000);
 const MIRROR_RETRY = !has("--no-mirror-retry"); // default ON for non-stream
 const MAX_CALLS = Math.max(1, parseInt(val("--max-calls", "80"), 10) || 80);
-const CATS = String(val("--categories", "1,2,3,4,5,6"))
-    .split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => n >= 1 && n <= 6);
+const CATS = String(val("--categories", "1,2,3,4,5"))
+    .split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => n >= 1 && n <= 5);
 
 const P95_MIN_N = 5; // below this, p95 is reported as insufficient — never fabricated
 
@@ -171,13 +171,6 @@ const PP_KLASSISCH = [
     "Er möchte wieder allein zur Toilette gehen können. Ehefrau ist eingebunden und unterstützt bei den Mahlzeiten.",
 ].join(" ");
 
-const KORRIGIEREN_INPUT = [
-    "der patinet hatte heute morgen starke schmerzen im rechten knie und konnte nich alleine aufstehen.",
-    "wir haben ihm beim transfer geholfen und die schmerzmedikation nach plan gegeben.",
-    "am nachmittag ging es ihm besser er hat mit dem rollator ein paar schritte auf dem flur gemacht.",
-    "die tochter wurde informirt und kommt morgen vorbei.",
-].join(" ");
-
 // Long formulieren near MAX_INPUT_CHARS: composed from realistic distinct shift
 // blocks across three days, then trimmed to a safe length < MAX_INPUT_CHARS.
 function buildLongFormulieren(maxChars) {
@@ -215,7 +208,6 @@ function categories(realMod) {
         { id: 3, label: "long formulieren (~max)", mode: "formulieren",   variant: "-",        input: longText },
         { id: 4, label: "pflegeplanung + sis",     mode: "pflegeplanung", variant: "sis",      input: PP_SIS },
         { id: 5, label: "pflegeplanung + klassisch",mode: "pflegeplanung",variant: "klassisch",input: PP_KLASSISCH },
-        { id: 6, label: "korrigieren",             mode: "korrigieren",   variant: "-",        input: KORRIGIEREN_INPUT },
     ].filter((c) => CATS.includes(c.id));
 }
 
