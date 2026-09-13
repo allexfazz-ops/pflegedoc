@@ -46,9 +46,18 @@ const GENERIC_LOGIN = "E-Mail oder Passwort ist falsch.";
 // Link-uri/erori de e-mail cu potențial de token: DOAR în afara producției (F-04).
 const allowDevEmailHints = () => !isProduction();
 
+// REGISTRATION_MODE=invite_only -> înregistrarea publică e dezactivată; conturile
+// se creează doar de administrator (scripts/create-user.mjs). Implicit "open"
+// (comportamentul actual) dacă variabila lipsește.
+const isInviteOnly = () => process.env.REGISTRATION_MODE === "invite_only";
+
 /* --------------------------------- register -------------------------------- */
 async function register(req, res) {
     if (methodNotAllowed(req, res, ["POST"])) return;
+    if (isInviteOnly()) {
+        securityEvent("register_attempt", req, { outcome: "invite_only_blocked" });
+        return fail(res, 403, "Die Registrierung ist derzeit nur auf Einladung möglich. Bitte wende dich an deine Administratorin/deinen Administrator.");
+    }
     try {
         await ensureSchema();
         if (await enforceRateLimit(res, `register:ip:${clientIp(req)}`, 10, 3600, req)) return;
@@ -196,9 +205,10 @@ async function me(req, res) {
     try {
         await ensureSchema();
         const auth = await getAuth(req);
-        if (!auth) return json(res, 200, { authenticated: false });
+        if (!auth) return json(res, 200, { authenticated: false, registrationOpen: !isInviteOnly() });
         return json(res, 200, {
             authenticated: true,
+            registrationOpen: !isInviteOnly(),
             user: {
                 id: auth.user.id, email: auth.user.email,
                 ui_language: auth.user.ui_language, theme: auth.user.theme,
